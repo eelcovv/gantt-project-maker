@@ -1,6 +1,6 @@
 import pytest
 
-from gantt_project_maker.main import main, check_beschikbaar
+from gantt_project_maker.main import check_if_items_are_available
 
 __author__ = "Eelco van Vliet"
 __copyright__ = "Eelco van Vliet"
@@ -13,4 +13,4 @@ def test_check_beschikbaar():
     input_list = ["A", "B"]
     available_dict = {"A": 0, "B": 1, "C": 2}
 
-    assert check_beschikbaar(gevraagd=input_list, beschikbaar=available_dict)
+    assert check_if_items_are_available(requested_items=input_list, available_items=available_dict)

@@ -208,17 +208,17 @@ def write_planning_to_excel(excel_file, project, header_info, column_widths):
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
 
         try:
-            projects_per_medewerker = project.tasks
+            projects_per_Employee = project.tasks
         except AttributeError as err:
             raise AttributeError(
-                f"{err}\nproject heeft helemaal geen taken. Hier gaat wat fout"
+                f"{err}\nproject heeft helemaal geen taken. Hier gaat what fout"
             )
         else:
-            for projecten_medewerker in projects_per_medewerker:
+            for projecten_Employee in projects_per_Employee:
                 write_project_to_excel(
-                    project=projecten_medewerker,
+                    project=projecten_Employee,
                     writer=writer,
-                    sheet_name=projecten_medewerker.name,
+                    sheet_name=projecten_Employee.name,
                     header_info=header_info,
                     column_widths=column_widths,
                 )
@@ -298,10 +298,10 @@ def write_project(
     if level == 1:
         row_index += 1
 
-    taak_label = None
+    task_label = None
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding project {info_key}")
-        columns_names = info_val["kolommen"]
+        columns_names = info_val["columns"]
         for column_key, column_name in columns_names.items():
             _logger.debug(f"Adding column {column_key}")
             try:
@@ -311,19 +311,19 @@ def write_project(
                 label = None
             if type(project) in (gantt.Task, gantt.Milestone):
                 if column_key == "name":
-                    taak_label = label
+                    task_label = label
                     label = None
-                elif column_key == "taak":
-                    label = taak_label
-                elif column_key.startswith("medewerker"):
+                elif column_key == "task":
+                    label = task_label
+                elif column_key.startswith("Employee"):
                     try:
-                        medewerker = project.get_resources()[resource_index]
+                        Employee = project.get_resources()[resource_index]
                     except IndexError:
                         label = None
                     else:
-                        label = medewerker.name
+                        label = Employee.name
                         resource_index += 1
-                elif column_key == "periode":
+                elif column_key == "period":
                     label = ""
                     try:
                         year_start = pd.Timestamp(project.start).year
@@ -374,12 +374,12 @@ def write_project(
     try:
         tasks = project.tasks
     except AttributeError:
-        _logger.debug("Dit is een taak, dus heeft geen taken ")
+        _logger.debug("Dit is een task, dus heeft geen taken ")
     else:
-        for taak in tasks:
+        for task in tasks:
             level += 1
             row_index, level = write_project(
-                taak,
+                task,
                 header_info=header_info,
                 workbook=workbook,
                 worksheet=worksheet,
@@ -396,14 +396,14 @@ def write_project(
 def write_header(header_info, workbook, worksheet, character_width, wb, column_widths):
     row_index = 0
     col_index = 0
-    # begin met tabel nummer op eerste regel en titel op regel 2
+    # begin met tabel nummer op eerste regel en title op regel 2
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding header for {info_key}")
-        columns_names = info_val["kolommen"]
-        titel = info_val["titel"]
+        columns_names = info_val["columns"]
+        title = info_val["title"]
         n_columns = len(columns_names.keys())
-        if kleur := info_val.get("kleur"):
-            color = f"#{kleur}"
+        if color := info_val.get("color"):
+            color = f"#{color}"
         else:
             color = "black"
 
@@ -420,14 +420,14 @@ def write_header(header_info, workbook, worksheet, character_width, wb, column_w
             first_col = col_index
             last_col = col_index + n_columns - 1
             _logger.debug(
-                f"Merging cells {first_col} - {last_col} at ro {row_index}: {titel} {color}"
+                f"Merging cells {first_col} - {last_col} at ro {row_index}: {title} {color}"
             )
             worksheet.merge_range(
-                row_index, first_col, row_index, last_col, titel, merge_format
+                row_index, first_col, row_index, last_col, title, merge_format
             )
         else:
-            _logger.debug(f"Writing cell {col_index}  at ro {row_index}: {titel}")
-            worksheet.write(row_index, col_index, titel, merge_format)
+            _logger.debug(f"Writing cell {col_index}  at ro {row_index}: {title}")
+            worksheet.write(row_index, col_index, title, merge_format)
 
         for column_key, column_name in columns_names.items():
             _logger.debug(f"Adding column {column_key}")

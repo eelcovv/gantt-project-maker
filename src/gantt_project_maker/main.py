@@ -11,8 +11,8 @@ from pathlib import Path
 
 import yaml
 
-from gantt_projectplanner import __version__
-from gantt_projectplanner.project_classes import ProjectPlanner, SCALES, parse_date
+from gantt_project_maker import __version__
+from gantt_project_maker.project_classes import ProjectPlanner, SCALES, parse_date
 
 __author__ = "Eelco van Vliet"
 __copyright__ = "Eelco van Vliet"
@@ -46,7 +46,7 @@ def parse_args(args):
     parser.add_argument(
         "--version",
         action="version",
-        version=f"gantt_projectplanner {__version__}",
+        version=f"gantt_project_maker {__version__}",
     )
     parser.add_argument(
         "-v",
@@ -68,7 +68,7 @@ def parse_args(args):
     parser.add_argument(
         "-s",
         "--scale",
-        help="Kies de schaal van het grid van het schema",
+        help="Kies de scale van het grid van het schema",
         choices=set(SCALES.keys()),
     )
     parser.add_argument(
@@ -91,22 +91,22 @@ def parse_args(args):
     )
     parser.add_argument(
         "-b",
-        "--bronnen",
-        help="Schrijf ook de bronnen file de planning naar excel",
+        "--resources",
+        help="Schrijf ook de resources file de planning naar excel",
         action="store_true",
     )
     parser.add_argument(
         "-m",
-        "--medewerker",
-        help="Neem alleen de medewerkers mee die  opgegeven zijn. Kan meerdere keren gegeven worden voor meerdere "
-        "medewerkers",
+        "--Employee",
+        help="Neem alleen de employees mee die  opgegeven zijn. Kan meerdere keren gegeven worden voor meerdere "
+        "employees",
         action="append",
     )
     parser.add_argument(
         "-p",
-        "--periode",
-        help="Neem alleen de periode mee die  opgegeven is. Kan meerdere keren gegeven worden voor meerdere "
-        "periodes. Als niets gegeven wordt dan nemen we ze allemaal",
+        "--period",
+        help="Neem alleen de period mee die  opgegeven is. Kan meerdere keren gegeven worden voor meerdere "
+        "periods. Als niets gegeven wordt dan nemen we ze allemaal",
         action="append",
     )
 
@@ -131,25 +131,25 @@ def setup_logging(loglevel):
     )
 
 
-def check_beschikbaar(gevraagd, beschikbaar, label=""):
+def check_if_items_are_available(requested_items, available_items, label=""):
     """
-    Check of de meegegeven selectie van keys in 'gevraagd' wel terug te vinden is in de keys van 'beschikbaar'
+    Check is the passed items in the list are available in the keys of the dictionary
 
     Parameters
     ----------
-    gevraagd: list
-        Items die gevraagd worden
-    beschikbaar: dict
-        Dictionary met keys die beschikbaar moeten zijn
+    requested_items: list
+        All requested items  in the list
+    available_items: dict
+        The dictionary with the keys
     label: str
-        Alleen ter informatie bij het schrijven naar scherm als label
+        Used for information to the screen
 
     """
-    beschikbare_items = set(list(beschikbaar.keys()))
-    if missende_items := set(gevraagd).difference(beschikbare_items):
+    unique_available_items = set(list(available_items.keys()))
+    if missing_items := set(requested_items).difference(unique_available_items):
         raise ValueError(
-            f"De {label} {missende_items} is niet in de settings file gedefinieerd.\n"
-            f"Beschikbaar zijn {beschikbare_items}"
+            f"The {label} {missing_items} are not defined in the settings file.\n"
+            f"The following keys are available: {unique_available_items}"
         )
 
 
@@ -170,7 +170,7 @@ def main(args):
         settings = yaml.load(stream=stream, Loader=yaml.Loader)
 
     general_settings = settings["algemeen"]
-    periode_info = settings["periodes"]
+    period_info = settings["periods"]
 
     if args.scale is not None:
         scale_key = args.scale
@@ -179,48 +179,48 @@ def main(args):
     scale = SCALES[scale_key]
 
     start = parse_date(general_settings["planning_start"])
-    einde = parse_date(general_settings["planning_einde"])
-    programma_titel = general_settings["titel"]
-    programma_kleur = general_settings.get("kleur")
+    end = parse_date(general_settings["planning_end"])
+    programma_title = general_settings["title"]
+    programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
-    project_settings_per_medewerker = settings["project_settings_file_per_medewerker"]
+    project_settings_per_Employee = settings["project_settings_file_per_employee"]
 
     if output_directories is not None:
         planning_directory = Path(output_directories.get("planning", "."))
-        resources_directory = Path(output_directories.get("bronnen", "."))
+        resources_directory = Path(output_directories.get("resources", "."))
         excel_directory = Path(output_directories.get("excel", "."))
     else:
         planning_directory = Path(".")
         resources_directory = Path(".")
         excel_directory = Path(".")
 
-    if args.medewerker is not None:
-        check_beschikbaar(
-            gevraagd=args.medewerker,
-            beschikbaar=project_settings_per_medewerker,
-            label="medewerker",
+    if args.Employee is not None:
+        check_if_items_are_available(
+            requested_items=args.Employee,
+            available_items=project_settings_per_Employee,
+            label="Employee",
         )
 
-    if args.periode is not None:
-        check_beschikbaar(
-            gevraagd=args.periode, beschikbaar=periode_info, label="periode"
+    if args.period is not None:
+        check_if_items_are_available(
+            requested_items=args.period, available_items=period_info, label="period"
         )
 
-    vakanties_info = settings.get("vakanties")
-    medewerkers_info = settings.get("medewerkers")
+    vacations_info = settings.get("vacations")
+    employees_info = settings.get("employees")
     excel_info = settings.get("excel")
 
     # lees de settings file per medewerk
-    settings_per_medewerker = {}
+    settings_per_Employee = {}
     for (
-        medewerker_key,
-        medewerker_settings_file,
-    ) in project_settings_per_medewerker.items():
+        employee_key,
+        employee_settings_file,
+    ) in project_settings_per_Employee.items():
         _logger.info(
-            f"Van medewerker {medewerker_key} lees settings file  {medewerker_settings_file}"
+            f"Van Employee {employee_key} lees settings file  {employee_settings_file}"
         )
-        with codecs.open(medewerker_settings_file, "r", encoding="UTF-8") as stream:
-            settings_per_medewerker[medewerker_key] = yaml.load(
+        with codecs.open(employee_settings_file, "r", encoding="UTF-8") as stream:
+            settings_per_Employee[employee_key] = yaml.load(
                 stream=stream, Loader=yaml.Loader
             )
 
@@ -229,14 +229,14 @@ def main(args):
     else:
         output_filename = Path(args.output_filename).with_suffix(".svg")
 
-    if args.medewerker is not None:
+    if args.Employee is not None:
         output_filename = Path(
-            "_".join([output_filename.with_suffix("").as_posix()] + args.medewerker)
+            "_".join([output_filename.with_suffix("").as_posix()] + args.Employee)
         ).with_suffix(".svg")
 
     today = None
     try:
-        today_reference = general_settings["referentie_datum"]
+        today_reference = general_settings["reference_date"]
     except KeyError:
         _logger.debug("No date found")
     else:
@@ -252,63 +252,63 @@ def main(args):
 
     # Begin de planning
     planning = ProjectPlanner(
-        programma_titel=programma_titel,
-        programma_kleur=programma_kleur,
+        programma_title=programma_title,
+        programma_color=programma_color,
         output_file_name=output_filename,
         planning_start=start,
-        planning_einde=einde,
+        planning_end=end,
         vandaag=today,
-        schaal=scale,
-        periode_info=periode_info,
+        scale=scale,
+        period_info=period_info,
         excel_info=excel_info,
         details=args.details,
     )
 
-    # voeg globale informatie, vakanties en medewerkers toe
+    # voeg globale informatie, vacations en employees toe
     planning.maak_globale_informatie()
-    planning.maak_vakanties(vakanties_info=vakanties_info)
-    planning.maak_medewerkers(medewerkers_info=medewerkers_info)
+    planning.maak_vacations(vacations_info=vacations_info)
+    planning.maak_employees(employees_info=employees_info)
 
-    # Voeg nu de algemene taken per medewerker toe. Het is niet verplicht taken_en_mijlpalen op te geven,
-    # maar kan wel. Het voordeel is dat taken tussen medewerkers gedeeld kunnen worden
+    # Voeg nu de algemene taken per Employee toe. Het is niet verplicht tasks_and_milestones op te geven,
+    # maar kan wel. Het voordeel is dat taken tussen employees gedeeld kunnen worden
     for (
-        medewerker_key,
-        medewerker_settings,
-    ) in settings_per_medewerker.items():
-        if taken_en_mijlpalen_info := medewerker_settings.get("taken_en_mijlpalen"):
-            _logger.info(f"Voegen globale taken en mijlpalen van {medewerker_key} toe")
-            planning.maak_taken_en_mijlpalen(
-                taken_en_mijlpalen_info=taken_en_mijlpalen_info
+        employee_key,
+        employee_settings,
+    ) in settings_per_Employee.items():
+        if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
+            _logger.info(f"Voegen globale taken en mijlpalen van {employee_key} toe")
+            planning.maak_tasks_and_milestones(
+                tasks_and_milestones_info=tasks_and_milestones_info
             )
 
-    # Voeg nu de projecten per medewerker toe.
+    # Voeg nu de projecten per Employee toe.
     for (
-        medewerker_key,
-        medewerker_settings,
-    ) in settings_per_medewerker.items():
-        if args.medewerker is not None and medewerker_key not in args.medewerker:
-            _logger.debug(f"Medewerker {medewerker_key} wordt over geslagen")
+        employee_key,
+        employee_settings,
+    ) in settings_per_Employee.items():
+        if args.Employee is not None and employee_key not in args.Employee:
+            _logger.debug(f"Employee {employee_key} wordt over geslagen")
             continue
 
-        project_medewerker_info = medewerker_settings["algemeen"]
-        subprojecten_info = medewerker_settings["projecten"]
+        project_employee_info = employee_settings["algemeen"]
+        subprojecten_info = employee_settings["projecten"]
 
-        subprojecten_selectie = project_medewerker_info["projecten"]
-        subprojecten_titel = project_medewerker_info["titel"]
-        subprojecten_kleur = project_medewerker_info.get("kleur")
+        subprojecten_selectie = project_employee_info["projecten"]
+        subprojecten_title = project_employee_info["title"]
+        subprojecten_color = project_employee_info.get("color")
         planning.maak_projecten(
             subprojecten_info=subprojecten_info,
             subprojecten_selectie=subprojecten_selectie,
-            subprojecten_titel=subprojecten_titel,
-            subprojecten_kleur=subprojecten_kleur,
+            subprojecten_title=subprojecten_title,
+            subprojecten_color=subprojecten_color,
         )
 
     # Alles is aan de planning toegevoegd. Schrijf hem nu naar svg en eventueel naar excel
     planning.schrijf_planning(
-        schrijf_bronnen=args.bronnen,
+        schrijf_resources=args.resources,
         planning_output_directory=planning_directory,
         resource_output_directory=resources_directory,
-        periodes=args.periode,
+        periods=args.period,
     )
 
     if args.export_to_xlsx:

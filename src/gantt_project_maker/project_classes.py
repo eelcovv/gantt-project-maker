@@ -7,9 +7,9 @@ from typing import Union
 import dateutil.parser as dparse
 
 import gantt
-import gantt_projectplanner.colors as cbsc
-from gantt_projectplanner.colors import color_to_hex
-from gantt_projectplanner.excelwriter import write_planning_to_excel
+import gantt_project_maker.colors as cbsc
+from gantt_project_maker.colors import color_to_hex
+from gantt_project_maker.excelwriter import write_planning_to_excel
 
 locale.setlocale(locale.LC_TIME, "nl_NL.UTF-8")
 
@@ -72,32 +72,32 @@ def parse_date(date_string: str, date_default: str = None) -> datetime.date:
     return date
 
 
-def voeg_vakanties_medewerker_toe(
-    medewerker: gantt.Resource, vakantie_lijst: dict
+def voeg_vacations_employee_toe(
+    Employee: gantt.Resource, vakantie_lijst: dict
 ) -> dict:
     """
     Voeg de vakantiedagen van een werknemer toe
 
     Parameters
     ----------
-    medewerker: gannt.Resource
-        De medewerker waarvan je de vakantie dagen gaat toevoegen
+    Employee: gannt.Resource
+        De Employee waarvan je de vakantie dagen gaat toevoegen
     vakantie_lijst: dict
-        Een dictionary met items per vakantie. Per vakantie heb je een start en een einde
+        Een dictionary met items per vakantie. Per vakantie heb je een start en een end
 
     Returns
     -------
     dict:
-        Dictionary met de vakanties.
+        Dictionary met de vacations.
     """
-    vakanties = dict()
+    vacations = dict()
 
     if vakantie_lijst is not None:
         for vakantie_key, vakantie_prop in vakantie_lijst.items():
-            vakanties[vakantie_key] = Vakantie(
-                vakantie_prop["start"], vakantie_prop.get("einde"), werknemer=medewerker
+            vacations[vakantie_key] = Vakantie(
+                vakantie_prop["start"], vakantie_prop.get("end"), werknemer=Employee
             )
-    return vakanties
+    return vacations
 
 
 def define_attributes():
@@ -111,7 +111,7 @@ class StartEindBase:
     Basis van alle classes met een begin- en einddatum.
     """
 
-    def __init__(self, start: str, einde: str = None):
+    def __init__(self, start: str, end: str = None):
         """
         Sla de datum stings op als datetime objecten
 
@@ -119,16 +119,16 @@ class StartEindBase:
         ----------
         start: str
             Startdatum is verplicht
-        einde: str or None
+        end: str or None
             Einddatum is optioneel.
         """
         self.start = parse_date(start)
-        self.einde = parse_date(einde)
+        self.end = parse_date(end)
 
 
 class Vakantie(StartEindBase):
-    def __init__(self, start, einde=None, werknemer=None):
-        super().__init__(start, einde)
+    def __init__(self, start, end=None, werknemer=None):
+        super().__init__(start, end)
 
         if werknemer is None:
             self.pool = gantt
@@ -141,21 +141,21 @@ class Vakantie(StartEindBase):
         """
         Voeg de gemeenschappelijke vakantiedagen toe
         """
-        self.pool.add_vacations(self.start, self.einde)
+        self.pool.add_vacations(self.start, self.end)
 
 
-class Medewerker:
+class Employee:
     def __init__(self, label, volledige_naam=None, vakantie_lijst=None):
         self.label = label
         self.volledige_naam = volledige_naam
         self.resource = gantt.Resource(name=label, fullname=volledige_naam)
 
         if vakantie_lijst is not None:
-            self.vakanties = voeg_vakanties_medewerker_toe(
-                medewerker=self.resource, vakantie_lijst=vakantie_lijst
+            self.vacations = voeg_vacations_employee_toe(
+                Employee=self.resource, vakantie_lijst=vakantie_lijst
             )
         else:
-            self.vakanties = None
+            self.vacations = None
 
 
 class BasicElement(StartEindBase):
@@ -164,87 +164,87 @@ class BasicElement(StartEindBase):
         label,
         start=None,
         afhankelijk_van=None,
-        kleur=None,
+        color=None,
         volledige_naam=None,
         detail=False,
         display=True,
-        opmerking=None,
+        remark=None,
     ):
         super().__init__(start, start)
         if label is None:
-            raise ValueError("Iedere taak moet een label hebben!")
+            raise ValueError("Iedere task moet een label hebben!")
         self.label = label
         self.detail = detail
         self.afhankelijk_van = afhankelijk_van
-        self.kleur = color_to_hex(kleur)
+        self.color = color_to_hex(color)
         self.volledige_naam = volledige_naam
         self.display = display
 
-        self.opmerking = opmerking
+        self.remark = remark
 
 
-class Taak(BasicElement):
+class task(BasicElement):
     def __init__(
         self,
         label,
         start=None,
-        einde=None,
+        end=None,
         duur=None,
-        medewerkers=None,
+        employees=None,
         afhankelijk_van=None,
-        kleur=None,
+        color=None,
         volledige_naam=None,
         percentage_voltooid=None,
         detail=False,
         display=True,
         deadline=None,
-        zwaartepunt=None,
+        focal_point=None,
         dvz=None,
         cci=None,
-        opmerking=None,
+        remark=None,
     ):
         super().__init__(
             label=label,
             start=start,
             afhankelijk_van=afhankelijk_van,
-            kleur=kleur,
+            color=color,
             detail=detail,
             volledige_naam=volledige_naam,
             display=display,
-            opmerking=opmerking,
+            remark=remark,
         )
-        self.einde = parse_date(einde)
+        self.end = parse_date(end)
         self.duur = duur
-        self.medewerkers = medewerkers
+        self.employees = employees
         self.percentage_voltooid = percentage_voltooid
 
         self.element = None
 
         # extra velden die je toe kan voegen
         self.deadline = parse_date(deadline, deadline)
-        self.zwaartepunt = zwaartepunt
+        self.focal_point = focal_point
         self.dvz = dvz
         self.cci = cci
 
-        self.voeg_taak_toe()
+        self.voeg_task_toe()
 
-    def voeg_taak_toe(self):
+    def voeg_task_toe(self):
         self.element = gantt.Task(
             name=self.label,
             start=self.start,
-            stop=self.einde,
+            stop=self.end,
             duration=self.duur,
             depends_of=self.afhankelijk_van,
-            resources=self.medewerkers,
-            color=self.kleur,
+            resources=self.employees,
+            color=self.color,
             percent_done=self.percentage_voltooid,
         )
 
         self.element.deadline = self.deadline
-        self.element.zwaartepunt = self.zwaartepunt
+        self.element.focal_point = self.focal_point
         self.element.dvz = self.dvz
         self.element.cci = self.cci
-        self.element.opmerking = self.opmerking
+        self.element.remark = self.remark
 
 
 class Mijlpaal(BasicElement):
@@ -253,21 +253,21 @@ class Mijlpaal(BasicElement):
         label,
         start=None,
         afhankelijk_van=None,
-        kleur=None,
+        color=None,
         detail=False,
         volledige_naam=None,
         display=True,
-        opmerking=None,
+        remark=None,
     ):
         super().__init__(
             label=label,
             start=start,
             afhankelijk_van=afhankelijk_van,
-            kleur=kleur,
+            color=color,
             detail=detail,
             volledige_naam=volledige_naam,
             display=display,
-            opmerking=opmerking,
+            remark=remark,
         )
 
         self.element = None
@@ -279,30 +279,30 @@ class Mijlpaal(BasicElement):
             name=self.label,
             start=self.start,
             depends_of=self.afhankelijk_van,
-            color=self.kleur,
+            color=self.color,
         )
-        self.element.opmerking = self.opmerking
+        self.element.remark = self.remark
 
 
 class ProjectPlanner:
     def __init__(
         self,
-        programma_titel=None,
-        programma_kleur=None,
+        programma_title=None,
+        programma_color=None,
         output_file_name=None,
         planning_start=None,
-        planning_einde=None,
+        planning_end=None,
         vandaag=None,
-        schaal=None,
-        periode_info=None,
+        scale=None,
+        period_info=None,
         excel_info=None,
         details=None,
     ):
-        self.periode_info = periode_info
+        self.period_info = period_info
         self.planning_start = planning_start
-        self.planning_einde = planning_einde
+        self.planning_end = planning_end
         self.datum_vandaag = vandaag
-        self.schaal = schaal
+        self.scale = scale
         self.details = details
 
         self.excel_info = excel_info
@@ -314,13 +314,13 @@ class ProjectPlanner:
 
         # het hoofdproject maken we alvast aan.
         self.programma = gantt.Project(
-            name=programma_titel, color=color_to_hex(programma_kleur)
+            name=programma_title, color=color_to_hex(programma_color)
         )
 
         self.project_taken = dict()
-        self.vakanties = dict()
-        self.medewerkers = dict()
-        self.taken_en_mijlpalen = dict()
+        self.vacations = dict()
+        self.employees = dict()
+        self.tasks_and_milestones = dict()
         self.subprojecten = dict()
 
     @staticmethod
@@ -354,7 +354,7 @@ class ProjectPlanner:
                 excel_file=excel_file,
                 project=self.programma,
                 header_info=self.excel_info["header"],
-                column_widths=self.excel_info.get("kolombreedtes"),
+                column_widths=self.excel_info.get("column_widths"),
             )
 
     def get_afhankelijkheid(self, key: str) -> gantt.Resource:
@@ -372,12 +372,12 @@ class ProjectPlanner:
         """
 
         try:
-            hangt_af_van = self.taken_en_mijlpalen[key]
+            hangt_af_van = self.tasks_and_milestones[key]
             if key in self.subprojecten.keys():
                 _logger.warning(
                     f"De afhankelijkheid {key} komt in zowel taken en mijlpalen als in subprojecten voor"
                 )
-            _logger.debug(f"Afhankelijk van taak of mijlpaal: {key}")
+            _logger.debug(f"Afhankelijk van task of mijlpaal: {key}")
         except KeyError:
             try:
                 hangt_af_van = self.subprojecten[key]
@@ -387,32 +387,32 @@ class ProjectPlanner:
 
         return hangt_af_van
 
-    def get_medewerkers(self, medewerkers: Union[str, list]) -> list:
+    def get_employees(self, employees: Union[str, list]) -> list:
         """
-        Zet een lijst van medewerkers strings om in een lijst van medewerkers gannt.Resource objecten
+        Zet een lijst van employees strings om in een lijst van employees gannt.Resource objecten
 
         Parameters
         ----------
-        medewerkers: list of str
-            Lijst van medewerkers of, in het geval er maar 1 medewerker is, een string
+        employees: list of str
+            Lijst van employees of, in het geval er maar 1 Employee is, een string
 
         Returns
         -------
         list:
-            Lijst van medewerkers resource objecten.
+            Lijst van employees resource objecten.
 
         """
 
-        medewerkers_elementen = list()
-        if medewerkers is not None:
-            if isinstance(medewerkers, str):
-                _logger.debug(f"Voeg medewerker toe: {medewerkers}")
-                medewerkers_elementen.append(self.medewerkers[medewerkers].resource)
+        employees_elementen = list()
+        if employees is not None:
+            if isinstance(employees, str):
+                _logger.debug(f"Voeg Employee toe: {employees}")
+                employees_elementen.append(self.employees[employees].resource)
             else:
-                for medewerker in medewerkers:
-                    _logger.debug(f"Voeg toe medewerker {medewerker}")
-                    medewerkers_elementen.append(self.medewerkers[medewerker].resource)
-        return medewerkers_elementen
+                for Employee in employees:
+                    _logger.debug(f"Voeg toe Employee {Employee}")
+                    employees_elementen.append(self.employees[Employee].resource)
+        return employees_elementen
 
     def get_afhankelijkheden(self, afhankelijkheden: Union[str, dict]) -> list:
         """
@@ -438,8 +438,8 @@ class ProjectPlanner:
                 afhankelijks_elementen.append(afhankelijk_van)
             elif isinstance(afhankelijkheden, dict):
                 for category, afhankelijk_items in afhankelijkheden.items():
-                    for taak_key in afhankelijk_items:
-                        afhankelijk_van = self.get_afhankelijkheid(taak_key)
+                    for task_key in afhankelijk_items:
+                        afhankelijk_van = self.get_afhankelijkheid(task_key)
                         afhankelijks_elementen.append(afhankelijk_van)
             else:
                 for afhankelijk_item in afhankelijkheden:
@@ -448,142 +448,142 @@ class ProjectPlanner:
 
             return afhankelijks_elementen
 
-    def maak_vakanties(self, vakanties_info):
+    def maak_vacations(self, vacations_info):
         """
-        Voeg alle algemene vakanties toe
+        Voeg alle algemene vacations toe
         """
         # Change font default
 
-        # voeg de algemene vakanties toe
+        # voeg de algemene vacations toe
         _logger.info("Voeg algemene vakantiedagen toe")
-        for v_key, v_prop in vakanties_info.items():
-            if v_prop.get("einde") is not None:
+        for v_key, v_prop in vacations_info.items():
+            if v_prop.get("end") is not None:
                 _logger.debug(
-                    f"Vakantie {v_key} van {v_prop['start']} to {v_prop.get('einde')}"
+                    f"Vakantie {v_key} van {v_prop['start']} to {v_prop.get('end')}"
                 )
             else:
                 _logger.debug(f"Vakantie {v_key} op {v_prop['start']}")
-            self.vakanties[v_key] = Vakantie(
-                start=v_prop["start"], einde=v_prop.get("einde")
+            self.vacations[v_key] = Vakantie(
+                start=v_prop["start"], end=v_prop.get("end")
             )
 
-    def maak_medewerkers(self, medewerkers_info):
+    def maak_employees(self, employees_info):
         """
-        Voeg de medewerkers met hun vakanties toe.
+        Voeg de employees met hun vacations toe.
         """
-        _logger.info("Voeg medewerkers toe")
-        for w_key, w_prop in medewerkers_info.items():
+        _logger.info("Voeg employees toe")
+        for w_key, w_prop in employees_info.items():
             _logger.debug(f"Voeg {w_key} ({w_prop.get('naam')}) toe")
-            self.medewerkers[w_key] = Medewerker(
+            self.employees[w_key] = Employee(
                 label=w_key,
                 volledige_naam=w_prop.get("naam"),
-                vakantie_lijst=w_prop.get("vakanties"),
+                vakantie_lijst=w_prop.get("vacations"),
             )
 
-    def maak_taak_of_mijlpaal(
-        self, taak_eigenschappen: dict = None
-    ) -> Union[Taak, Mijlpaal]:
+    def maak_task_of_mijlpaal(
+        self, task_eigenschappen: dict = None
+    ) -> Union[task, Mijlpaal]:
         """
         Voeg alle algemene taken en mijlpalen toe
 
         Parameters
         ----------
-        taak_eigenschappen:
+        task_eigenschappen:
 
         Returns
         -------
 
         """
         afhankelijkheden = self.get_afhankelijkheden(
-            taak_eigenschappen.get("afhankelijk_van")
+            task_eigenschappen.get("afhankelijk_van")
         )
-        element_type = taak_eigenschappen.get("type", "taak")
-        if element_type == "taak":
-            medewerkers = self.get_medewerkers(taak_eigenschappen.get("medewerkers"))
-            _logger.debug(f"Voeg taak {taak_eigenschappen.get('label')} toe")
-            taak_of_mijlpaal = Taak(
-                label=taak_eigenschappen.get("label"),
-                start=taak_eigenschappen.get("start"),
-                einde=taak_eigenschappen.get("einde"),
-                duur=taak_eigenschappen.get("duur"),
-                kleur=taak_eigenschappen.get("kleur"),
-                detail=taak_eigenschappen.get("detail", False),
-                medewerkers=medewerkers,
+        element_type = task_eigenschappen.get("type", "task")
+        if element_type == "task":
+            employees = self.get_employees(task_eigenschappen.get("employees"))
+            _logger.debug(f"Voeg task {task_eigenschappen.get('label')} toe")
+            task_of_mijlpaal = task(
+                label=task_eigenschappen.get("label"),
+                start=task_eigenschappen.get("start"),
+                end=task_eigenschappen.get("end"),
+                duur=task_eigenschappen.get("duur"),
+                color=task_eigenschappen.get("color"),
+                detail=task_eigenschappen.get("detail", False),
+                employees=employees,
                 afhankelijk_van=afhankelijkheden,
-                deadline=taak_eigenschappen.get("deadline"),
-                zwaartepunt=taak_eigenschappen.get("zwaartepunt"),
-                dvz=taak_eigenschappen.get("dvz"),
-                cci=taak_eigenschappen.get("cci"),
-                opmerking=taak_eigenschappen.get("opmerking"),
+                deadline=task_eigenschappen.get("deadline"),
+                focal_point=task_eigenschappen.get("focal_point"),
+                dvz=task_eigenschappen.get("dvz"),
+                cci=task_eigenschappen.get("cci"),
+                remark=task_eigenschappen.get("remark"),
             )
         elif element_type == "mijlpaal":
-            _logger.debug(f"Voeg mijlpaal {taak_eigenschappen.get('label')} toe")
-            taak_of_mijlpaal = Mijlpaal(
-                label=taak_eigenschappen.get("label"),
-                start=taak_eigenschappen.get("start"),
-                kleur=taak_eigenschappen.get("kleur"),
+            _logger.debug(f"Voeg mijlpaal {task_eigenschappen.get('label')} toe")
+            task_of_mijlpaal = Mijlpaal(
+                label=task_eigenschappen.get("label"),
+                start=task_eigenschappen.get("start"),
+                color=task_eigenschappen.get("color"),
                 afhankelijk_van=afhankelijkheden,
-                opmerking=taak_eigenschappen.get("opmerking"),
+                remark=task_eigenschappen.get("remark"),
             )
         else:
-            raise AssertionError("Type should be 'taak' or 'mijlpaal'")
+            raise AssertionError("Type should be 'task' or 'mijlpaal'")
 
-        return taak_of_mijlpaal
+        return task_of_mijlpaal
 
-    def maak_taken_en_mijlpalen(
-        self, taken_en_mijlpalen=None, taken_en_mijlpalen_info=None
+    def maak_tasks_and_milestones(
+        self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
         Maak alle taken en mijlpalen
         """
 
         _logger.info("Voeg alle algemene taken en mijlpalen toe")
-        if taken_en_mijlpalen_info is not None:
+        if tasks_and_milestones_info is not None:
             # We voegen hier een dictionary van taken en mijlpalen toe
             # Die zijn in modules georganiseerd, haal hier het eerste niveau eraf.
             taken_en_mp = dict()
-            for module_key, module_values in taken_en_mijlpalen_info.items():
+            for module_key, module_values in tasks_and_milestones_info.items():
                 _logger.debug(f"lezen taken van module {module_key}")
                 for task_key, task_val in module_values.items():
-                    _logger.debug(f"Processen taak {task_key}")
+                    _logger.debug(f"Processen task {task_key}")
                     if task_key in taken_en_mp.keys():
-                        msg = f"De taak key {task_key} is al eerder gebruikt. Kies een andere naam!"
+                        msg = f"De task key {task_key} is al eerder gebruikt. Kies een andere naam!"
                         _logger.warning(msg)
                         raise ValueError(msg)
-                    taken_en_mp[task_key] = taken_en_mijlpalen_info[module_key][
+                    taken_en_mp[task_key] = tasks_and_milestones_info[module_key][
                         task_key
                     ]
         else:
-            taken_en_mp = taken_en_mijlpalen
+            taken_en_mp = tasks_and_milestones
 
         for task_key, task_val in taken_en_mp.items():
-            _logger.debug(f"Processen taak {task_key}")
-            self.taken_en_mijlpalen[task_key] = self.maak_taak_of_mijlpaal(
-                taak_eigenschappen=task_val
+            _logger.debug(f"Processen task {task_key}")
+            self.tasks_and_milestones[task_key] = self.maak_task_of_mijlpaal(
+                task_eigenschappen=task_val
             )
 
     def maak_projecten(
         self,
         subprojecten_info,
-        subprojecten_titel,
+        subprojecten_title,
         subprojecten_selectie,
-        subprojecten_kleur=None,
+        subprojecten_color=None,
     ):
         """
         Maak alle projecten
         """
-        medewerker_color = color_to_hex(subprojecten_kleur)
-        projecten_medewerker = gantt.Project(
-            name=subprojecten_titel, color=medewerker_color
+        employee_color = color_to_hex(subprojecten_color)
+        projecten_Employee = gantt.Project(
+            name=subprojecten_title, color=employee_color
         )
 
-        _logger.info(f"Voeg alle projecten toe van {subprojecten_titel}")
+        _logger.info(f"Voeg alle projecten toe van {subprojecten_title}")
         for project_key, project_values in subprojecten_info.items():
-            _logger.info(f"Maak project: {project_values['titel']}")
+            _logger.info(f"Maak project: {project_values['title']}")
 
-            project_name = project_values["titel"]
+            project_name = project_values["title"]
 
-            project_color = color_to_hex(project_values.get("kleur"))
+            project_color = color_to_hex(project_values.get("color"))
 
             _logger.debug("Creating project {}".format(project_name))
             project = gantt.Project(name=project_name, color=project_color)
@@ -592,8 +592,8 @@ class ProjectPlanner:
             project.vir = project_values.get("vir")
             project.link = project_values.get("link")
             project.casper_project = project_values.get("casper_project")
-            project.casper_taak = project_values.get("casper_taak")
-            project.projectleider = project_values.get("projectleider")
+            project.casper_task = project_values.get("casper_task")
+            project.project_leader = project_values.get("project_leader")
 
             if project_key in self.subprojecten.keys():
                 msg = f"project {project_key} bestaat al. Kies een andere naam"
@@ -614,9 +614,9 @@ class ProjectPlanner:
                     else:
                         is_detail = False
                     if not self.details and is_detail:
-                        # We hebben details op False staan en dit is een detail, dus sla deze taak over.
+                        # We hebben details op False staan en dit is een detail, dus sla deze task over.
                         _logger.info(
-                            f"Sla taak {task_key} over omdat het een detail is"
+                            f"Sla task {task_key} over omdat het een detail is"
                         )
                         continue
 
@@ -626,73 +626,73 @@ class ProjectPlanner:
 
                     if isinstance(task_val, str):
                         try:
-                            # de taak een taak of een mijlpaal?
-                            taak_obj = self.taken_en_mijlpalen[task_val]
-                            taak = taak_obj.element
-                            is_detail = taak_obj.detail
+                            # de task een task of een mijlpaal?
+                            task_obj = self.tasks_and_milestones[task_val]
+                            task = task_obj.element
+                            is_detail = task_obj.detail
                         except KeyError:
                             try:
-                                # de taak een ander project?
-                                taak = self.subprojecten[task_val]
+                                # de task een ander project?
+                                task = self.subprojecten[task_val]
                             except KeyError as err:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
-                        taak_obj = self.maak_taak_of_mijlpaal(
-                            taak_eigenschappen=task_val
+                        task_obj = self.maak_task_of_mijlpaal(
+                            task_eigenschappen=task_val
                         )
-                        taak = taak_obj.element
-                        is_detail = taak_obj.detail
+                        task = task_obj.element
+                        is_detail = task_obj.detail
 
                     if not self.details and is_detail:
-                        _logger.debug(f"skipping taak {task_key} as it is a detail")
+                        _logger.debug(f"skipping task {task_key} as it is a detail")
                     else:
-                        project.add_task(taak)
+                        project.add_task(task)
 
             self.subprojecten[project_key] = project
             if project_key in subprojecten_selectie:
-                projecten_medewerker.add_task(project)
+                projecten_Employee.add_task(project)
 
-        # voeg nu alle projecten van de medewerker aan het programma toe
-        self.programma.add_task(projecten_medewerker)
+        # voeg nu alle projecten van de Employee aan het programma toe
+        self.programma.add_task(projecten_Employee)
 
     def schrijf_planning(
         self,
         planning_output_directory,
         resource_output_directory,
-        schrijf_bronnen=False,
-        periodes=None,
+        schrijf_resources=False,
+        periods=None,
     ):
         """
         Schrijf de planning naar de output definities.
 
         Parameters
         ----------
-        schrijf_bronnen: bool
-            Schrijf de bronnen file
+        schrijf_resources: bool
+            Schrijf de resources file
         planning_output_directory: Path
             Output directory van de svg files van de planning
         resource_output_directory: Path
             Output directory van de svg files van de resources
-        periodes: list
-            Lijst van periodes die we toevoegen. Als None voegen we alles toe
+        periods: list
+            Lijst van periods die we toevoegen. Als None voegen we alles toe
         """
 
-        for periode_key, periode_prop in self.periode_info.items():
+        for period_key, period_prop in self.period_info.items():
 
-            if periodes is not None and periode_key not in periodes:
-                _logger.debug(f"Medewerker {periode_key} wordt over geslagen")
+            if periods is not None and period_key not in periods:
+                _logger.debug(f"Employee {period_key} wordt over geslagen")
                 continue
 
             suffix = self.output_file_name.suffix
             file_base_tasks = "_".join(
-                [self.output_file_name.with_suffix("").as_posix(), periode_key, "taken"]
+                [self.output_file_name.with_suffix("").as_posix(), period_key, "taken"]
             )
-            file_base_resources = file_base_tasks.replace("_taken", "_bronnen")
+            file_base_resources = file_base_tasks.replace("_taken", "_resources")
 
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
-            if schrijf_bronnen:
+            if schrijf_resources:
                 resource_output_directory.mkdir(exist_ok=True, parents=True)
 
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
@@ -702,17 +702,17 @@ class ProjectPlanner:
                 file_base_resources
             ).with_suffix(suffix)
 
-            schaal = periode_prop.get("schaal")
-            if schaal is not None:
-                scale = SCALES[schaal]
+            scale = period_prop.get("scale")
+            if scale is not None:
+                scale = SCALES[scale]
             else:
-                scale = self.schaal
+                scale = self.scale
 
-            start = parse_date(periode_prop.get("planning_start"), self.planning_start)
-            einde = parse_date(periode_prop.get("planning_einde"), self.planning_einde)
-            today = parse_date(periode_prop.get("vandaag"), self.datum_vandaag)
+            start = parse_date(period_prop.get("planning_start"), self.planning_start)
+            end = parse_date(period_prop.get("planning_end"), self.planning_end)
+            today = parse_date(period_prop.get("vandaag"), self.datum_vandaag)
             if scale != SCALES["daily"]:
-                # voor een schaal anders dan dagelijks wordt de vandaaglijn alleen op zaterdag getekend!
+                # voor een scale anders dan dagelijks wordt de vandaaglijn alleen op zaterdag getekend!
                 _logger.debug("Verander datum op dichtstbijzijnde zaterdag")
                 _today = today
                 today = get_nearest_saturday(today)
@@ -723,25 +723,25 @@ class ProjectPlanner:
 
             # the planning is a collection of all the projects
             _logger.info(
-                f"Schrijf project van {start} tot {einde} met schaal {scale} naar {file_name}"
+                f"Schrijf project van {start} tot {end} met scale {scale} naar {file_name}"
             )
             self.programma.make_svg_for_tasks(
                 filename=file_name.as_posix(),
                 start=start,
-                end=einde,
+                end=end,
                 scale=scale,
                 today=today,
             )
             _logger.debug("Done")
 
-            if schrijf_bronnen:
+            if schrijf_resources:
                 _logger.info(
-                    f"Schrijf bronnen van {start} tot {einde} met schaal {scale} naar {file_name_res}"
+                    f"Schrijf resources van {start} tot {end} met scale {scale} naar {file_name_res}"
                 )
                 self.programma.make_svg_for_resources(
                     filename=file_name_res.as_posix(),
                     start=start,
-                    end=einde,
+                    end=end,
                     scale=scale,
                     today=today,
                 )

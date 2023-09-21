@@ -1,0 +1,10 @@
+importlib_metadata
+pandas
+pytest
+python_dateutil
+PyYAML
+PyYAML
+setuptools
+Sphinx
+svgwrite
+dateutil

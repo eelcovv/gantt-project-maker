@@ -1,0 +1,117 @@
+algemeen:
+  title: Project planning Company
+  color: corporateblauw
+  reference_date: vandaag
+  scale: daily
+  planning_start: 1-10-2022
+  planning_end: 31-12-2024
+  output_directories:
+      planning: output_planning
+      resources: output_resources
+      excel: output_excel
+project_settings_file_per_employee:
+  emp1: projects_emp1.yml
+  emp2: projects_emp2.yml
+periods:
+  volledig:
+    scale: weekly
+  end_jaar:
+    planning_start: 1-8-2023
+    planning_end: 31-12-2023
+    scale: daily
+vacations:
+  easter_23: # does not work on personal level
+    start: 9-4-2023
+    end: 10-4-2023
+  kings_day_23: # does not work on personal level
+    start: 27-4-2023
+  ascension_day_23: # does not work on personal level
+    start: 28-5-2023
+    end: 29-5-2023
+  pentecost_23: # does not work on personal level
+    start: 18-5-2023
+    end: 18-5-2023
+  christmas_23: # does not work on personal level
+    start: 25-12-2023
+    end: 7-1-2024
+employees:
+  emp1:
+    naam: Employee One
+    vacations:
+      summer_holiday:
+        start: 18-7-2023
+        end: 13-8-2023
+  emp3:
+    naam: Employee Three
+    vacations:
+      summer_holiday:
+        start: 31-7-2023
+        end: 4-8-2023
+  emp4:
+    naam: Employee Four
+    vacations:
+      summer_holiday:
+        start: 1-8-2023
+        end: 16-8-2023
+  emp5:
+    naam: Employee Five
+    vacations:
+      summer_holiday:
+        start: 1-8-2023
+        end: 16-8-2023
+  emp2:
+    naam: Employee Two
+    vacations:
+      summer_holiday:
+        start: 10-7-2023
+        end: 28-7-2023
+  emp6:
+    naam: Employee Six
+  emp7:
+    naam: Employee Seven
+  emp8:
+    naam: Employee Eight
+  department1:
+    naam: Department One
+excel:
+  column_widths:
+    name: 30
+    task: 50
+    period: 10
+    other_business: 30
+  header:
+    what:
+      color: 5b9bd5
+      title: What
+      columns:
+        name: Statistiek / project
+        vir: VIR-procescode
+        link: Link naar hoofdmap
+        casper_project: CASPER-project
+        casper_task: CASPER-task
+        task: Fasen / Activiteiten
+        focal_point: focal_point werkzaamheden
+    when:
+      color: 70ad47
+      title: when
+      columns:
+        period: period
+        start: Begindatum
+        stop: Einddatum
+        deadline: Deadline
+    who:
+      color: ed7d31
+      title: Who
+      columns:
+        project_leader: project_leader
+        employee_1: Employee 1
+        employee_2: Employee 2
+        employee_3: Employee 3
+        department1: department1
+        cci: CCI
+    other_business:
+      color: 808080
+      title: other_business
+      columns:
+        remark: Remarks
+
