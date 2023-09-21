@@ -278,7 +278,7 @@ def main(args):
         employee_settings,
     ) in settings_per_employee.items():
         if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
-            _logger.info(f"Voegen globale tasks en mijlpalen van {employee_key} toe")
+            _logger.info(f"Adding global tasks en milestones of {employee_key} ")
             planning.add_tasks_and_milestones(
                 tasks_and_milestones_info=tasks_and_milestones_info
             )
@@ -289,13 +289,13 @@ def main(args):
         employee_settings,
     ) in settings_per_employee.items():
         if args.employee is not None and employee_key not in args.employee:
-            _logger.debug(f"employee {employee_key} wordt over geslagen")
+            _logger.debug(f"Skip employee {employee_key}")
             continue
 
         project_employee_info = employee_settings["general"]
-        subprojects_info = employee_settings["projecten"]
+        subprojects_info = employee_settings["projects"]
 
-        subprojects_selection = project_employee_info["projecten"]
+        subprojects_selection = project_employee_info["projects"]
         subprojects_title = project_employee_info["title"]
         subprojects_color = project_employee_info.get("color")
         planning.make_projects(

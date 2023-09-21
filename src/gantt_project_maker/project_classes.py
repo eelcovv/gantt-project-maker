@@ -177,7 +177,7 @@ class BasicElement(StartEindBase):
         self.remark = remark
 
 
-class task(BasicElement):
+class Task(BasicElement):
     def __init__(
         self,
         label,
@@ -185,7 +185,7 @@ class task(BasicElement):
         end=None,
         duur=None,
         employees=None,
-        afhankelijk_van=None,
+        dependent_of=None,
         color=None,
         volledige_naam=None,
         percentage_voltooid=None,
@@ -200,7 +200,7 @@ class task(BasicElement):
         super().__init__(
             label=label,
             start=start,
-            afhankelijk_van=afhankelijk_van,
+            afhankelijk_van=dependent_of,
             color=color,
             detail=detail,
             volledige_naam=volledige_naam,
@@ -246,7 +246,7 @@ class Mijlpaal(BasicElement):
         self,
         label,
         start=None,
-        afhankelijk_van=None,
+        dependent_of=None,
         color=None,
         detail=False,
         volledige_naam=None,
@@ -256,7 +256,7 @@ class Mijlpaal(BasicElement):
         super().__init__(
             label=label,
             start=start,
-            afhankelijk_van=afhankelijk_van,
+            afhankelijk_van=dependent_of,
             color=color,
             detail=detail,
             volledige_naam=volledige_naam,
@@ -315,7 +315,7 @@ class ProjectPlanner:
         self.vacations = dict()
         self.employees = dict()
         self.tasks_and_milestones = dict()
-        self.subprojecten = dict()
+        self.subprojects = dict()
 
     @staticmethod
     def add_global_information():
@@ -367,17 +367,17 @@ class ProjectPlanner:
 
         try:
             hangt_af_van = self.tasks_and_milestones[key]
-            if key in self.subprojecten.keys():
+            if key in self.subprojects.keys():
                 _logger.warning(
-                    f"De afhankelijkheid {key} komt in zowel tasks en mijlpalen als in subprojecten voor"
+                    f"The dependency {key} occurs in both tasks en milestones"
                 )
-            _logger.debug(f"Afhankelijk van task of mijlpaal: {key}")
+            _logger.debug(f"Dependent of task or milestone: {key}")
         except KeyError:
             try:
-                hangt_af_van = self.subprojecten[key]
-                _logger.debug(f"Afhankelijk van project: {key}")
+                hangt_af_van = self.subprojects[key]
+                _logger.debug(f"Dependent of project: {key}")
             except KeyError:
-                raise AssertionError(f"Afhankelijkheid {key} bestaat niet")
+                raise AssertionError(f"Dependency {key} does not exist")
 
         return hangt_af_van
 
@@ -444,80 +444,80 @@ class ProjectPlanner:
 
     def add_vacations(self, vacations_info):
         """
-        Voeg alle algemene vacations toe
+        Add all the vacations
         """
         # Change font default
 
         # voeg de algemene vacations toe
-        _logger.info("Voeg algemene vakantiedagen toe")
+        _logger.info("Adding general holidays")
         for v_key, v_prop in vacations_info.items():
             if v_prop.get("end") is not None:
                 _logger.debug(
-                    f"Vakantie {v_key} van {v_prop['start']} to {v_prop.get('end')}"
+                    f"Vacation {v_key} from {v_prop['start']} to {v_prop.get('end')}"
                 )
             else:
-                _logger.debug(f"Vakantie {v_key} op {v_prop['start']}")
+                _logger.debug(f"Vacation {v_key} at {v_prop['start']}")
             self.vacations[v_key] = Vakantie(
                 start=v_prop["start"], end=v_prop.get("end")
             )
 
     def add_employees(self, employees_info):
         """
-        Voeg de employees met hun vacations toe.
+        Add the employees with their vacations
         """
-        _logger.info("Voeg employees toe")
+        _logger.info("Adding employees...")
         for w_key, w_prop in employees_info.items():
-            _logger.debug(f"Voeg {w_key} ({w_prop.get('naam')}) toe")
+            _logger.debug(f"Adding {w_key} ({w_prop.get('name')})")
             self.employees[w_key] = Employee(
                 label=w_key,
-                volledige_naam=w_prop.get("naam"),
+                volledige_naam=w_prop.get("name"),
                 vakantie_lijst=w_prop.get("vacations"),
             )
 
     def maak_task_of_mijlpaal(
-        self, task_eigenschappen: dict = None
-    ) -> Union[task, Mijlpaal]:
+        self, task_properties: dict = None
+    ) -> Union[Task, Mijlpaal]:
         """
-        Voeg alle algemene tasks en mijlpalen toe
+        Add all the general tasks and milestones
 
         Parameters
         ----------
-        task_eigenschappen:
+        task_properties:
 
         Returns
         -------
 
         """
-        afhankelijkheden = self.get_afhankelijkheden(
-            task_eigenschappen.get("afhankelijk_van")
+        dependencies = self.get_afhankelijkheden(
+            task_properties.get("afhankelijk_van")
         )
-        element_type = task_eigenschappen.get("type", "task")
+        element_type = task_properties.get("type", "task")
         if element_type == "task":
-            employees = self.get_employees(task_eigenschappen.get("employees"))
-            _logger.debug(f"Voeg task {task_eigenschappen.get('label')} toe")
-            task_of_mijlpaal = task(
-                label=task_eigenschappen.get("label"),
-                start=task_eigenschappen.get("start"),
-                end=task_eigenschappen.get("end"),
-                duur=task_eigenschappen.get("duur"),
-                color=task_eigenschappen.get("color"),
-                detail=task_eigenschappen.get("detail", False),
+            employees = self.get_employees(task_properties.get("employees"))
+            _logger.debug(f"Voeg task {task_properties.get('label')} toe")
+            task_of_mijlpaal = Task(
+                label=task_properties.get("label"),
+                start=task_properties.get("start"),
+                end=task_properties.get("end"),
+                duur=task_properties.get("duration"),
+                color=task_properties.get("color"),
+                detail=task_properties.get("detail", False),
                 employees=employees,
-                afhankelijk_van=afhankelijkheden,
-                deadline=task_eigenschappen.get("deadline"),
-                focal_point=task_eigenschappen.get("focal_point"),
-                dvz=task_eigenschappen.get("dvz"),
-                cci=task_eigenschappen.get("cci"),
-                remark=task_eigenschappen.get("remark"),
+                dependent_of=dependencies,
+                deadline=task_properties.get("deadline"),
+                focal_point=task_properties.get("focal_point"),
+                dvz=task_properties.get("dvz"),
+                cci=task_properties.get("cci"),
+                remark=task_properties.get("remark"),
             )
         elif element_type == "mijlpaal":
-            _logger.debug(f"Voeg mijlpaal {task_eigenschappen.get('label')} toe")
+            _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
             task_of_mijlpaal = Mijlpaal(
-                label=task_eigenschappen.get("label"),
-                start=task_eigenschappen.get("start"),
-                color=task_eigenschappen.get("color"),
-                afhankelijk_van=afhankelijkheden,
-                remark=task_eigenschappen.get("remark"),
+                label=task_properties.get("label"),
+                start=task_properties.get("start"),
+                color=task_properties.get("color"),
+                dependent_of=dependencies,
+                remark=task_properties.get("remark"),
             )
         else:
             raise AssertionError("Type should be 'task' or 'mijlpaal'")
@@ -553,7 +553,7 @@ class ProjectPlanner:
         for task_key, task_val in tasks_en_mp.items():
             _logger.debug(f"Processen task {task_key}")
             self.tasks_and_milestones[task_key] = self.maak_task_of_mijlpaal(
-                task_eigenschappen=task_val
+                task_properties=task_val
             )
 
     def make_projects(
@@ -564,14 +564,14 @@ class ProjectPlanner:
         subprojects_color=None,
     ):
         """
-        Maak alle projecten
+        Make all projects
         """
         employee_color = color_to_hex(subprojects_color)
         projects_employee = gantt.Project(name=subprojects_title, color=employee_color)
 
-        _logger.info(f"Voeg alle projecten toe van {subprojects_title}")
+        _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
-            _logger.info(f"Maak project: {project_values['title']}")
+            _logger.info(f"Making project: {project_values['title']}")
 
             project_name = project_values["title"]
 
@@ -585,12 +585,12 @@ class ProjectPlanner:
                 if not hasattr(project, p_key):
                     setattr(project, p_key, p_value)
 
-            if project_key in self.subprojecten.keys():
-                msg = f"project {project_key} bestaat al. Kies een andere naam"
+            if project_key in self.subprojects.keys():
+                msg = f"project {project_key} already exists. Pick another name"
                 _logger.warning(msg)
                 raise ValueError(msg)
 
-            self.subprojecten[project_key] = project
+            self.subprojects[project_key] = project
 
             if tasks := project_values.get("tasks"):
                 if isinstance(tasks, list):
@@ -623,13 +623,13 @@ class ProjectPlanner:
                         except KeyError:
                             try:
                                 # de task een ander project?
-                                task = self.subprojecten[task_val]
+                                task = self.subprojects[task_val]
                             except KeyError as err:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
                         task_obj = self.maak_task_of_mijlpaal(
-                            task_eigenschappen=task_val
+                            task_properties=task_val
                         )
                         task = task_obj.element
                         is_detail = task_obj.detail
@@ -639,11 +639,11 @@ class ProjectPlanner:
                     else:
                         project.add_task(task)
 
-            self.subprojecten[project_key] = project
+            self.subprojects[project_key] = project
             if project_key in subprojects_selection:
                 projects_employee.add_task(project)
 
-        # voeg nu alle projecten van de Employee aan het programma toe
+        # add now all projects of the employee to the program
         self.programma.add_task(projects_employee)
 
     def write_planning(

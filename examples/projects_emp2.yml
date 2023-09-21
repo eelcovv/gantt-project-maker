@@ -1,11 +1,11 @@
 general:
     title: Project Leader Two
     color: purple
-    projecten:
+    projects:
         - emp3_sbs
         - emp3_sport_statistieken
         - emp3_SBI_5digit
-projecten:
+projects:
     emp3_sbs_23:
         title: SBS 2022 V
         color: corporatelichtblauw

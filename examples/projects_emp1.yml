@@ -1,7 +1,7 @@
 general:
     title: Project Leader One
     color: rood
-    projecten:
+    projects:
         - emp1_project_1
         - emp1_project_2
         - project_module_6
@@ -269,7 +269,7 @@ tasks_and_milestones:
             start: 7-11-2023
             end: 28-11-2023
             employees: emp1
-projecten:
+projects:
     vragenlijst_department1_23:
         title: Dataverzameling 2023
         color: corporatelichtblauw
