@@ -4,6 +4,7 @@ import pandas as pd
 from pandas.io.formats.excel import ExcelFormatter
 
 import gantt_project_maker.gantt as gantt
+from gantt_project_maker.colors import color_to_hex
 
 _logger = logging.getLogger(__name__)
 
@@ -402,8 +403,8 @@ def write_header(header_info, workbook, worksheet, character_width, wb, column_w
         columns_names = info_val["columns"]
         title = info_val["title"]
         n_columns = len(columns_names.keys())
-        if color := info_val.get("color"):
-            color = f"#{color}"
+        if cell_color := info_val.get("color"):
+            color = color_to_hex(cell_color)
         else:
             color = "black"
 

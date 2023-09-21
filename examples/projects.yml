@@ -11,30 +11,34 @@ general:
     excel: output_excel
   country_code: "nl_NL.UTF-8"
   custom_colors:
-    appelgroen: "AFCB05"
-    appelgroenvergrijsd: "899D0C"
-    codecolor: "585858"
-    corporateblauw: "271D6C"
-    corporatelichtblauw: "00A1CD"
-    donkerblauw: "0058B8"
-    donkerblauwvergrijsd: "163A72"
-    geel: "FFCC00"
-    geelvergrijsd: "FFB600"
-    grasgroen: "53A31D"
-    grasgroenvergrijsd: "488225"
-    grijs: "666666"
-    highchartslichtgrijs: "EFEFEF"
-    lichtblauw: "00A1CD"
-    lichtblauwvergrijsd: "0581A2"
-    lichtgrijs: "E0E0E0"
-    loodgrijs: "929292"
-    oranje: "F39200"
-    oranjevergrijsd: "CE7C00"
-    rood: "E94C0A"
-    roodvergrijsd: "B23D02"
-    roze: "AF0E80"
-    rozevergrijsd: "82045E"
-    violet: "AC218E"
+    hemelblauw: 5b9bd5
+    zachtgroen: 70ad47
+    terrarood: ed7d31
+    donkergrijs: 808080
+    appelgroen: AFCB05
+    appelgroenvergrijsd: 899D0C
+    codecolor: 585858
+    corporateblauw: 271D6C
+    corporatelichtblauw: 00A1CD
+    donkerblauw: 0058B8
+    donkerblauwvergrijsd: 163A72
+    geel: FFCC00
+    geelvergrijsd: FFB600
+    grasgroen: 53A31D
+    grasgroenvergrijsd: 488225
+    grijs: 666666
+    highchartslichtgrijs: EFEFEF
+    lichtblauw: 00A1CD
+    lichtblauwvergrijsd: 0581A2
+    lichtgrijs: E0E0E0
+    loodgrijs: 929292
+    oranje: F39200
+    oranjevergrijsd: CE7C00
+    rood: E94C0A
+    roodvergrijsd: B23D02
+    roze: AF0E80
+    rozevergrijsd: 82045E
+    violet: AC218E
 project_settings_file_per_employee:
   emp1: projects_emp1.yml
   emp2: projects_emp2.yml
@@ -107,7 +111,7 @@ excel:
     other_business: 30
   header:
     what:
-      color: 5b9bd5
+      color: hemelblauw
       title: What
       columns:
         name: Statistiek / project
@@ -118,7 +122,7 @@ excel:
         task: Fasen / Activiteiten
         focal_point: focal_point werkzaamheden
     when:
-      color: 70ad47
+      color: zachtgroen
       title: when
       columns:
         period: period
@@ -126,7 +130,7 @@ excel:
         stop: Einddatum
         deadline: Deadline
     who:
-      color: ed7d31
+      color: terrarood
       title: Who
       columns:
         project_leader: project_leader
@@ -136,7 +140,7 @@ excel:
         department1: department1
         cci: CCI
     other_business:
-      color: 808080
+      color: donkergrijs
       title: other_business
       columns:
         remark: Remarks
