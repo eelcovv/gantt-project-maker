@@ -564,21 +564,21 @@ class ProjectPlanner:
 
     def make_projects(
         self,
-        subprojecten_info,
-        subprojecten_title,
-        subprojecten_selectie,
-        subprojecten_color=None,
+        subprojects_info,
+        subprojects_title,
+        subprojects_selection,
+        subprojects_color=None,
     ):
         """
         Maak alle projecten
         """
-        employee_color = color_to_hex(subprojecten_color)
-        projecten_Employee = gantt.Project(
-            name=subprojecten_title, color=employee_color
+        employee_color = color_to_hex(subprojects_color)
+        projects_employee = gantt.Project(
+            name=subprojects_title, color=employee_color
         )
 
-        _logger.info(f"Voeg alle projecten toe van {subprojecten_title}")
-        for project_key, project_values in subprojecten_info.items():
+        _logger.info(f"Voeg alle projecten toe van {subprojects_title}")
+        for project_key, project_values in subprojects_info.items():
             _logger.info(f"Maak project: {project_values['title']}")
 
             project_name = project_values["title"]
@@ -588,12 +588,10 @@ class ProjectPlanner:
             _logger.debug("Creating project {}".format(project_name))
             project = gantt.Project(name=project_name, color=project_color)
 
-            # deze elementen voegen we toe om later naar excel te kunnen schrijven
-            project.vir = project_values.get("vir")
-            project.link = project_values.get("link")
-            project.casper_project = project_values.get("casper_project")
-            project.casper_task = project_values.get("casper_task")
-            project.project_leader = project_values.get("project_leader")
+            # add all the other elements as attributes
+            for p_key, p_value in project_values.items():
+                if not hasattr(project, p_key):
+                    setattr(project, p_key, p_value)
 
             if project_key in self.subprojecten.keys():
                 msg = f"project {project_key} bestaat al. Kies een andere naam"
@@ -650,11 +648,11 @@ class ProjectPlanner:
                         project.add_task(task)
 
             self.subprojecten[project_key] = project
-            if project_key in subprojecten_selectie:
-                projecten_Employee.add_task(project)
+            if project_key in subprojects_selection:
+                projects_employee.add_task(project)
 
         # voeg nu alle projecten van de Employee aan het programma toe
-        self.programma.add_task(projecten_Employee)
+        self.programma.add_task(projects_employee)
 
     def write_planning(
         self,

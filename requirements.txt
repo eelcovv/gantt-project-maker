@@ -1,10 +1,9 @@
 importlib_metadata
 pandas
 pytest
-python_dateutil
-PyYAML
-PyYAML
+python-dateutil
+pyyaml
 setuptools
-Sphinx
+sphinx
 svgwrite
-dateutil
+xlsxwriter
