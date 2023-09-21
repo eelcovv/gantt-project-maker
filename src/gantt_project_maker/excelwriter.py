@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from pandas.io.formats.excel import ExcelFormatter
 
-import gantt
+import gantt_project_maker.gantt as gantt
 
 _logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from typing import Union
 
 import dateutil.parser as dparse
 
-import gantt
+import gantt_project_maker.gantt as gantt
 import gantt_project_maker.colors as cbsc
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import write_planning_to_excel

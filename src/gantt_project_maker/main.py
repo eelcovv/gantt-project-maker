@@ -145,6 +145,7 @@ def check_if_items_are_available(requested_items, available_items, label=""):
             f"The {label} {missing_items} are not defined in the settings file.\n"
             f"The following keys are available: {unique_available_items}"
         )
+    return True
 
 
 def main(args):
