@@ -1,4 +1,3 @@
-import locale
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -7,13 +6,9 @@ from typing import Union
 import dateutil.parser as dparse
 
 import gantt_project_maker.gantt as gantt
-import gantt_project_maker.colors as cbsc
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import write_planning_to_excel
 
-locale.setlocale(locale.LC_TIME, "nl_NL.UTF-8")
-
-cbsc.set_cbs_colors()
 
 SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
@@ -72,9 +67,7 @@ def parse_date(date_string: str, date_default: str = None) -> datetime.date:
     return date
 
 
-def voeg_vacations_employee_toe(
-    Employee: gantt.Resource, vakantie_lijst: dict
-) -> dict:
+def voeg_vacations_employee_toe(Employee: gantt.Resource, vakantie_lijst: dict) -> dict:
     """
     Voeg de vakantiedagen van een werknemer toe
 
@@ -101,6 +94,7 @@ def voeg_vacations_employee_toe(
 
 
 def define_attributes():
+
     gantt.define_font_attributes(
         fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     )
@@ -292,7 +286,7 @@ class ProjectPlanner:
         output_file_name=None,
         planning_start=None,
         planning_end=None,
-        vandaag=None,
+        today=None,
         scale=None,
         period_info=None,
         excel_info=None,
@@ -301,7 +295,7 @@ class ProjectPlanner:
         self.period_info = period_info
         self.planning_start = planning_start
         self.planning_end = planning_end
-        self.datum_vandaag = vandaag
+        self.datum_vandaag = today
         self.scale = scale
         self.details = details
 
@@ -573,9 +567,7 @@ class ProjectPlanner:
         Maak alle projecten
         """
         employee_color = color_to_hex(subprojects_color)
-        projects_employee = gantt.Project(
-            name=subprojects_title, color=employee_color
-        )
+        projects_employee = gantt.Project(name=subprojects_title, color=employee_color)
 
         _logger.info(f"Voeg alle projecten toe van {subprojects_title}")
         for project_key, project_values in subprojects_info.items():

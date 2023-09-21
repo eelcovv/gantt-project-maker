@@ -4,6 +4,7 @@ This is the main start up file of the project planner
 
 import argparse
 import codecs
+import locale
 import logging
 import sys
 from datetime import datetime
@@ -12,6 +13,7 @@ from pathlib import Path
 import yaml
 
 from gantt_project_maker import __version__
+from gantt_project_maker.colors import set_custom_colors
 from gantt_project_maker.project_classes import ProjectPlanner, SCALES, parse_date
 
 __author__ = "Eelco van Vliet"
@@ -100,7 +102,7 @@ def parse_args(args):
         "-p",
         "--period",
         help="On export this period from the list of periods as given in the settings file. If not given, all"
-             "the periods are writen to file",
+        "the periods are writen to file",
         action="append",
     )
 
@@ -180,6 +182,11 @@ def main(args):
     output_directories = general_settings.get("output_directories")
     project_settings_per_employee = settings["project_settings_file_per_employee"]
 
+    if custom_colors := general_settings.get("custom_colors"):
+        set_custom_colors(custom_colors=custom_colors)
+    if country_code := general_settings.get("country_code"):
+        locale.setlocale(locale.LC_TIME, country_code)
+
     if output_directories is not None:
         planning_directory = Path(output_directories.get("planning", "."))
         resources_directory = Path(output_directories.get("resources", "."))
@@ -252,7 +259,7 @@ def main(args):
         output_file_name=output_filename,
         planning_start=start,
         planning_end=end,
-        vandaag=today,
+        today=today,
         scale=scale,
         period_info=period_info,
         excel_info=excel_info,

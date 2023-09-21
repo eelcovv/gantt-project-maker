@@ -6,32 +6,58 @@ general:
   planning_start: 1-10-2022
   planning_end: 31-12-2024
   output_directories:
-      planning: output_planning
-      resources: output_resources
-      excel: output_excel
+    planning: output_planning
+    resources: output_resources
+    excel: output_excel
+  country_code: "nl_NL.UTF-8"
+  custom_colors:
+    appelgroen: "AFCB05"
+    appelgroenvergrijsd: "899D0C"
+    codecolor: "585858"
+    corporateblauw: "271D6C"
+    corporatelichtblauw: "00A1CD"
+    donkerblauw: "0058B8"
+    donkerblauwvergrijsd: "163A72"
+    geel: "FFCC00"
+    geelvergrijsd: "FFB600"
+    grasgroen: "53A31D"
+    grasgroenvergrijsd: "488225"
+    grijs: "666666"
+    highchartslichtgrijs: "EFEFEF"
+    lichtblauw: "00A1CD"
+    lichtblauwvergrijsd: "0581A2"
+    lichtgrijs: "E0E0E0"
+    loodgrijs: "929292"
+    oranje: "F39200"
+    oranjevergrijsd: "CE7C00"
+    rood: "E94C0A"
+    roodvergrijsd: "B23D02"
+    roze: "AF0E80"
+    rozevergrijsd: "82045E"
+    violet: "AC218E"
 project_settings_file_per_employee:
   emp1: projects_emp1.yml
   emp2: projects_emp2.yml
 periods:
-  volledig:
+  all:
     scale: weekly
-  end_jaar:
+  end_of_year:
     planning_start: 1-8-2023
     planning_end: 31-12-2023
     scale: daily
 vacations:
-  easter_23: # does not work on personal level
+  easter_23:
     start: 9-4-2023
     end: 10-4-2023
-  kings_day_23: # does not work on personal level
+  kings_day_23:
     start: 27-4-2023
-  ascension_day_23: # does not work on personal level
+  ascension_day_23:
     start: 28-5-2023
     end: 29-5-2023
-  pentecost_23: # does not work on personal level
+  pentecost_23:
     start: 18-5-2023
     end: 18-5-2023
-  christmas_23: # does not work on personal level
+  christmas_23:
     start: 25-12-2023
     end: 7-1-2024
 employees:
@@ -114,4 +140,3 @@ excel:
       title: other_business
       columns:
         remark: Remarks
-
