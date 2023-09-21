@@ -31,7 +31,7 @@ projects:
                     - emp7
                     - emp3
             data_afronden_en_sturen:
-                type: mijlpaal
+                type: milestone
                 label: Dataset afronden en sturen naar EBN/NR
                 start: 20-10-2023
                 employees:
@@ -115,7 +115,7 @@ projects:
                 end: 1-6-2024
                 employees: emp4
             data_afronden_en_sturen:
-                type: mijlpaal
+                type: milestone
                 label: Dataset afronden en sturen naar EBN/NR
                 start: 15-6-2024
                 employees: emp4

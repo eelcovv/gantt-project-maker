@@ -157,7 +157,7 @@ class BasicElement(StartEindBase):
         self,
         label,
         start=None,
-        afhankelijk_van=None,
+        dependent_of=None,
         color=None,
         volledige_naam=None,
         detail=False,
@@ -169,7 +169,7 @@ class BasicElement(StartEindBase):
             raise ValueError("Iedere task moet een label hebben!")
         self.label = label
         self.detail = detail
-        self.afhankelijk_van = afhankelijk_van
+        self.dependent_of = dependent_of
         self.color = color_to_hex(color)
         self.volledige_naam = volledige_naam
         self.display = display
@@ -200,7 +200,7 @@ class Task(BasicElement):
         super().__init__(
             label=label,
             start=start,
-            afhankelijk_van=dependent_of,
+            dependent_of=dependent_of,
             color=color,
             detail=detail,
             volledige_naam=volledige_naam,
@@ -228,7 +228,7 @@ class Task(BasicElement):
             start=self.start,
             stop=self.end,
             duration=self.duur,
-            depends_of=self.afhankelijk_van,
+            depends_of=self.dependent_of,
             resources=self.employees,
             color=self.color,
             percent_done=self.percentage_voltooid,
@@ -241,7 +241,7 @@ class Task(BasicElement):
         self.element.remark = self.remark
 
 
-class Mijlpaal(BasicElement):
+class milestone(BasicElement):
     def __init__(
         self,
         label,
@@ -256,7 +256,7 @@ class Mijlpaal(BasicElement):
         super().__init__(
             label=label,
             start=start,
-            afhankelijk_van=dependent_of,
+            dependent_of=dependent_of,
             color=color,
             detail=detail,
             volledige_naam=volledige_naam,
@@ -266,13 +266,13 @@ class Mijlpaal(BasicElement):
 
         self.element = None
 
-        self.voeg_mijlpaal_toe()
+        self.voeg_milestone_toe()
 
-    def voeg_mijlpaal_toe(self):
+    def voeg_milestone_toe(self):
         self.element = gantt.Milestone(
             name=self.label,
             start=self.start,
-            depends_of=self.afhankelijk_van,
+            depends_of=self.dependent_of,
             color=self.color,
         )
         self.element.remark = self.remark
@@ -428,17 +428,17 @@ class ProjectPlanner:
 
         if afhankelijkheden is not None:
             if isinstance(afhankelijkheden, str):
-                afhankelijk_van = self.get_afhankelijkheid(afhankelijkheden)
-                afhankelijks_elementen.append(afhankelijk_van)
+                dependent_of = self.get_afhankelijkheid(afhankelijkheden)
+                afhankelijks_elementen.append(dependent_of)
             elif isinstance(afhankelijkheden, dict):
                 for category, afhankelijk_items in afhankelijkheden.items():
                     for task_key in afhankelijk_items:
-                        afhankelijk_van = self.get_afhankelijkheid(task_key)
-                        afhankelijks_elementen.append(afhankelijk_van)
+                        dependent_of = self.get_afhankelijkheid(task_key)
+                        afhankelijks_elementen.append(dependent_of)
             else:
                 for afhankelijk_item in afhankelijkheden:
-                    afhankelijk_van = self.get_afhankelijkheid(afhankelijk_item)
-                    afhankelijks_elementen.append(afhankelijk_van)
+                    dependent_of = self.get_afhankelijkheid(afhankelijk_item)
+                    afhankelijks_elementen.append(dependent_of)
 
             return afhankelijks_elementen
 
@@ -474,9 +474,9 @@ class ProjectPlanner:
                 vakantie_lijst=w_prop.get("vacations"),
             )
 
-    def maak_task_of_mijlpaal(
+    def maak_task_of_milestone(
         self, task_properties: dict = None
-    ) -> Union[Task, Mijlpaal]:
+    ) -> Union[Task, milestone]:
         """
         Add all the general tasks and milestones
 
@@ -489,13 +489,13 @@ class ProjectPlanner:
 
         """
         dependencies = self.get_afhankelijkheden(
-            task_properties.get("afhankelijk_van")
+            task_properties.get("dependent_of")
         )
         element_type = task_properties.get("type", "task")
         if element_type == "task":
             employees = self.get_employees(task_properties.get("employees"))
             _logger.debug(f"Voeg task {task_properties.get('label')} toe")
-            task_of_mijlpaal = Task(
+            task_of_milestone = Task(
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
                 end=task_properties.get("end"),
@@ -510,9 +510,9 @@ class ProjectPlanner:
                 cci=task_properties.get("cci"),
                 remark=task_properties.get("remark"),
             )
-        elif element_type == "mijlpaal":
+        elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
-            task_of_mijlpaal = Mijlpaal(
+            task_of_milestone = milestone(
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
@@ -520,9 +520,9 @@ class ProjectPlanner:
                 remark=task_properties.get("remark"),
             )
         else:
-            raise AssertionError("Type should be 'task' or 'mijlpaal'")
+            raise AssertionError("Type should be 'task' or 'milestone'")
 
-        return task_of_mijlpaal
+        return task_of_milestone
 
     def add_tasks_and_milestones(
         self, tasks_and_milestones=None, tasks_and_milestones_info=None
@@ -552,7 +552,7 @@ class ProjectPlanner:
 
         for task_key, task_val in tasks_en_mp.items():
             _logger.debug(f"Processen task {task_key}")
-            self.tasks_and_milestones[task_key] = self.maak_task_of_mijlpaal(
+            self.tasks_and_milestones[task_key] = self.maak_task_of_milestone(
                 task_properties=task_val
             )
 
@@ -616,7 +616,7 @@ class ProjectPlanner:
 
                     if isinstance(task_val, str):
                         try:
-                            # de task een task of een mijlpaal?
+                            # de task een task of een milestone?
                             task_obj = self.tasks_and_milestones[task_val]
                             task = task_obj.element
                             is_detail = task_obj.detail
@@ -628,7 +628,7 @@ class ProjectPlanner:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
-                        task_obj = self.maak_task_of_mijlpaal(
+                        task_obj = self.maak_task_of_milestone(
                             task_properties=task_val
                         )
                         task = task_obj.element

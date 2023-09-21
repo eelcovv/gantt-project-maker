@@ -35,22 +35,22 @@ tasks_and_milestones:
             label: Bouwen en testen online vragenlijst 2023
             start: 24-10-2022
             end: 27-1-2023
-            afhankelijk_van: ontwerp_concept_vragenlijst_23
+            dependent_of: ontwerp_concept_vragenlijst_23
             department1: ja
             remark: task wordt uitgevoerd i.s.m. Blaise bouwer(s).
             employees: *emp1_emp3_department1
-        mijlpaal_vragenlijst_afgerond_23:
+        milestone_vragenlijst_afgerond_23:
             label: Vragenlijst '23 definitief afgerond
-            type: mijlpaal
+            type: milestone
             color: rood
             department1: ja
             start: 27-1-2023
-            afhankelijk_van: ontwerp_online_vragenlijst_23
+            dependent_of: ontwerp_online_vragenlijst_23
         logistieke_test_uitvoeren_23:
             label: Logistieke test ontwerp department1 '23 uitvoeren
             start: 30-1-2023
             end: 17-2-2023
-            afhankelijk_van: mijlpaal_vragenlijst_afgerond_23
+            dependent_of: milestone_vragenlijst_afgerond_23
             department1: ja
             employees: *emp1_emp3_department1
         aanleveren_nieuwe_dtc_bedrijven_23:
@@ -71,13 +71,13 @@ tasks_and_milestones:
             start: 27-2-2023
             end: 6-3-2023
             department1: ja
-            afhankelijk_van: logistieke_test_uitvoeren_23
+            dependent_of: logistieke_test_uitvoeren_23
             employees: department1
         uitzending_online_ict_enquete_23_monitoren:
             label: Uitgezonden ICT-enquête monitoren
             start: 28-2-2023
             end: 16-3-2023
-            afhankelijk_van: uitzending_online_ict_enquete_23
+            dependent_of: uitzending_online_ict_enquete_23
             employees: *emp1_emp3
     project_module_2:
         ontwerp_concept_vragenlijst_24:
@@ -93,20 +93,20 @@ tasks_and_milestones:
             start: 24-10-2023
             end: 27-1-2024
             department1: ja
-            afhankelijk_van: ontwerp_concept_vragenlijst_24
+            dependent_of: ontwerp_concept_vragenlijst_24
             employees: *emp1_emp3_department1
-        mijlpaal_vragenlijst_afgerond_24:
+        milestone_vragenlijst_afgerond_24:
             label: Vragenlijst '23 definitief afgerond
-            type: mijlpaal
+            type: milestone
             color: rood
             start: 27-1-2024
             department1: ja
-            afhankelijk_van: ontwerp_online_vragenlijst_24
+            dependent_of: ontwerp_online_vragenlijst_24
         logistieke_test_uitvoeren_24:
             label: Logistieke test ontwerp department1 '24 uitvoeren
             start: 30-1-2024
             end: 17-2-2024
-            afhankelijk_van: mijlpaal_vragenlijst_afgerond_24
+            dependent_of: milestone_vragenlijst_afgerond_24
             department1: ja
             employees: *emp1_emp3_department1
         aanleveren_nieuwe_dtc_bedrijven_24:
@@ -125,7 +125,7 @@ tasks_and_milestones:
             label: ICT-enquête uitzenden
             start: 27-2-2024
             end: 6-3-2024
-            afhankelijk_van: logistieke_test_uitvoeren_24
+            dependent_of: logistieke_test_uitvoeren_24
             department1: ja
             employees: department1
         uitzending_online_ict_enquete_24_monitoren:
@@ -133,7 +133,7 @@ tasks_and_milestones:
             start: 28-2-2024
             end: 16-3-2024
             employees: *emp1_emp3
-            afhankelijk_van: uitzending_online_ict_enquete_24
+            dependent_of: uitzending_online_ict_enquete_24
     project_module_3:
         ontwerp_nieuwe_settings_file_23:
             label: Ontwerp settingsfile ict_analyser 23
@@ -230,13 +230,13 @@ tasks_and_milestones:
             label: Data-analyse Internet.nl scan-data
             start: 5-4-2023
             end: 15-4-2023
-            afhankelijk_van: internetstandaarden_scan_23
+            dependent_of: internetstandaarden_scan_23
             employees: emp1
         internetstandaarden_rapport_23:
             label: Schrijven rapport Internetstandaarden
             start: 16-4-2023
             end: 10-5-2023
-            afhankelijk_van: internetstandaarden_analyse_23
+            dependent_of: internetstandaarden_analyse_23
             employees: emp1
         internetstandaarden_scan_24:
             label: Uitvoeren scan voor Internet.nl 2024
@@ -276,7 +276,7 @@ projects:
         tasks:
             concept: ontwerp_concept_vragenlijst_23
             webversie: ontwerp_online_vragenlijst_23
-            mijlpaal_vragenlijst_afgerond: mijlpaal_vragenlijst_afgerond_23
+            milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_23
             aanleveren_nieuwe_dtc_bedrijven_23: aanleveren_nieuwe_dtc_bedrijven_23
             aanleveren_verrijkingsbestand_23: aanleveren_verrijkingsbestand_23
             logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
@@ -288,7 +288,7 @@ projects:
         tasks:
             concept: ontwerp_concept_vragenlijst_24
             webversie: ontwerp_online_vragenlijst_24
-            mijlpaal_vragenlijst_afgerond: mijlpaal_vragenlijst_afgerond_24
+            milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_24
             aanleveren_nieuwe_dtc_bedrijven_24: aanleveren_nieuwe_dtc_bedrijven_24
             aanleveren_verrijkingsbestand_24: aanleveren_verrijkingsbestand_24
             logistieke_test_uitvoeren_24: logistieke_test_uitvoeren_24
