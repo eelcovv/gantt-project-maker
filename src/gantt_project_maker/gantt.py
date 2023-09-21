@@ -1958,12 +1958,12 @@ class Milestone(Task):
         return csv_text
 
 
-class Project(object):
+class Project:
     """
     Class for handling projects
     """
 
-    def __init__(self, name="", color=None):
+    def __init__(self, name="", color=None, side_bar_color=None):
         """
         Initialize project with a given name and color for all tasks
 
@@ -1977,6 +1977,11 @@ class Project(object):
             self.color = "#FFFF90"
         else:
             self.color = color
+
+        if side_bar_color is None:
+            self.side_bar_color = self.color
+        else:
+            self.side_bar_color = side_bar_color
 
         self.cache_nb_elements = None
         return
@@ -1992,8 +1997,9 @@ class Project(object):
         self.cache_nb_elements = None
         return
 
+    @staticmethod
     def _svg_calendar(
-        self, maxx, maxy, start_date, today=None, scale=DRAW_WITH_DAILY_SCALE, offset=0
+        maxx, maxy, start_date, today=None, scale=DRAW_WITH_DAILY_SCALE, offset=0
     ):
         """
         Draw calendar in svg, beginning at start_date for maxx days, containing
@@ -2276,7 +2282,7 @@ class Project(object):
             prev_y=2,
             start=start_date,
             end=end_date,
-            color=self.color,
+            color=self.side_bar_color,
             scale=scale,
             title_align_on_left=title_align_on_left,
             offset=offset,
@@ -2680,7 +2686,7 @@ class Project(object):
                     svgwrite.shapes.Rect(
                         insert=((6 * level + 0.8 + offset) * mm, (prev_y + 0.5) * cm),
                         size=(0.2 * cm, ((cy - prev_y - 1) + 0.4) * cm),
-                        fill="purple",
+                        fill=self.color,
                         stroke="lightgray",
                         stroke_width=0,
                         opacity=0.5,
