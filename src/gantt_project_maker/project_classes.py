@@ -14,7 +14,7 @@ SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
     weekly=gantt.DRAW_WITH_WEEKLY_SCALE,
     monthly=gantt.DRAW_WITH_MONTHLY_SCALE,
-    quarterly=gantt.DRAW_WITH_QUATERLY_SCALE,
+    quarterly=gantt.DRAW_WITH_QUARTERLY_SCALE,
 )
 
 _logger = logging.getLogger(__name__)

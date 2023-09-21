@@ -32,32 +32,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+
+import codecs
+import datetime
+import io
+import logging
+import re
+import sys
+
+import dateutil.relativedelta
+import svgwrite
+
 __author__ = "Alexandre Norman (norman at xael.org)"
 # modified by Eelco van Vliet
 __version__ = "0.6.0"
 __last_modification__ = "2023.09.21"
-
-import codecs
-import datetime
-import logging
-import sys
-import types
-import re
-
-# https://bitbucket.org/mozman/svgwrite
-# http://svgwrite.readthedocs.org/en/latest/
-
-import svgwrite
 
 # conversion from mm/cm to pixel is done by ourselves as firefox seems
 # to have a bug for big numbers...
 # 3.543307 is for conversion from mm to pt units !
 mm = 3.543307
 cm = 35.43307
-
-
-# https://labix.org/python-dateutil
-import dateutil.relativedelta
 
 
 class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
@@ -74,32 +69,28 @@ class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
         self["height"] = height
         self["width"] = width
 
-        if sys.version_info[0] == 2:
-            test = (
-                type(self.filename) == types.FileType
-                or type(self.filename) == types.InstanceType
-            )
-        elif sys.version_info[0] == 3:
-            test = type(self.filename) == io.TextIOWrapper
+        this_file_type = type(self.filename)
+
+        test = this_file_type == io.TextIOWrapper
 
         if test:
             self.write(self.filename)
         else:
-            fileobj = io.open(str(self.filename), mode="w", encoding="utf-8")
-            self.write(fileobj)
-            fileobj.close()
+            file_pointer = io.open(str(self.filename), mode="w", encoding="utf-8")
+            self.write(file_pointer)
+            file_pointer.close()
 
 
 ############################################################################
 
-__LOG__ = None
+__LOG__: logging.Logger = None
 
 ############################################################################
 
 DRAW_WITH_DAILY_SCALE = "d"
 DRAW_WITH_WEEKLY_SCALE = "w"
 DRAW_WITH_MONTHLY_SCALE = "m"
-DRAW_WITH_QUATERLY_SCALE = "q"
+DRAW_WITH_QUARTERLY_SCALE = "q"
 
 ############################################################################
 
@@ -164,7 +155,7 @@ def define_font_attributes(
 
 def _font_attributes():
     """
-    Return dictionnary of font attributes
+    Return dictionary of font attributes
     Example :
     FONT_ATTR = {
       'fill': 'black',
@@ -180,7 +171,7 @@ def _font_attributes():
 ############################################################################
 
 
-# list of vacations as datetime (non worked days)
+# list of vacations as datetime (non-worked days)
 VACATIONS = []
 
 
@@ -189,13 +180,13 @@ VACATIONS = []
 
 def add_vacations(start_date, end_date=None):
     """
-    Add vacations to a resource begining at [start_date] to [end_date]
+    Add vacations to a resource beginning at [start_date] to [end_date]
     (included). If [end_date] is not defined, vacation will be for [start_date]
     day only
 
     Keyword arguments:
-    start_date -- datetime.date begining of vacation
-    end_date -- datetime.date end of vacation of vacation
+    start_date -- datetime.date beginning of vacation
+    end_date -- datetime.date end of vacation
     """
     __LOG__.debug(
         "** add_vacations {0}".format({"start_date": start_date, "end_date": end_date})
@@ -286,7 +277,7 @@ class GroupOfResources(object):
 
     def __init__(self, name, fullname=None):
         """
-        Init a group of resource resource
+        Init a group of resources
 
         Keyword arguments:
         name -- name given to the resource (id)
@@ -319,12 +310,12 @@ class GroupOfResources(object):
 
     def add_vacations(self, dfrom, dto=None):
         """
-        Add vacations to a resource begining at [dfrom] to [dto] (included). If
+        Add vacations to a resource beginning at [dfrom] to [dto] (included). If
         [dto] is not defined, vacation will be for [dfrom] day only
 
         Keyword arguments:
-        dfrom -- datetime.date begining of vacation
-        dto -- datetime.date end of vacation of vacation
+        dfrom -- datetime.date beginning of vacation
+        dto -- datetime.date end of vacation
         """
         __LOG__.debug(
             "** Resource::add_vacations {0}".format(
@@ -366,7 +357,7 @@ class GroupOfResources(object):
         # Group vacations
         for h in self.vacations:
             dfrom, dto = h
-            if date >= dfrom and date <= dto:
+            if dfrom <= date <= dto:
                 __LOG__.debug(
                     "** GroupOfResources::is_available {0} : False (group vacation)".format(
                         {"name": self.name, "date": date}
@@ -374,7 +365,7 @@ class GroupOfResources(object):
                 )
                 return False
 
-        # Test if at least one resource is avalaible
+        # Test if at least one resource is available
         for r in self.resources:
             if r.is_available(date):
                 __LOG__.debug(
@@ -404,7 +395,7 @@ class GroupOfResources(object):
 
     def search_for_task_conflicts(self, all_tasks=False):
         """
-        Returns a dictionnary of all days (datetime.date) containing for each
+        Returns a dictionary of all days (datetime.date) containing for each
         overcharged day the list of task for this day.
 
         It examines all resources member and group tasks.
@@ -501,12 +492,12 @@ class Resource(object):
 
     def add_vacations(self, dfrom, dto=None):
         """
-        Add vacations to a resource begining at [dfrom] to [dto] (included). If
+        Add vacations to a resource beginning at [dfrom] to [dto] (included). If
         [dto] is not defined, vacation will be for [dfrom] day only
 
         Keyword arguments:
-        dfrom -- datetime.date begining of vacation
-        dto -- datetime.date end of vacation of vacation
+        dfrom -- datetime.date beginning of vacation
+        dto -- datetime.date end of vacation
         """
         __LOG__.debug(
             "** Resource::add_vacations {0}".format(
@@ -803,7 +794,7 @@ class Task(object):
 
         __LOG__.debug("** Task::start_date ({0})".format(self.name))
         if self.start is not None:
-            # start date setted, calculate begining
+            # start date setted, calculate beginning
             if self.depends_of is None:
                 # depends of nothing... start date is start
                 # __LOG__.debug('*** Do not depend of other task')
@@ -1082,7 +1073,7 @@ class Task(object):
         end -- datetime.date of last day to draw
         color -- string of color for drawing the project
         level -- int, indentation level of the project, not used here
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
         """
@@ -1167,7 +1158,7 @@ class Task(object):
             def _time_diff_d(e, s):
                 return _time_diff(e, s) + 1
 
-        elif scale == DRAW_WITH_QUATERLY_SCALE:
+        elif scale == DRAW_WITH_QUARTERLY_SCALE:
             __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
             sys.exit(1)
 
@@ -1697,7 +1688,7 @@ class Milestone(Task):
         end -- datetime.date of last day to draw
         color -- string of color for drawing the project
         level -- int, indentation level of the project, not used here
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align milestone title on left
         offset -- X offset from image border to start of drawing zone
         """
@@ -1785,7 +1776,7 @@ class Milestone(Task):
             def _time_diff_d(e, s):
                 return _time_diff(e, s) + 1
 
-        elif scale == DRAW_WITH_QUATERLY_SCALE:
+        elif scale == DRAW_WITH_QUARTERLY_SCALE:
             __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
             sys.exit(1)
 
@@ -2029,7 +2020,7 @@ class Project(object):
         self, maxx, maxy, start_date, today=None, scale=DRAW_WITH_DAILY_SCALE, offset=0
     ):
         """
-        Draw calendar in svg, begining at start_date for maxx days, containing
+        Draw calendar in svg, beginning at start_date for maxx days, containing
         maxy lines. If today is given, draw a blue line at date
 
         Keyword arguments:
@@ -2037,7 +2028,7 @@ class Project(object):
         maxy -- number of lines to draw
         start_date -- datetime.date of the first day to draw
         today -- datetime.date of day as today reference
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         offset -- X offset from image border to start of drawing zone
         """
         dwg = svgwrite.container.Group()
@@ -2060,7 +2051,7 @@ class Project(object):
                 jour = start_date + dateutil.relativedelta.relativedelta(weeks=+x)
             elif scale == DRAW_WITH_MONTHLY_SCALE:
                 jour = start_date + dateutil.relativedelta.relativedelta(months=+x)
-            elif scale == DRAW_WITH_QUATERLY_SCALE:
+            elif scale == DRAW_WITH_QUARTERLY_SCALE:
                 # how many quarter do we need to draw ?
                 __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
                 sys.exit(1)
@@ -2220,7 +2211,7 @@ class Project(object):
                         )
                     )
 
-            elif scale == DRAW_WITH_QUATERLY_SCALE:
+            elif scale == DRAW_WITH_QUARTERLY_SCALE:
                 # how many quarter do we need to draw ?
                 __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
                 sys.exit(1)
@@ -2278,7 +2269,7 @@ class Project(object):
         today -- datetime.date of day marked as a reference
         start -- datetime.date of first day to draw
         end -- datetime.date of last day to draw
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
         """
@@ -2354,7 +2345,7 @@ class Project(object):
                     * 12
                     + 1
                 )
-        elif scale == DRAW_WITH_QUATERLY_SCALE:
+        elif scale == DRAW_WITH_QUARTERLY_SCALE:
             # how many quarter do we need to draw ?
             __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
             sys.exit(1)
@@ -2405,7 +2396,7 @@ class Project(object):
         resources -- list of Resource to check, default all
         one_line_for_tasks -- use only one line to display all tasks ?
         filter -- display only those tags
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
         """
@@ -2658,7 +2649,7 @@ class Project(object):
         end -- datetime.date of last day to draw
         color -- string of color for drawing the project
         level -- int, indentation level of the project
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quaterly)
+        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
         """
@@ -2728,11 +2719,11 @@ class Project(object):
 
         # Do not display empty tasks
         if (cy - prev_y) == 0 or ((cy - prev_y) == 1 and prj_bar):
-            return (None, 0)
+            return None, 0
 
         fprj.add(prj)
 
-        return (fprj, cy - prev_y)
+        return fprj, cy - prev_y
 
     def svg_dependencies(self, prj):
         """
@@ -2806,7 +2797,7 @@ class Project(object):
         """
         tlist = []
         for t in self.tasks:
-            # if it is a sub project, recurse
+            # if it is a subproject, recurse
             if type(t) is type(self):
                 st = t.get_tasks()
                 tlist.append(st)
@@ -2839,25 +2830,11 @@ class Project(object):
         for t in self.tasks:
             c = t.csv()
             if c is not None:
-                if sys.version_info[0] == 2:
-                    try:
-                        c = unicode(c, "utf-8")
-                    except TypeError:
-                        pass
-                    csv_text += c
-                elif sys.version_info[0] == 3:
-                    csv_text += c
-                else:
-                    csv_text += c
+                csv_text += c
 
         if csv is not None:
-            test = False
-            import io
 
-            if sys.version_info[0] == 2:
-                test = type(csv) == types.FileType or type(csv) == types.InstanceType
-            elif sys.version_info[0] == 3:
-                test = type(csv) == io.TextIOWrapper
+            test = type(csv) == io.TextIOWrapper
 
             if test:
                 csv.write(csv_text)
