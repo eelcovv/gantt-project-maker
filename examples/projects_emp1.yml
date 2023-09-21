@@ -1,5 +1,5 @@
-algemeen:
-    title: Eelco van Vliet
+general:
+    title: Project Leader One
     color: rood
     projecten:
         - emp1_project_1
@@ -273,7 +273,7 @@ projecten:
     vragenlijst_department1_23:
         title: Dataverzameling 2023
         color: corporatelichtblauw
-        taken:
+        tasks:
             concept: ontwerp_concept_vragenlijst_23
             webversie: ontwerp_online_vragenlijst_23
             mijlpaal_vragenlijst_afgerond: mijlpaal_vragenlijst_afgerond_23
@@ -285,7 +285,7 @@ projecten:
     vragenlijst_department1_24:
         title: Dataverzameling 2024
         color: geel
-        taken:
+        tasks:
             concept: ontwerp_concept_vragenlijst_24
             webversie: ontwerp_online_vragenlijst_24
             mijlpaal_vragenlijst_afgerond: mijlpaal_vragenlijst_afgerond_24
@@ -297,7 +297,7 @@ projecten:
     data_collectie_en_analyse_23:
         title: Datacollectie, analyse en publicatie '23
         color: appelgroen
-        taken:
+        tasks:
             #levering_eurostat_data_meta_en_qr_22: levering_eurostat_data_meta_en_qr_22
             ontwerp_nieuwe_settings_file_23: ontwerp_nieuwe_settings_file_23
             com_systeem_bijhouden_23: com_systeem_bijhouden_23
@@ -315,7 +315,7 @@ projecten:
         vir: WTE
         project_leader: emp1
         casper_project: PR002512
-        taken:
+        tasks:
             concept: ontwerp_concept_vragenlijst_23
             logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
             levering_statline_tabellen_23: levering_statline_tabellen_23
@@ -326,7 +326,7 @@ projecten:
         vir: WTE
         project_leader: emp1
         casper_project: PR002513
-        taken:
+        tasks:
             concept: ontwerp_concept_vragenlijst_23
             logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
             levering_maatwerktabel_dtc_23: levering_maatwerktabel_dtc_23
@@ -337,7 +337,7 @@ projecten:
         project_leader: emp1
         vir: WTE
         casper_project: PR002398
-        taken:
+        tasks:
             wg_vergadering_mq_24:
                 label: WG vergadering MQ'24
                 start: 8-2-2023
@@ -369,7 +369,7 @@ projecten:
         vir: WTE
         casper_project: PR002639
         project_leader: emp1
-        taken:
+        tasks:
             - csm_datacollectie_23
             - csm_bijlagen_23
             - csm_schrijven_23
@@ -381,7 +381,7 @@ projecten:
         link: "\\\\cbsp.nl/productie/primair/WTE/Werk/Users/emp1/Projects/InternetNL"
         casper_project: PR002639
         project_leader: emp1
-        taken:
+        tasks:
             - internetstandaarden_scan_23
             - internetstandaarden_analyse_23
             - internetstandaarden_rapport_23
@@ -393,7 +393,7 @@ projecten:
         casper_project: PR002398
         casper_task: 1
         project_leader: emp1
-        taken:
+        tasks:
             - vragenlijst_department1_23
             - data_collectie_en_analyse_23
             - zzp_bedrijven_23
@@ -402,7 +402,7 @@ projecten:
             - vragenlijst_department1_24
     emp1_project_2:
         title: BAS 2023 ASD Projecten
-        taken:
+        tasks:
             project_module_4: project_module_4
             project_module_5: project_module_5
     project_module_6:
@@ -411,7 +411,7 @@ projecten:
         link: "\\\\cbsp.nl/productie/primair/WTE/Werk/other_business/Python cursussen"
         casper_project: PR305653
         color: LightCyan
-        taken:
+        tasks:
             pycharm_juni_23_voorbereiden: pycharm_juni_23_voorbereiden
             pycharm_juni_23: pycharm_juni_23
             python_cursus_sep_23: python_cursus_sep_23

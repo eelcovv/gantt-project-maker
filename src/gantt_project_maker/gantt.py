@@ -328,7 +328,7 @@ class GroupOfResources(object):
     def is_available(self, date):
         """
         Returns True if any resource is available at given date, False if not.
-        Availibility is taken from the global VACATIONS and resource's ones.
+        Availibility is tasks from the global VACATIONS and resource's ones.
 
         Keyword arguments:
         date -- datetime.date day to look for
@@ -489,7 +489,7 @@ class Resource(object):
     def is_available(self, date):
         """
         Returns True if the resource is available at given date, False if not.
-        Availibility is taken from the global VACATIONS and resource's ones.
+        Availibility is tasks from the global VACATIONS and resource's ones.
 
         Keyword arguments:
         date -- datetime.date day to look for

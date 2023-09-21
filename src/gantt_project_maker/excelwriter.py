@@ -211,7 +211,7 @@ def write_planning_to_excel(excel_file, project, header_info, column_widths):
             projects_per_Employee = project.tasks
         except AttributeError as err:
             raise AttributeError(
-                f"{err}\nproject heeft helemaal geen taken. Hier gaat what fout"
+                f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
             )
         else:
             for projecten_Employee in projects_per_Employee:
@@ -374,7 +374,7 @@ def write_project(
     try:
         tasks = project.tasks
     except AttributeError:
-        _logger.debug("Dit is een task, dus heeft geen taken ")
+        _logger.debug("Dit is een task, dus heeft geen tasks ")
     else:
         for task in tasks:
             level += 1

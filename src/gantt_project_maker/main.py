@@ -73,13 +73,13 @@ def parse_args(args):
     )
     parser.add_argument(
         "--details",
-        help="Voer ook de detailtaken uit.",
+        help="Voer ook de detailtasks uit.",
         action="store_true",
         default=True,
     )
     parser.add_argument(
         "--geen_details",
-        help="Onderdruk alle detailtaken voor het grote overzicht.",
+        help="Onderdruk alle detailtasks voor het grote overzicht.",
         action="store_false",
         dest="details",
     )
@@ -169,7 +169,7 @@ def main(args):
     with codecs.open(args.settings_filename, "r", encoding="UTF-8") as stream:
         settings = yaml.load(stream=stream, Loader=yaml.Loader)
 
-    general_settings = settings["algemeen"]
+    general_settings = settings["general"]
     period_info = settings["periods"]
 
     if args.scale is not None:
@@ -269,14 +269,14 @@ def main(args):
     planning.maak_vacations(vacations_info=vacations_info)
     planning.maak_employees(employees_info=employees_info)
 
-    # Voeg nu de algemene taken per Employee toe. Het is niet verplicht tasks_and_milestones op te geven,
-    # maar kan wel. Het voordeel is dat taken tussen employees gedeeld kunnen worden
+    # Voeg nu de algemene tasks per Employee toe. Het is niet verplicht tasks_and_milestones op te geven,
+    # maar kan wel. Het voordeel is dat tasks tussen employees gedeeld kunnen worden
     for (
         employee_key,
         employee_settings,
     ) in settings_per_Employee.items():
         if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
-            _logger.info(f"Voegen globale taken en mijlpalen van {employee_key} toe")
+            _logger.info(f"Voegen globale tasks en mijlpalen van {employee_key} toe")
             planning.maak_tasks_and_milestones(
                 tasks_and_milestones_info=tasks_and_milestones_info
             )
@@ -290,7 +290,7 @@ def main(args):
             _logger.debug(f"Employee {employee_key} wordt over geslagen")
             continue
 
-        project_employee_info = employee_settings["algemeen"]
+        project_employee_info = employee_settings["general"]
         subprojecten_info = employee_settings["projecten"]
 
         subprojecten_selectie = project_employee_info["projecten"]

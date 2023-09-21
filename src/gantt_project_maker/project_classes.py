@@ -317,7 +317,7 @@ class ProjectPlanner:
             name=programma_title, color=color_to_hex(programma_color)
         )
 
-        self.project_taken = dict()
+        self.project_tasks = dict()
         self.vacations = dict()
         self.employees = dict()
         self.tasks_and_milestones = dict()
@@ -375,7 +375,7 @@ class ProjectPlanner:
             hangt_af_van = self.tasks_and_milestones[key]
             if key in self.subprojecten.keys():
                 _logger.warning(
-                    f"De afhankelijkheid {key} komt in zowel taken en mijlpalen als in subprojecten voor"
+                    f"De afhankelijkheid {key} komt in zowel tasks en mijlpalen als in subprojecten voor"
                 )
             _logger.debug(f"Afhankelijk van task of mijlpaal: {key}")
         except KeyError:
@@ -484,7 +484,7 @@ class ProjectPlanner:
         self, task_eigenschappen: dict = None
     ) -> Union[task, Mijlpaal]:
         """
-        Voeg alle algemene taken en mijlpalen toe
+        Voeg alle algemene tasks en mijlpalen toe
 
         Parameters
         ----------
@@ -534,29 +534,29 @@ class ProjectPlanner:
         self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
-        Maak alle taken en mijlpalen
+        Maak alle tasks en mijlpalen
         """
 
-        _logger.info("Voeg alle algemene taken en mijlpalen toe")
+        _logger.info("Voeg alle algemene tasks en mijlpalen toe")
         if tasks_and_milestones_info is not None:
-            # We voegen hier een dictionary van taken en mijlpalen toe
+            # We voegen hier een dictionary van tasks en mijlpalen toe
             # Die zijn in modules georganiseerd, haal hier het eerste niveau eraf.
-            taken_en_mp = dict()
+            tasks_en_mp = dict()
             for module_key, module_values in tasks_and_milestones_info.items():
-                _logger.debug(f"lezen taken van module {module_key}")
+                _logger.debug(f"lezen tasks van module {module_key}")
                 for task_key, task_val in module_values.items():
                     _logger.debug(f"Processen task {task_key}")
-                    if task_key in taken_en_mp.keys():
+                    if task_key in tasks_en_mp.keys():
                         msg = f"De task key {task_key} is al eerder gebruikt. Kies een andere naam!"
                         _logger.warning(msg)
                         raise ValueError(msg)
-                    taken_en_mp[task_key] = tasks_and_milestones_info[module_key][
+                    tasks_en_mp[task_key] = tasks_and_milestones_info[module_key][
                         task_key
                     ]
         else:
-            taken_en_mp = tasks_and_milestones
+            tasks_en_mp = tasks_and_milestones
 
-        for task_key, task_val in taken_en_mp.items():
+        for task_key, task_val in tasks_en_mp.items():
             _logger.debug(f"Processen task {task_key}")
             self.tasks_and_milestones[task_key] = self.maak_task_of_mijlpaal(
                 task_eigenschappen=task_val
@@ -602,13 +602,13 @@ class ProjectPlanner:
 
             self.subprojecten[project_key] = project
 
-            if taken := project_values.get("taken"):
-                if isinstance(taken, list):
-                    taken_dict = {k: k for k in taken}
+            if tasks := project_values.get("tasks"):
+                if isinstance(tasks, list):
+                    tasks_dict = {k: k for k in tasks}
                 else:
-                    taken_dict = taken
+                    tasks_dict = tasks
 
-                for task_key, task_val in taken_dict.items():
+                for task_key, task_val in tasks_dict.items():
                     if isinstance(task_val, dict):
                         is_detail = task_val.get("detail", False)
                     else:
@@ -686,9 +686,9 @@ class ProjectPlanner:
 
             suffix = self.output_file_name.suffix
             file_base_tasks = "_".join(
-                [self.output_file_name.with_suffix("").as_posix(), period_key, "taken"]
+                [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
             )
-            file_base_resources = file_base_tasks.replace("_taken", "_resources")
+            file_base_resources = file_base_tasks.replace("_tasks", "_resources")
 
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
