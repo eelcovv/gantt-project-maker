@@ -34,10 +34,10 @@ gantt-project-maker
 ===================
 
 
-    Add a short description here!
+    A tool to make Gantt Project charts
 
 
-A longer description of your project goes here...
+This tool is a front end to the Python module python-gantt in order to easily set up your projects
 
 
 .. _pyscaffold-notes:
