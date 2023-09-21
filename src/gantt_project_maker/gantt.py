@@ -43,10 +43,8 @@ import sys
 import dateutil.relativedelta
 import svgwrite
 
-__author__ = "Alexandre Norman (norman at xael.org)"
+# original author: Alexandre Norman (norman at xael.org)
 # modified by Eelco van Vliet
-__version__ = "0.6.0"
-__last_modification__ = "2023.09.21"
 
 # conversion from mm/cm to pixel is done by ourselves as firefox seems
 # to have a bug for big numbers...
@@ -76,13 +74,13 @@ class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
         if test:
             self.write(self.filename)
         else:
-            file_pointer = io.open(str(self.filename), mode="w", encoding="utf-8")
-            self.write(file_pointer)
-            file_pointer.close()
+            with io.open(str(self.filename), mode="w", encoding="utf-8") as stream:
+                self.write(stream)
 
 
 ############################################################################
 
+# noinspection PyTypeChecker
 __LOG__: logging.Logger = None
 
 ############################################################################
@@ -232,22 +230,6 @@ def init_log_to_sysout(level=logging.INFO):
     logger.addHandler(fh)
     __LOG__ = logging.getLogger("Gantt")
     return
-
-
-############################################################################
-
-
-def _show_version(name, **kwargs):
-    """
-    Show version
-    """
-    import os
-
-    print("{0} version {1}".format(os.path.basename(name), __version__))
-    return True
-
-
-############################################################################
 
 
 def _flatten(l, ltypes=(list, tuple)):
@@ -587,7 +569,7 @@ class Resource(object):
 
     def search_for_task_conflicts(self, all_tasks=False):
         """
-        Returns a dictionnary of all days (datetime.date) containing for each
+        Returns a dictionary of all days (datetime.date) containing for each
         overcharged day the list of task for this day.
 
         Keyword arguments:
@@ -669,7 +651,7 @@ class Task(object):
         name,
         start=None,
         stop=None,
-        duration=None,
+        duration: int = None,
         depends_of=None,
         resources=None,
         percent_done=0,
@@ -718,7 +700,7 @@ class Task(object):
 
         self.start = start
         self.stop = stop
-        self.duration = duration
+        self.duration: int = duration
         self.color = color
         self.display = display
         self.state = state
@@ -737,8 +719,6 @@ class Task(object):
                     fullname,
                 )
             )
-            # Bug ? may be defined later
-            # raise ValueError('Task "{1}" must be defined by two of three limits ({0})'.format({'start':self.start, 'stop':self.stop, 'duration':self.duration}, fullname))
 
         if type(depends_of) is type([]):
             self.depends_of = depends_of
@@ -989,7 +969,7 @@ class Task(object):
             if real_end <= self.start_date():
                 current_day = self.start_date()
                 real_duration = 0
-                duration = self.duration
+                duration: int = self.duration
                 while duration > 1 or (
                     current_day.weekday() in _not_worked_days()
                     or current_day in VACATIONS
@@ -1050,8 +1030,7 @@ class Task(object):
             )
             return self._cache_end_date
 
-        raise (ValueError)
-        return None
+        raise AssertionError("Something happend that should not")
 
     def svg(
         self,
@@ -1159,8 +1138,9 @@ class Task(object):
                 return _time_diff(e, s) + 1
 
         elif scale == DRAW_WITH_QUARTERLY_SCALE:
-            __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
-            sys.exit(1)
+            raise ValueError("DRAW_WITH_QUARTERLY_SCALE not implemented yet")
+        else:
+            raise AssertionError(f"scale {scale} not recognised")
 
         # cas 1 -s--S==E--e-
         if self.start_date() >= start and self.end_date() <= end:
@@ -1170,10 +1150,10 @@ class Task(object):
             self.drawn_x_end_coord = x + d
         # cas 5 -s--e--S==E-
         elif self.start_date() > end:
-            return (None, 0)
+            return None, 0
         # cas 6 -S==E-s--e-
         elif self.end_date() < start:
-            return (None, 0)
+            return None, 0
         # cas 2 -S==s==E--e-
         elif self.start_date() < start and self.end_date() <= end:
             x = 0
@@ -1197,11 +1177,11 @@ class Task(object):
             add_end_mark = True
             add_begin_mark = True
         else:
-            return (None, 0)
+            return None, 0
 
         self.drawn_y_coord = y
 
-        svg = svgwrite.container.Group(id=re.sub(r"[ ,'\/()]", "_", self.name))
+        svg = svgwrite.container.Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         svg.add(
             svgwrite.shapes.Rect(
                 insert=((x + 1 + offset) * mm, (y + 1) * mm),
@@ -1215,7 +1195,7 @@ class Task(object):
         svg.add(
             svgwrite.shapes.Rect(
                 insert=((x + 1 + offset) * mm, (y + 6) * mm),
-                size=(((d - 2)) * mm, 3 * mm),
+                size=((d - 2) * mm, 3 * mm),
                 fill="#909090",
                 stroke=color,
                 stroke_width=1,
@@ -1291,7 +1271,7 @@ class Task(object):
         svg.add(
             svgwrite.text.Text(
                 self.fullname,
-                insert=((tx) * mm, (y + 5) * mm),
+                insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
                 stroke=_font_attributes()["stroke"],
                 stroke_width=_font_attributes()["stroke_width"],
@@ -1314,7 +1294,7 @@ class Task(object):
                 )
             )
 
-        return (svg, 1)
+        return svg, 1
 
     def svg_dependencies(self, prj):
         """
@@ -1347,7 +1327,7 @@ class Task(object):
                                         (t.drawn_y_coord + 5) * mm,
                                     ),
                                     end=(
-                                        (self.drawn_x_begin_coord) * mm,
+                                        self.drawn_x_begin_coord * mm,
                                         (t.drawn_y_coord + 5) * mm,
                                     ),
                                     stroke="black",
@@ -1371,11 +1351,11 @@ class Task(object):
                             # vertical line
                             eline = svgwrite.shapes.Line(
                                 start=(
-                                    (self.drawn_x_begin_coord) * mm,
+                                    self.drawn_x_begin_coord * mm,
                                     (t.drawn_y_coord + 5) * mm,
                                 ),
                                 end=(
-                                    (self.drawn_x_begin_coord) * mm,
+                                    self.drawn_x_begin_coord * mm,
                                     (self.drawn_y_coord + 5) * mm,
                                 ),
                                 stroke="black",
@@ -1419,7 +1399,7 @@ class Task(object):
                             svg.add(
                                 svgwrite.shapes.Line(
                                     start=(
-                                        (self.drawn_x_begin_coord) * mm,
+                                        self.drawn_x_begin_coord * mm,
                                         (t.drawn_y_coord + 15) * mm,
                                     ),
                                     end=(
@@ -1447,11 +1427,11 @@ class Task(object):
                             # vertical line
                             eline = svgwrite.shapes.Line(
                                 start=(
-                                    (self.drawn_x_begin_coord) * mm,
+                                    self.drawn_x_begin_coord * mm,
                                     (t.drawn_y_coord + 15) * mm,
                                 ),
                                 end=(
-                                    (self.drawn_x_begin_coord) * mm,
+                                    self.drawn_x_begin_coord * mm,
                                     (self.drawn_y_coord + 5) * mm,
                                 ),
                                 stroke="black",
@@ -1474,7 +1454,7 @@ class Task(object):
                                     (t.drawn_y_coord + 5) * mm,
                                 ),
                                 end=(
-                                    (self.drawn_x_begin_coord) * mm,
+                                    self.drawn_x_begin_coord * mm,
                                     (t.drawn_y_coord + 5) * mm,
                                 ),
                                 stroke="black",
@@ -1492,11 +1472,11 @@ class Task(object):
                         # vertical line
                         eline = svgwrite.shapes.Line(
                             start=(
-                                (self.drawn_x_begin_coord) * mm,
+                                self.drawn_x_begin_coord * mm,
                                 (t.drawn_y_coord + 5) * mm,
                             ),
                             end=(
-                                (self.drawn_x_begin_coord) * mm,
+                                self.drawn_x_begin_coord * mm,
                                 (self.drawn_y_coord + 5) * mm,
                             ),
                             stroke="black",
@@ -1552,7 +1532,7 @@ class Task(object):
         Displays a warning for each conflict between tasks and vacation of
         resources affected to the task
 
-        And returns a dictionnary for resource vacation conflicts
+        And returns a dictionary for resource vacation conflicts
         """
         conflicts = []
         if self.get_resources() is None:
@@ -1777,8 +1757,9 @@ class Milestone(Task):
                 return _time_diff(e, s) + 1
 
         elif scale == DRAW_WITH_QUARTERLY_SCALE:
-            __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
-            sys.exit(1)
+            raise ValueError("DRAW_WITH_QUARTERLY_SCALE not implemented yet")
+        else:
+            raise AssertionError(f"scale {scale} not recognised")
 
         # cas 1 -s--X--e-
         if self.start_date() >= start and self.end_date() <= end:
@@ -1786,14 +1767,14 @@ class Milestone(Task):
             self.drawn_x_begin_coord = x
             self.drawn_x_end_coord = x
         else:
-            return (None, 0)
+            return None, 0
 
         self.drawn_y_coord = y
 
         # insert=((x+1)*mm, (y+1)*mm),
         # size=((d-2)*mm, 8*mm),
 
-        svg = svgwrite.container.Group(id=re.sub(r"[ ,'\/()]", "_", self.name))
+        svg = svgwrite.container.Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         # 3.543307 is for conversion from mm to pt units !
         svg.add(
             svgwrite.shapes.Polygon(
@@ -1818,7 +1799,7 @@ class Milestone(Task):
         svg.add(
             svgwrite.text.Text(
                 self.fullname,
-                insert=((tx) * mm, (y + 5) * mm),
+                insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
                 stroke=_font_attributes()["stroke"],
                 stroke_width=_font_attributes()["stroke_width"],
@@ -1827,7 +1808,7 @@ class Milestone(Task):
             )
         )
 
-        return (svg, 2)
+        return svg, 2
 
     def svg_dependencies(self, prj):
         """
@@ -1884,7 +1865,7 @@ class Milestone(Task):
                             ),
                             end=(
                                 (self.drawn_x_begin_coord + 5) * mm,
-                                (self.drawn_y_coord) * mm,
+                                self.drawn_y_coord * mm,
                             ),
                             stroke="black",
                             stroke_dasharray="5,3",
@@ -1950,7 +1931,7 @@ class Milestone(Task):
         Displays a warning for each conflict between milestones and vacation of
         resources affected to the milestone
 
-        And returns a dictionnary for resource vacation conflicts
+        And returns a dictionary for resource vacation conflicts
         """
         return []
 
@@ -1975,11 +1956,6 @@ class Milestone(Task):
             resources.replace('"', '\\"'),
         )
         return csv_text
-
-
-##</Milestone>##############################################################
-
-############################################################################
 
 
 class Project(object):
@@ -2052,15 +2028,15 @@ class Project(object):
             elif scale == DRAW_WITH_MONTHLY_SCALE:
                 jour = start_date + dateutil.relativedelta.relativedelta(months=+x)
             elif scale == DRAW_WITH_QUARTERLY_SCALE:
-                # how many quarter do we need to draw ?
-                __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
-                sys.exit(1)
+                raise ValueError("DRAW_WITH_QUARTERLY_SCALE not implemented yet")
+            else:
+                raise AssertionError(f"scale {scale} not recognised")
 
-            if not today is None and today == jour:
+            if today is not None and today == jour:
                 vlines.add(
                     svgwrite.shapes.Rect(
                         insert=((x + 0.4 + offset) * cm, 2 * cm),
-                        size=(0.2 * cm, (maxy) * cm),
+                        size=(0.2 * cm, maxy * cm),
                         fill="#76e9ff",
                         stroke="lightgray",
                         stroke_width=0,
@@ -2212,9 +2188,9 @@ class Project(object):
                     )
 
             elif scale == DRAW_WITH_QUARTERLY_SCALE:
-                # how many quarter do we need to draw ?
-                __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
-                sys.exit(1)
+                raise ValueError("DRAW_WITH_QUARTERLY_SCALE not implemented yet")
+            else:
+                raise AssertionError(f"scale {scale} not recognised")
 
         vlines.add(
             svgwrite.shapes.Line(
@@ -2313,7 +2289,7 @@ class Project(object):
             ldwg.add(dep)
 
         if scale == DRAW_WITH_DAILY_SCALE:
-            # how many dayss do we need to draw ?
+            # how many days do we need to draw ?
             maxx = (end_date - start_date).days
         elif scale == DRAW_WITH_WEEKLY_SCALE:
             # how many weeks do we need to draw ?
@@ -2346,14 +2322,14 @@ class Project(object):
                     + 1
                 )
         elif scale == DRAW_WITH_QUARTERLY_SCALE:
-            # how many quarter do we need to draw ?
-            __LOG__.critical("DRAW_WITH_QUATERLY_SCALE not implemented yet")
-            sys.exit(1)
+            raise ValueError("DRAW_WITH_QUARTERLY_SCALE not implemented yet")
+        else:
+            raise AssertionError(f"scale {scale} not recognised")
 
         dwg = _my_svgwrite_drawing_wrapper(filename, debug=True)
         dwg.add(
             svgwrite.shapes.Rect(
-                insert=((0) * cm, 0 * cm),
+                insert=(0 * cm, 0 * cm),
                 size=((maxx + 1 + offset / 10) * cm, (pheight + 3) * cm),
                 fill="white",
                 stroke_width=0,
@@ -2376,7 +2352,7 @@ class Project(object):
         end=None,
         resources=None,
         one_line_for_tasks=False,
-        filter="",
+        tag_filter="",
         scale=DRAW_WITH_DAILY_SCALE,
         title_align_on_left=False,
         offset=0,
@@ -2385,7 +2361,7 @@ class Project(object):
         Draw resources affectation and output it to filename. If start or end are
         given, use them as reference, otherwise use project first and last day
 
-        And returns to a dictionnary of dictionnaries for vacation and task
+        And returns to a dictionary of dictionaries for vacation and task
         conflicts for resources
 
         Keyword arguments:
@@ -2395,7 +2371,7 @@ class Project(object):
         end -- datetime.date of last day to draw
         resources -- list of Resource to check, default all
         one_line_for_tasks -- use only one line to display all tasks ?
-        filter -- display only those tags
+        tag_filter -- display only those tags
         scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
@@ -2466,7 +2442,7 @@ class Project(object):
         conflict_display_line = 1
         for r in resources:
             # do stuff for each resource
-            if filter != "" and r.name not in filter:
+            if tag_filter != "" and r.name not in tag_filter:
                 continue
 
             ress = svgwrite.container.Group()
@@ -2481,7 +2457,6 @@ class Project(object):
                     font_size=15 + 3,
                 )
             )
-            # ldwg.add(ress)
 
             overcharged_days = r.search_for_task_conflicts()
 
@@ -2502,7 +2477,7 @@ class Project(object):
                         svgwrite.shapes.Rect(
                             insert=(
                                 ((cday - start_date).days * 10 + 1 + offset) * mm,
-                                ((conflict_display_line) * 10 + 1) * mm,
+                                (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
                             fill="#008000",
@@ -2522,7 +2497,7 @@ class Project(object):
                         svgwrite.shapes.Rect(
                             insert=(
                                 ((cday - start_date).days * 10 + 1 + 4 + offset) * mm,
-                                ((conflict_display_line) * 10 + 1) * mm,
+                                (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
                             fill="#AA0000",
@@ -2574,8 +2549,8 @@ class Project(object):
                     nline += 1
                     ldwg.add(
                         svgwrite.shapes.Line(
-                            start=((0) * cm, (nline) * cm),
-                            end=((maxx + 1) * cm, (nline) * cm),
+                            start=(0 * cm, nline * cm),
+                            end=((maxx + 1) * cm, nline * cm),
                             stroke="black",
                         )
                     )
@@ -2682,11 +2657,9 @@ class Project(object):
         fprj = svgwrite.container.Group()
         prj_bar = False
         if self.name != "":
-            # if ((self.start_date() >= start and self.end_date() <= end)
-            #     or (self.start_date() >= start and (self.end_date() <= end or self.start_date() <= end))) or level == 1:
             if (
                 (self.start_date() >= start and self.end_date() <= end)
-                or ((self.end_date() >= start and self.start_date() <= end))
+                or (self.end_date() >= start and self.start_date() <= end)
             ) or level == 1:
                 fprj.add(
                     svgwrite.text.Text(
@@ -2839,9 +2812,8 @@ class Project(object):
             if test:
                 csv.write(csv_text)
             else:
-                fileobj = io.open(csv, mode="w", encoding="utf-8")
-                fileobj.write(csv_text)
-                fileobj.close()
+                with io.open(csv, mode="w", encoding="utf-8") as stream:
+                    stream.write(csv_text)
 
         return csv_text
 
