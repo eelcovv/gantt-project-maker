@@ -324,7 +324,7 @@ class ProjectPlanner:
         self.subprojecten = dict()
 
     @staticmethod
-    def maak_globale_informatie():
+    def add_global_information():
         define_attributes()
 
     def maak_planning(self):
@@ -448,7 +448,7 @@ class ProjectPlanner:
 
             return afhankelijks_elementen
 
-    def maak_vacations(self, vacations_info):
+    def add_vacations(self, vacations_info):
         """
         Voeg alle algemene vacations toe
         """
@@ -467,7 +467,7 @@ class ProjectPlanner:
                 start=v_prop["start"], end=v_prop.get("end")
             )
 
-    def maak_employees(self, employees_info):
+    def add_employees(self, employees_info):
         """
         Voeg de employees met hun vacations toe.
         """
@@ -530,7 +530,7 @@ class ProjectPlanner:
 
         return task_of_mijlpaal
 
-    def maak_tasks_and_milestones(
+    def add_tasks_and_milestones(
         self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
@@ -562,7 +562,7 @@ class ProjectPlanner:
                 task_eigenschappen=task_val
             )
 
-    def maak_projecten(
+    def make_projects(
         self,
         subprojecten_info,
         subprojecten_title,
@@ -656,7 +656,7 @@ class ProjectPlanner:
         # voeg nu alle projecten van de Employee aan het programma toe
         self.programma.add_task(projecten_Employee)
 
-    def schrijf_planning(
+    def write_planning(
         self,
         planning_output_directory,
         resource_output_directory,

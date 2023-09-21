@@ -36,12 +36,6 @@ def parse_args(args):
     """
     parser = argparse.ArgumentParser(description="Just a Fibonacci demonstration")
     parser.add_argument("settings_filename", help="Name of the configuration file")
-    parser.add_argument(
-        "--test",
-        help="Only do what you want to do, do not write to file",
-        default=False,
-        action="store_true",
-    )
     parser.add_argument("--output_filename", help="Name of the text output file")
     parser.add_argument(
         "--version",
@@ -68,45 +62,45 @@ def parse_args(args):
     parser.add_argument(
         "-s",
         "--scale",
-        help="Kies de scale van het grid van het schema",
+        help="The scale of the grid of the project scheme",
         choices=set(SCALES.keys()),
     )
     parser.add_argument(
         "--details",
-        help="Voer ook de detailtasks uit.",
+        help="Add all the tasks with the detail attribute",
         action="store_true",
         default=True,
     )
     parser.add_argument(
         "--geen_details",
-        help="Onderdruk alle detailtasks voor het grote overzicht.",
+        help="Suppress all the tasks with the detail attribute.",
         action="store_false",
         dest="details",
     )
     parser.add_argument(
         "-e",
         "--export_to_xlsx",
-        help="Exporteer de planning naar excel",
+        help="Export the project plan to Excel",
         action="store_true",
     )
     parser.add_argument(
         "-b",
         "--resources",
-        help="Schrijf ook de resources file de planning naar excel",
+        help="Write the resources file of the planning",
         action="store_true",
     )
     parser.add_argument(
         "-m",
-        "--Employee",
-        help="Neem alleen de employees mee die  opgegeven zijn. Kan meerdere keren gegeven worden voor meerdere "
+        "--employee",
+        help="Only use the projects of this employee. Can be given multiple times for multiple employees"
         "employees",
         action="append",
     )
     parser.add_argument(
         "-p",
         "--period",
-        help="Neem alleen de period mee die  opgegeven is. Kan meerdere keren gegeven worden voor meerdere "
-        "periods. Als niets gegeven wordt dan nemen we ze allemaal",
+        help="On export this period from the list of periods as given in the settings file. If not given, all"
+             "the periods are writen to file",
         action="append",
     )
 
@@ -183,7 +177,7 @@ def main(args):
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
-    project_settings_per_Employee = settings["project_settings_file_per_employee"]
+    project_settings_per_employee = settings["project_settings_file_per_employee"]
 
     if output_directories is not None:
         planning_directory = Path(output_directories.get("planning", "."))
@@ -194,11 +188,11 @@ def main(args):
         resources_directory = Path(".")
         excel_directory = Path(".")
 
-    if args.Employee is not None:
+    if args.employee is not None:
         check_if_items_are_available(
-            requested_items=args.Employee,
-            available_items=project_settings_per_Employee,
-            label="Employee",
+            requested_items=args.employee,
+            available_items=project_settings_per_employee,
+            label="employee",
         )
 
     if args.period is not None:
@@ -211,16 +205,16 @@ def main(args):
     excel_info = settings.get("excel")
 
     # lees de settings file per medewerk
-    settings_per_Employee = {}
+    settings_per_employee = {}
     for (
         employee_key,
         employee_settings_file,
-    ) in project_settings_per_Employee.items():
+    ) in project_settings_per_employee.items():
         _logger.info(
-            f"Van Employee {employee_key} lees settings file  {employee_settings_file}"
+            f"Van employee {employee_key} lees settings file  {employee_settings_file}"
         )
         with codecs.open(employee_settings_file, "r", encoding="UTF-8") as stream:
-            settings_per_Employee[employee_key] = yaml.load(
+            settings_per_employee[employee_key] = yaml.load(
                 stream=stream, Loader=yaml.Loader
             )
 
@@ -229,9 +223,9 @@ def main(args):
     else:
         output_filename = Path(args.output_filename).with_suffix(".svg")
 
-    if args.Employee is not None:
+    if args.employee is not None:
         output_filename = Path(
-            "_".join([output_filename.with_suffix("").as_posix()] + args.Employee)
+            "_".join([output_filename.with_suffix("").as_posix()] + args.employee)
         ).with_suffix(".svg")
 
     today = None
@@ -265,46 +259,46 @@ def main(args):
     )
 
     # voeg globale informatie, vacations en employees toe
-    planning.maak_globale_informatie()
-    planning.maak_vacations(vacations_info=vacations_info)
-    planning.maak_employees(employees_info=employees_info)
+    planning.add_global_information()
+    planning.add_vacations(vacations_info=vacations_info)
+    planning.add_employees(employees_info=employees_info)
 
-    # Voeg nu de algemene tasks per Employee toe. Het is niet verplicht tasks_and_milestones op te geven,
+    # Voeg nu de algemene tasks per employee toe. Het is niet verplicht tasks_and_milestones op te geven,
     # maar kan wel. Het voordeel is dat tasks tussen employees gedeeld kunnen worden
     for (
         employee_key,
         employee_settings,
-    ) in settings_per_Employee.items():
+    ) in settings_per_employee.items():
         if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
             _logger.info(f"Voegen globale tasks en mijlpalen van {employee_key} toe")
-            planning.maak_tasks_and_milestones(
+            planning.add_tasks_and_milestones(
                 tasks_and_milestones_info=tasks_and_milestones_info
             )
 
-    # Voeg nu de projecten per Employee toe.
+    # Voeg nu de projecten per employee toe.
     for (
         employee_key,
         employee_settings,
-    ) in settings_per_Employee.items():
-        if args.Employee is not None and employee_key not in args.Employee:
-            _logger.debug(f"Employee {employee_key} wordt over geslagen")
+    ) in settings_per_employee.items():
+        if args.employee is not None and employee_key not in args.employee:
+            _logger.debug(f"employee {employee_key} wordt over geslagen")
             continue
 
         project_employee_info = employee_settings["general"]
-        subprojecten_info = employee_settings["projecten"]
+        subprojects_info = employee_settings["projecten"]
 
-        subprojecten_selectie = project_employee_info["projecten"]
-        subprojecten_title = project_employee_info["title"]
-        subprojecten_color = project_employee_info.get("color")
-        planning.maak_projecten(
-            subprojecten_info=subprojecten_info,
-            subprojecten_selectie=subprojecten_selectie,
-            subprojecten_title=subprojecten_title,
-            subprojecten_color=subprojecten_color,
+        subprojects_selection = project_employee_info["projecten"]
+        subprojects_title = project_employee_info["title"]
+        subprojects_color = project_employee_info.get("color")
+        planning.make_projects(
+            subprojects_info=subprojects_info,
+            subprojects_selection=subprojects_selection,
+            subprojects_title=subprojects_title,
+            subprojects_color=subprojects_color,
         )
 
     # Alles is aan de planning toegevoegd. Schrijf hem nu naar svg en eventueel naar excel
-    planning.schrijf_planning(
+    planning.write_planning(
         schrijf_resources=args.resources,
         planning_output_directory=planning_directory,
         resource_output_directory=resources_directory,
