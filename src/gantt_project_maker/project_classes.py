@@ -481,19 +481,7 @@ class ProjectPlanner:
 
         # add all the remain fields which are not required for the gantt charts but needed for the Excel output
         for task_key, task_value in task_properties.items():
-            if task_key in (
-                "title",
-                "label",
-                "start",
-                "end",
-                "duration",
-                "color",
-                "detail",
-                "employees",
-                "dependent_of",
-            ):
-                continue
-            if not hasattr(task_or_milestone, task_key):
+            if not hasattr(task_or_milestone.element, task_key):
                 if isinstance(task_value, str):
                     try:
                         _task_value = parse_date(task_value, task_value)
@@ -505,7 +493,7 @@ class ProjectPlanner:
                         )
                         task_value = _task_value
                 _logger.debug(f"Adding task {task_key} with value {task_value}")
-                setattr(task_or_milestone, task_key, task_value)
+                setattr(task_or_milestone.element, task_key, task_value)
 
         return task_or_milestone
 
@@ -566,9 +554,8 @@ class ProjectPlanner:
 
             # add all the other elements as attributes
             for p_key, p_value in project_values.items():
-                if p_key not in ("title", "color", "tasks"):
-                    if not hasattr(project, p_key):
-                        setattr(project, p_key, p_value)
+                if not hasattr(project, p_key):
+                    setattr(project, p_key, p_value)
 
             if project_key in self.subprojects.keys():
                 msg = f"project {project_key} already exists. Pick another name"

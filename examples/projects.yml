@@ -112,7 +112,7 @@ excel:
     name: 30
     task: 50
     period: 10
-    other_business: 30
+    remark: 30
   header:
     what:
       color: hemelblauw
