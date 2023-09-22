@@ -8,3 +8,4 @@ setuptools
 sphinx
 svgwrite
 xlsxwriter
+webcolors
