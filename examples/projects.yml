@@ -43,8 +43,8 @@ general:
     rozevergrijsd: 82045E
     violet: AC218E
 project_settings_file_per_employee:
-  emp1: projects_emp1.yml
-  emp2: projects_emp2.yml
+  #emp1: projects_emp1.yml
+  #emp2: projects_emp2.yml
   emp3: projects_emp3.yml
 periods:
   all:
@@ -137,11 +137,11 @@ excel:
       color: terrarood
       title: Who
       columns:
-        project_leader: project_leader
+        project_leader: Project Leader
         employee_1: Employee 1
         employee_2: Employee 2
         employee_3: Employee 3
-        department1: department1
+        department1: Departement 1
         cci: CCI
     other_business:
       color: donkergrijs

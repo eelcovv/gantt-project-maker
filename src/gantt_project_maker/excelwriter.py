@@ -209,17 +209,17 @@ def write_planning_to_excel(excel_file, project, header_info, column_widths):
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
 
         try:
-            projects_per_Employee = project.tasks
+            projects_per_employee = project.tasks
         except AttributeError as err:
             raise AttributeError(
                 f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
             )
         else:
-            for projecten_Employee in projects_per_Employee:
+            for projecten_employee in projects_per_employee:
                 write_project_to_excel(
-                    project=projecten_Employee,
+                    project=projecten_employee,
                     writer=writer,
-                    sheet_name=projecten_Employee.name,
+                    sheet_name=projecten_employee.name,
                     header_info=header_info,
                     column_widths=column_widths,
                 )
@@ -316,13 +316,13 @@ def write_project(
                     label = None
                 elif column_key == "task":
                     label = task_label
-                elif column_key.startswith("Employee"):
+                elif column_key.startswith("employee"):
                     try:
-                        Employee = project.get_resources()[resource_index]
+                        employee = project.get_resources()[resource_index]
                     except IndexError:
                         label = None
                     else:
-                        label = Employee.name
+                        label = employee.name
                         resource_index += 1
                 elif column_key == "period":
                     label = ""
@@ -359,7 +359,7 @@ def write_project(
                     is_date = False
                 else:
                     is_date = True
-                    _logger.debug(f"Label is een datum met formaat {dummy}")
+                    _logger.debug(f"Label is a date with format {dummy}")
                 if col_index == 0 and level < 2:
                     formaat = wb.left_align_bold
                 elif is_date:
@@ -375,7 +375,7 @@ def write_project(
     try:
         tasks = project.tasks
     except AttributeError:
-        _logger.debug("Dit is een task, dus heeft geen tasks ")
+        _logger.debug("This is a task, so does not have tasks ")
     else:
         for task in tasks:
             level += 1

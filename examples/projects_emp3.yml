@@ -1,16 +1,21 @@
 general:
-    title: Project Leader Three
-    color: blue
-    projects:
-        - project_1
+  title: Project Leader Three
+  color: blue
+  projects:
+    - project_1
 projects:
-    project_1:
-        title: Project One 2022
-        color: corporatelichtblauw
-        tasks:
-            request_documents:
-                label: Request documents
-                start: 1-8-2023
-                end: 1-10-2023
-                employees:
-                    - emp3
+  project_1:
+    title: Project One 2022
+    color: corporatelichtblauw
+    project_leader: emp3
+    tasks:
+      request_documents:
+        label: Request documents
+        start: 1-8-2023
+        end: 1-10-2023
+        project_leader: emp3
+        department1: Yes
+        cci: No
+        remark: Priority
+        employees:
+          - emp3
