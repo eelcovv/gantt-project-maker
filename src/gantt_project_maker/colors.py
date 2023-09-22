@@ -9,7 +9,7 @@ import webcolors
 _logger = logging.getLogger(__name__)
 
 
-# Bit tricky, but we use it to store the custom colors
+# A bit tricky, but we use it to store the custom colors
 CUSTOM_COLORS_HEX = {}
 
 
@@ -24,9 +24,13 @@ def hex_number_to_hex_hash(hex_number):
     """
     hex_code = str(hex_number)
     if set(list(hex_code.upper())).difference(set(list("1234567890ABCDEF#"))):
-        raise ValueError(f"Hex color {hex_code} not recognised")
+        raise ValueError(f"Hex color {hex_code} is not valid as it contains characters out of the valid range")
     if not hex_code.startswith("#"):
+        if "#" in hex_code:
+            raise ValueError(f"Hex color {hex_code} is not valid as the # is not at the start")
         hex_code = f"#{hex_code}"
+    if len(hex_code) != 7:
+        raise ValueError(f"Hex color {hex_code} is not valid as is has an invalid amount of digit ")
     return hex_code
 
 
