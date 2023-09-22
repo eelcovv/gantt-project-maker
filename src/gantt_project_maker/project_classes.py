@@ -87,7 +87,7 @@ def voeg_vacations_employee_toe(Employee: gantt.Resource, vakantie_lijst: dict) 
 
     if vakantie_lijst is not None:
         for vakantie_key, vakantie_prop in vakantie_lijst.items():
-            vacations[vakantie_key] = Vakantie(
+            vacations[vakantie_key] = Vacation(
                 vakantie_prop["start"], vakantie_prop.get("end"), werknemer=Employee
             )
     return vacations
@@ -100,7 +100,7 @@ def define_attributes():
     )
 
 
-class StartEindBase:
+class StartEndBase:
     """
     Basis van alle classes met een begin- en einddatum.
     """
@@ -120,7 +120,7 @@ class StartEindBase:
         self.end = parse_date(end)
 
 
-class Vakantie(StartEindBase):
+class Vacation(StartEndBase):
     def __init__(self, start, end=None, werknemer=None):
         super().__init__(start, end)
 
@@ -133,7 +133,7 @@ class Vakantie(StartEindBase):
 
     def add_vacation(self):
         """
-        Voeg de gemeenschappelijke vakantiedagen toe
+        Add common vacations
         """
         self.pool.add_vacations(self.start, self.end)
 
@@ -152,7 +152,7 @@ class Employee:
             self.vacations = None
 
 
-class BasicElement(StartEindBase):
+class BasicElement(StartEndBase):
     def __init__(
         self,
         label,
@@ -162,19 +162,16 @@ class BasicElement(StartEindBase):
         volledige_naam=None,
         detail=False,
         display=True,
-        remark=None,
     ):
         super().__init__(start, start)
         if label is None:
-            raise ValueError("Iedere task moet een label hebben!")
+            raise ValueError("Every task should have a label!")
         self.label = label
         self.detail = detail
         self.dependent_of = dependent_of
         self.color = color_to_hex(color)
         self.volledige_naam = volledige_naam
         self.display = display
-
-        self.remark = remark
 
 
 class Task(BasicElement):
@@ -183,7 +180,7 @@ class Task(BasicElement):
         label,
         start=None,
         end=None,
-        duur=None,
+        duration=None,
         employees=None,
         dependent_of=None,
         color=None,
@@ -191,11 +188,6 @@ class Task(BasicElement):
         percentage_voltooid=None,
         detail=False,
         display=True,
-        deadline=None,
-        focal_point=None,
-        dvz=None,
-        cci=None,
-        remark=None,
     ):
         super().__init__(
             label=label,
@@ -205,22 +197,13 @@ class Task(BasicElement):
             detail=detail,
             volledige_naam=volledige_naam,
             display=display,
-            remark=remark,
         )
         self.end = parse_date(end)
-        self.duur = duur
+        self.duur = duration
         self.employees = employees
         self.percentage_voltooid = percentage_voltooid
 
         self.element = None
-
-        # extra velden die je toe kan voegen
-        self.deadline = parse_date(deadline, deadline)
-        self.focal_point = focal_point
-        self.dvz = dvz
-        self.cci = cci
-
-        self.voeg_task_toe()
 
     def voeg_task_toe(self):
         self.element = gantt.Task(
@@ -234,14 +217,8 @@ class Task(BasicElement):
             percent_done=self.percentage_voltooid,
         )
 
-        self.element.deadline = self.deadline
-        self.element.focal_point = self.focal_point
-        self.element.dvz = self.dvz
-        self.element.cci = self.cci
-        self.element.remark = self.remark
 
-
-class milestone(BasicElement):
+class Milestone(BasicElement):
     def __init__(
         self,
         label,
@@ -249,9 +226,7 @@ class milestone(BasicElement):
         dependent_of=None,
         color=None,
         detail=False,
-        volledige_naam=None,
         display=True,
-        remark=None,
     ):
         super().__init__(
             label=label,
@@ -259,23 +234,20 @@ class milestone(BasicElement):
             dependent_of=dependent_of,
             color=color,
             detail=detail,
-            volledige_naam=volledige_naam,
             display=display,
-            remark=remark,
         )
 
         self.element = None
 
-        self.voeg_milestone_toe()
+        self.add_milestone()
 
-    def voeg_milestone_toe(self):
+    def add_milestone(self):
         self.element = gantt.Milestone(
             name=self.label,
             start=self.start,
             depends_of=self.dependent_of,
             color=self.color,
         )
-        self.element.remark = self.remark
 
 
 class ProjectPlanner:
@@ -321,29 +293,26 @@ class ProjectPlanner:
     def add_global_information():
         define_attributes()
 
-    def maak_planning(self):
-        """
-        Deze hoofdmethode maakt alle elementen aan
-        """
-
     def exporteer_naar_excel(self, excel_output_directory):
         """
-        Schrijf de planning naar een excel file
+        Write planning to an Excel file
 
         Parameters
         ----------
         excel_output_directory: Path
-            Output directory van excel files
+            Output directory of the Excel files
         """
 
         if self.excel_info is None:
-            _logger.warning("Voeg Excel info toe aan je settings file")
+            _logger.warning(
+                "Cannot write excel! Please add Excel info to your settings file"
+            )
         else:
             excel_output_directory.mkdir(exist_ok=True)
             excel_file = excel_output_directory / self.output_file_name.with_suffix(
                 ".xlsx"
             )
-            _logger.info(f"Exporteer de planning naar {excel_file}")
+            _logger.info(f"Exporting planning to {excel_file}")
             write_planning_to_excel(
                 excel_file=excel_file,
                 project=self.programma,
@@ -353,20 +322,21 @@ class ProjectPlanner:
 
     def get_afhankelijkheid(self, key: str) -> gantt.Resource:
         """
-        Zoek het object waar de afhankelijkheid 'key' naar verwijst
+        Search the object to which the dependency 'key' refers to
+
         Parameters
         ----------
         key: str
-            Key van de dictionary waar de afhankelijkheid naar verwijst
+            Key of the dictionary to which the dependency refers to
 
         Returns
         -------
         gantt.Resource
-            Afhankelijkheid waar key naar verwijst.
+            Object to which the  key refers to.
         """
 
         try:
-            hangt_af_van = self.tasks_and_milestones[key]
+            depends_of = self.tasks_and_milestones[key]
             if key in self.subprojects.keys():
                 _logger.warning(
                     f"The dependency {key} occurs in both tasks en milestones"
@@ -374,81 +344,78 @@ class ProjectPlanner:
             _logger.debug(f"Dependent of task or milestone: {key}")
         except KeyError:
             try:
-                hangt_af_van = self.subprojects[key]
+                depends_of = self.subprojects[key]
                 _logger.debug(f"Dependent of project: {key}")
             except KeyError:
                 raise AssertionError(f"Dependency {key} does not exist")
 
-        return hangt_af_van
+        return depends_of
 
     def get_employees(self, employees: Union[str, list]) -> list:
         """
-        Zet een lijst van employees strings om in een lijst van employees gannt.Resource objecten
+        Turn a list of employees strings into a list of employees gannt.Resource objects
 
         Parameters
         ----------
         employees: list of str
-            Lijst van employees of, in het geval er maar 1 Employee is, een string
+            List of employees or, in case just one employee is given, a string
+
 
         Returns
         -------
         list:
-            Lijst van employees resource objecten.
-
+            List of employees resource objects
         """
 
-        employees_elementen = list()
+        employees_elements = list()
         if employees is not None:
             if isinstance(employees, str):
-                _logger.debug(f"Voeg Employee toe: {employees}")
-                employees_elementen.append(self.employees[employees].resource)
+                _logger.debug(f"Adding employee: {employees}")
+                employees_elements.append(self.employees[employees].resource)
             else:
-                for Employee in employees:
-                    _logger.debug(f"Voeg toe Employee {Employee}")
-                    employees_elementen.append(self.employees[Employee].resource)
-        return employees_elementen
+                for employee in employees:
+                    _logger.debug(f"Adding employee {employee}")
+                    employees_elements.append(self.employees[employee].resource)
+        return employees_elements
 
-    def get_afhankelijkheden(self, afhankelijkheden: Union[str, dict]) -> list:
+    def get_dependencies(self, dependencies: Union[str, dict]) -> list:
         """
-        Haal alle afhankelijke objecten op
+        Retrieve all dependencies
 
         Parameters
         ----------
-        afhankelijkheden: str or dict
-            Als afhankelijkheid een string is hebben we er maar een. Deze wordt uit de dict gehaald
-            De afhankelijkheden kunnen ook in een dict opgeslagen zijn. Dan halen we ze per item op
+        dependencies: str or dict
+            In case the dependency is a string, there is only one. This will be obtained from the dict.
+            The dependencies may also be stored in a dict. In that case, we retrieve them per item
+
         Returns
         -------
         list:
-            Lijst met de afhankelijkheden.
-
+            List of dependencies
         """
 
-        afhankelijks_elementen = list()
+        dependency_elements = list()
 
-        if afhankelijkheden is not None:
-            if isinstance(afhankelijkheden, str):
-                dependent_of = self.get_afhankelijkheid(afhankelijkheden)
-                afhankelijks_elementen.append(dependent_of)
-            elif isinstance(afhankelijkheden, dict):
-                for category, afhankelijk_items in afhankelijkheden.items():
+        if dependencies is not None:
+            if isinstance(dependencies, str):
+                dependent_of = self.get_dependencies(dependencies)
+                dependency_elements.append(dependent_of)
+            elif isinstance(dependencies, dict):
+                for category, afhankelijk_items in dependencies.items():
                     for task_key in afhankelijk_items:
-                        dependent_of = self.get_afhankelijkheid(task_key)
-                        afhankelijks_elementen.append(dependent_of)
+                        dependent_of = self.get_dependencies(task_key)
+                        dependency_elements.append(dependent_of)
             else:
-                for afhankelijk_item in afhankelijkheden:
-                    dependent_of = self.get_afhankelijkheid(afhankelijk_item)
-                    afhankelijks_elementen.append(dependent_of)
+                for afhankelijk_item in dependencies:
+                    dependent_of = self.get_dependencies(afhankelijk_item)
+                    dependency_elements.append(dependent_of)
 
-            return afhankelijks_elementen
+            return dependency_elements
 
     def add_vacations(self, vacations_info):
         """
         Add all the vacations
         """
-        # Change font default
-
-        # voeg de algemene vacations toe
         _logger.info("Adding general holidays")
         for v_key, v_prop in vacations_info.items():
             if v_prop.get("end") is not None:
@@ -457,7 +424,7 @@ class ProjectPlanner:
                 )
             else:
                 _logger.debug(f"Vacation {v_key} at {v_prop['start']}")
-            self.vacations[v_key] = Vakantie(
+            self.vacations[v_key] = Vacation(
                 start=v_prop["start"], end=v_prop.get("end")
             )
 
@@ -476,72 +443,75 @@ class ProjectPlanner:
 
     def maak_task_of_milestone(
         self, task_properties: dict = None
-    ) -> Union[Task, milestone]:
+    ) -> Union[Task, Milestone]:
         """
         Add all the general tasks and milestones
 
         Parameters
         ----------
-        task_properties:
+        task_properties: dict
+            Dictionary with tasks or milestones
 
         Returns
         -------
+        Task or milestone
 
         """
-        dependencies = self.get_afhankelijkheden(
-            task_properties.get("dependent_of")
-        )
+        dependencies = self.get_dependencies(task_properties.get("dependent_of"))
         element_type = task_properties.get("type", "task")
         if element_type == "task":
             employees = self.get_employees(task_properties.get("employees"))
             _logger.debug(f"Voeg task {task_properties.get('label')} toe")
-            task_of_milestone = Task(
+            task_or_milestone = Task(
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
                 end=task_properties.get("end"),
-                duur=task_properties.get("duration"),
+                duration=task_properties.get("duration"),
                 color=task_properties.get("color"),
                 detail=task_properties.get("detail", False),
                 employees=employees,
                 dependent_of=dependencies,
-                deadline=task_properties.get("deadline"),
-                focal_point=task_properties.get("focal_point"),
-                dvz=task_properties.get("dvz"),
-                cci=task_properties.get("cci"),
-                remark=task_properties.get("remark"),
             )
         elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
-            task_of_milestone = milestone(
+            task_or_milestone = Milestone(
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
                 dependent_of=dependencies,
-                remark=task_properties.get("remark"),
             )
         else:
             raise AssertionError("Type should be 'task' or 'milestone'")
 
-        return task_of_milestone
+        # add all the remain fields which are not required for the gantt charts but needed for the Excel output
+        for task_key, task_value in task_properties.items():
+            if not hasattr(task_or_milestone, task_key):
+                try:
+                    task_value = parse_date(task_value, task_value)
+                except ValueError:
+                    _logger.debug(f"task {task_key} is not an date. No problem")
+                _logger.debug(f"Adding task {task_key} with value {task_value}")
+                setattr(task_or_milestone, task_key, task_value)
+
+        return task_or_milestone
 
     def add_tasks_and_milestones(
         self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
-        Maak alle tasks en mijlpalen
+        Make all tasks en milestones
         """
 
         _logger.info("Voeg alle algemene tasks en mijlpalen toe")
         if tasks_and_milestones_info is not None:
-            # We voegen hier een dictionary van tasks en mijlpalen toe
-            # Die zijn in modules georganiseerd, haal hier het eerste niveau eraf.
+            # The task are organised in modules, to peel of the first level
             tasks_en_mp = dict()
             for module_key, module_values in tasks_and_milestones_info.items():
-                _logger.debug(f"lezen tasks van module {module_key}")
+                _logger.debug(f"Reading tasks of module {module_key}")
                 for task_key, task_val in module_values.items():
-                    _logger.debug(f"Processen task {task_key}")
+                    _logger.debug(f"Processing task {task_key}")
                     if task_key in tasks_en_mp.keys():
-                        msg = f"De task key {task_key} is al eerder gebruikt. Kies een andere naam!"
+                        msg = f"De task key {task_key} has been used before. Please pick another name"
                         _logger.warning(msg)
                         raise ValueError(msg)
                     tasks_en_mp[task_key] = tasks_and_milestones_info[module_key][
@@ -551,7 +521,7 @@ class ProjectPlanner:
             tasks_en_mp = tasks_and_milestones
 
         for task_key, task_val in tasks_en_mp.items():
-            _logger.debug(f"Processen task {task_key}")
+            _logger.debug(f"Processing task {task_key}")
             self.tasks_and_milestones[task_key] = self.maak_task_of_milestone(
                 task_properties=task_val
             )
@@ -606,7 +576,7 @@ class ProjectPlanner:
                     if not self.details and is_detail:
                         # We hebben details op False staan en dit is een detail, dus sla deze task over.
                         _logger.info(
-                            f"Sla task {task_key} over omdat het een detail is"
+                            f"Skipping task {task_key} because it is set to be a detail"
                         )
                         continue
 
@@ -628,9 +598,7 @@ class ProjectPlanner:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
-                        task_obj = self.maak_task_of_milestone(
-                            task_properties=task_val
-                        )
+                        task_obj = self.maak_task_of_milestone(task_properties=task_val)
                         task = task_obj.element
                         is_detail = task_obj.detail
 
@@ -650,28 +618,28 @@ class ProjectPlanner:
         self,
         planning_output_directory,
         resource_output_directory,
-        schrijf_resources=False,
+        write_resources=False,
         periods=None,
     ):
         """
-        Schrijf de planning naar de output definities.
+        Write the planning to the output definitions
 
         Parameters
         ----------
-        schrijf_resources: bool
-            Schrijf de resources file
+        write_resources: bool
+            Write the resources file as well (next to the gantt charts which is always written)
         planning_output_directory: Path
             Output directory van de svg files van de planning
         resource_output_directory: Path
             Output directory van de svg files van de resources
         periods: list
-            Lijst van periods die we toevoegen. Als None voegen we alles toe
+            List of periods we want to add. If None, add all periods
         """
 
         for period_key, period_prop in self.period_info.items():
 
             if periods is not None and period_key not in periods:
-                _logger.debug(f"Employee {period_key} wordt over geslagen")
+                _logger.debug(f"Employee {period_key} is skipped")
                 continue
 
             suffix = self.output_file_name.suffix
@@ -682,7 +650,7 @@ class ProjectPlanner:
 
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
-            if schrijf_resources:
+            if write_resources:
                 resource_output_directory.mkdir(exist_ok=True, parents=True)
 
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
@@ -702,18 +670,18 @@ class ProjectPlanner:
             end = parse_date(period_prop.get("planning_end"), self.planning_end)
             today = parse_date(period_prop.get("vandaag"), self.datum_vandaag)
             if scale != SCALES["daily"]:
-                # voor een scale anders dan dagelijks wordt de vandaaglijn alleen op zaterdag getekend!
-                _logger.debug("Verander datum op dichtstbijzijnde zaterdag")
+                # For any scale other than  daily, the today-line is drawn only at Saturdays
+                _logger.debug("Change the date to the nearest Saturday")
                 _today = today
                 today = get_nearest_saturday(today)
                 if today != _today:
                     _logger.debug(
-                        f"Verander vandaag datum {_today} in dichtstbijzijnde zaterdag {today}"
+                        f"Changing the date today {_today} into the the nearest Saturday {today}"
                     )
 
             # the planning is a collection of all the projects
             _logger.info(
-                f"Schrijf project van {start} tot {end} met scale {scale} naar {file_name}"
+                f"Writing project starting at {start} and ending at {end} with a scale {scale} to {file_name}"
             )
             self.programma.make_svg_for_tasks(
                 filename=file_name.as_posix(),
@@ -724,9 +692,9 @@ class ProjectPlanner:
             )
             _logger.debug("Done")
 
-            if schrijf_resources:
+            if write_resources:
                 _logger.info(
-                    f"Schrijf resources van {start} tot {end} met scale {scale} naar {file_name_res}"
+                    f"Write resources of {start} to {end} with scale {scale} to {file_name_res}"
                 )
                 self.programma.make_svg_for_resources(
                     filename=file_name_res.as_posix(),

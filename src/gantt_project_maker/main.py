@@ -219,7 +219,7 @@ def main(args):
         employee_settings_file,
     ) in project_settings_per_employee.items():
         _logger.info(
-            f"Van employee {employee_key} lees settings file  {employee_settings_file}"
+            f"Reading settings file {employee_settings_file} of  employee {employee_key}"
         )
         with codecs.open(employee_settings_file, "r", encoding="UTF-8") as stream:
             settings_per_employee[employee_key] = yaml.load(
@@ -243,7 +243,7 @@ def main(args):
         _logger.debug("No date found")
     else:
         if today_reference is not None:
-            if today_reference == "vandaag":
+            if today_reference == "today":
                 today = datetime.today().date()
                 _logger.debug("Setting date to today {}".format(today))
             else:
@@ -307,7 +307,7 @@ def main(args):
 
     # Alles is aan de planning toegevoegd. Schrijf hem nu naar svg en eventueel naar excel
     planning.write_planning(
-        schrijf_resources=args.resources,
+        write_resources=args.resources,
         planning_output_directory=planning_directory,
         resource_output_directory=resources_directory,
         periods=args.period,
