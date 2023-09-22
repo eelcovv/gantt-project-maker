@@ -1,0 +1,16 @@
+general:
+    title: Project Leader Three
+    color: blue
+    projects:
+        - project_1
+projects:
+    project_1:
+        title: Project One 2022
+        color: corporatelichtblauw
+        tasks:
+            request_documents:
+                label: Request documents
+                start: 1-8-2023
+                end: 1-10-2023
+                employees:
+                    - emp3

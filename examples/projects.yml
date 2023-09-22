@@ -1,7 +1,7 @@
 general:
   title: Project planning Company
   color: corporateblauw
-  reference_date: vandaag
+  reference_date: today
   scale: daily
   planning_start: 1-10-2022
   planning_end: 31-12-2024
@@ -45,6 +45,7 @@ general:
 project_settings_file_per_employee:
   emp1: projects_emp1.yml
   emp2: projects_emp2.yml
+  emp3: projects_emp3.yml
 periods:
   all:
     scale: weekly

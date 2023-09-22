@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+from dateutil.parser import ParserError
 import dateutil.parser as dparse
 
 import gantt_project_maker.gantt as gantt
@@ -67,28 +68,30 @@ def parse_date(date_string: str, date_default: str = None) -> datetime.date:
     return date
 
 
-def voeg_vacations_employee_toe(Employee: gantt.Resource, vakantie_lijst: dict) -> dict:
+def add_vacation_employee(employee: gantt.Resource, vacations: dict) -> dict:
     """
-    Voeg de vakantiedagen van een werknemer toe
+    Add the vacations of an employee
 
     Parameters
     ----------
-    Employee: gannt.Resource
-        De Employee waarvan je de vakantie dagen gaat toevoegen
-    vakantie_lijst: dict
-        Een dictionary met items per vakantie. Per vakantie heb je een start en een end
+    employee: gannt.Resource
+        The employee for who you want to add the vacation
+    vacations: dict
+        A dictionary with items per vacation. Per vakantion you need a start and an end
 
     Returns
     -------
     dict:
-        Dictionary met de vacations.
+        Dictionary with the vacations.
     """
     vacations = dict()
 
-    if vakantie_lijst is not None:
-        for vakantie_key, vakantie_prop in vakantie_lijst.items():
-            vacations[vakantie_key] = Vacation(
-                vakantie_prop["start"], vakantie_prop.get("end"), werknemer=Employee
+    if vacations is not None:
+        for vacation_key, vacation_properties in vacations.items():
+            vacations[vacation_key] = Vacation(
+                vacation_properties["start"],
+                vacation_properties.get("end"),
+                werknemer=employee,
             )
     return vacations
 
@@ -139,14 +142,14 @@ class Vacation(StartEndBase):
 
 
 class Employee:
-    def __init__(self, label, volledige_naam=None, vakantie_lijst=None):
+    def __init__(self, label, full_name=None, vacations=None):
         self.label = label
-        self.volledige_naam = volledige_naam
-        self.resource = gantt.Resource(name=label, fullname=volledige_naam)
+        self.full_name = full_name
+        self.resource = gantt.Resource(name=label, fullname=full_name)
 
-        if vakantie_lijst is not None:
-            self.vacations = voeg_vacations_employee_toe(
-                Employee=self.resource, vakantie_lijst=vakantie_lijst
+        if vacations is not None:
+            self.vacations = add_vacation_employee(
+                employee=self.resource, vacations=vacations
             )
         else:
             self.vacations = None
@@ -159,7 +162,6 @@ class BasicElement(StartEndBase):
         start=None,
         dependent_of=None,
         color=None,
-        volledige_naam=None,
         detail=False,
         display=True,
     ):
@@ -170,7 +172,6 @@ class BasicElement(StartEndBase):
         self.detail = detail
         self.dependent_of = dependent_of
         self.color = color_to_hex(color)
-        self.volledige_naam = volledige_naam
         self.display = display
 
 
@@ -184,8 +185,6 @@ class Task(BasicElement):
         employees=None,
         dependent_of=None,
         color=None,
-        volledige_naam=None,
-        percentage_voltooid=None,
         detail=False,
         display=True,
     ):
@@ -195,27 +194,25 @@ class Task(BasicElement):
             dependent_of=dependent_of,
             color=color,
             detail=detail,
-            volledige_naam=volledige_naam,
             display=display,
         )
         self.end = parse_date(end)
-        self.duur = duration
+        self.duration = duration
         self.employees = employees
-        self.percentage_voltooid = percentage_voltooid
 
-        self.element = None
+        self.element = self.add_task()
 
-    def voeg_task_toe(self):
-        self.element = gantt.Task(
+    def add_task(self) -> gantt.Task:
+        task = gantt.Task(
             name=self.label,
             start=self.start,
             stop=self.end,
-            duration=self.duur,
+            duration=self.duration,
             depends_of=self.dependent_of,
             resources=self.employees,
             color=self.color,
-            percent_done=self.percentage_voltooid,
         )
+        return task
 
 
 class Milestone(BasicElement):
@@ -237,17 +234,16 @@ class Milestone(BasicElement):
             display=display,
         )
 
-        self.element = None
+        self.element = self.add_milestone()
 
-        self.add_milestone()
-
-    def add_milestone(self):
-        self.element = gantt.Milestone(
+    def add_milestone(self) -> gantt.Milestone:
+        element = gantt.Milestone(
             name=self.label,
             start=self.start,
             depends_of=self.dependent_of,
             color=self.color,
         )
+        return element
 
 
 class ProjectPlanner:
@@ -320,7 +316,7 @@ class ProjectPlanner:
                 column_widths=self.excel_info.get("column_widths"),
             )
 
-    def get_afhankelijkheid(self, key: str) -> gantt.Resource:
+    def get_dependency(self, key: str) -> gantt.Resource:
         """
         Search the object to which the dependency 'key' refers to
 
@@ -398,16 +394,16 @@ class ProjectPlanner:
 
         if dependencies is not None:
             if isinstance(dependencies, str):
-                dependent_of = self.get_dependencies(dependencies)
+                dependent_of = self.get_dependency(dependencies)
                 dependency_elements.append(dependent_of)
             elif isinstance(dependencies, dict):
                 for category, afhankelijk_items in dependencies.items():
                     for task_key in afhankelijk_items:
-                        dependent_of = self.get_dependencies(task_key)
+                        dependent_of = self.get_dependency(task_key)
                         dependency_elements.append(dependent_of)
             else:
                 for afhankelijk_item in dependencies:
-                    dependent_of = self.get_dependencies(afhankelijk_item)
+                    dependent_of = self.get_dependency(afhankelijk_item)
                     dependency_elements.append(dependent_of)
 
             return dependency_elements
@@ -437,11 +433,11 @@ class ProjectPlanner:
             _logger.debug(f"Adding {w_key} ({w_prop.get('name')})")
             self.employees[w_key] = Employee(
                 label=w_key,
-                volledige_naam=w_prop.get("name"),
-                vakantie_lijst=w_prop.get("vacations"),
+                full_name=w_prop.get("name"),
+                vacations=w_prop.get("vacations"),
             )
 
-    def maak_task_of_milestone(
+    def make_task_of_milestone(
         self, task_properties: dict = None
     ) -> Union[Task, Milestone]:
         """
@@ -485,11 +481,29 @@ class ProjectPlanner:
 
         # add all the remain fields which are not required for the gantt charts but needed for the Excel output
         for task_key, task_value in task_properties.items():
+            if task_key in (
+                "title",
+                "label",
+                "start",
+                "end",
+                "duration",
+                "color",
+                "detail",
+                "employees",
+                "dependent_of",
+            ):
+                continue
             if not hasattr(task_or_milestone, task_key):
-                try:
-                    task_value = parse_date(task_value, task_value)
-                except ValueError:
-                    _logger.debug(f"task {task_key} is not an date. No problem")
+                if isinstance(task_value, str):
+                    try:
+                        _task_value = parse_date(task_value, task_value)
+                    except ParserError:
+                        _logger.debug(f"task {task_key} is not an date. No problem")
+                    else:
+                        _logger.debug(
+                            f"Converted string {task_value} into datetime {_task_value}"
+                        )
+                        task_value = _task_value
                 _logger.debug(f"Adding task {task_key} with value {task_value}")
                 setattr(task_or_milestone, task_key, task_value)
 
@@ -504,7 +518,7 @@ class ProjectPlanner:
 
         _logger.info("Voeg alle algemene tasks en mijlpalen toe")
         if tasks_and_milestones_info is not None:
-            # The task are organised in modules, to peel of the first level
+            # The tasks are organised in modules, to peel of the first level
             tasks_en_mp = dict()
             for module_key, module_values in tasks_and_milestones_info.items():
                 _logger.debug(f"Reading tasks of module {module_key}")
@@ -522,7 +536,7 @@ class ProjectPlanner:
 
         for task_key, task_val in tasks_en_mp.items():
             _logger.debug(f"Processing task {task_key}")
-            self.tasks_and_milestones[task_key] = self.maak_task_of_milestone(
+            self.tasks_and_milestones[task_key] = self.make_task_of_milestone(
                 task_properties=task_val
             )
 
@@ -552,8 +566,9 @@ class ProjectPlanner:
 
             # add all the other elements as attributes
             for p_key, p_value in project_values.items():
-                if not hasattr(project, p_key):
-                    setattr(project, p_key, p_value)
+                if p_key not in ("title", "color", "tasks"):
+                    if not hasattr(project, p_key):
+                        setattr(project, p_key, p_value)
 
             if project_key in self.subprojects.keys():
                 msg = f"project {project_key} already exists. Pick another name"
@@ -598,7 +613,7 @@ class ProjectPlanner:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
-                        task_obj = self.maak_task_of_milestone(task_properties=task_val)
+                        task_obj = self.make_task_of_milestone(task_properties=task_val)
                         task = task_obj.element
                         is_detail = task_obj.detail
 
