@@ -43,8 +43,8 @@ general:
     rozevergrijsd: 82045E
     violet: AC218E
 project_settings_file_per_employee:
-  #emp1: projects_emp1.yml
-  #emp2: projects_emp2.yml
+  emp1: projects_emp1.yml
+  emp2: projects_emp2.yml
   emp3: projects_emp3.yml
 periods:
   all:
