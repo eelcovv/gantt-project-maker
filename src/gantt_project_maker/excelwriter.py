@@ -353,6 +353,7 @@ def write_project(
                         if quarter_end != quarter_start or year_start != year_end:
                             label += f"/{year_end}Q{quarter_end}"
             if label is not None:
+                _logger.debug(f"Writing {column_key} with {label}")
                 try:
                     dummy = label.strftime("%d-%m-%Y")
                 except AttributeError:

@@ -7,7 +7,7 @@ projects:
   project_1:
     title: Project One 2022
     color: corporatelichtblauw
-    project_leader: emp3
+    project_leader: PL1
     tasks:
       request_documents:
         label: Request documents
