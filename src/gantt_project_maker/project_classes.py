@@ -263,7 +263,7 @@ class ProjectPlanner:
         self.period_info = period_info
         self.planning_start = planning_start
         self.planning_end = planning_end
-        self.datum_vandaag = today
+        self.date_today = today
         self.scale = scale
         self.details = details
 
@@ -670,8 +670,8 @@ class ProjectPlanner:
 
             start = parse_date(period_prop.get("planning_start"), self.planning_start)
             end = parse_date(period_prop.get("planning_end"), self.planning_end)
-            today = parse_date(period_prop.get("vandaag"), self.datum_vandaag)
-            if scale != SCALES["daily"]:
+            today = parse_date(period_prop.get("today"), self.date_today)
+            if today is not None and scale != SCALES["daily"]:
                 # For any scale other than  daily, the today-line is drawn only at Saturdays
                 _logger.debug("Change the date to the nearest Saturday")
                 _today = today
