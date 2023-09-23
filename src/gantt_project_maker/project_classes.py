@@ -103,13 +103,6 @@ def add_vacation_employee(employee: gantt.Resource, vacations: dict) -> dict:
     return vacation_objects
 
 
-def define_attributes():
-
-    gantt.define_font_attributes(
-        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
-    )
-
-
 class StartEndBase:
     """
     Basis van alle classes met een begin- en einddatum.
@@ -328,8 +321,12 @@ class ProjectPlanner:
         self.subprojects = dict()
 
     @staticmethod
-    def add_global_information():
-        define_attributes()
+    def add_global_information(
+        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+    ):
+        gantt.define_font_attributes(
+            fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
+        )
 
     def exporteer_naar_excel(self, excel_output_directory):
         """

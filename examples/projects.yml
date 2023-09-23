@@ -10,6 +10,11 @@ general:
     planning: output_planning
     resources: output_resources
     excel: output_excel
+  font_info:
+    fill: black
+    stroke: black
+    stroke_width: 0
+    font_family: Verdana
   country_code: "nl_NL.UTF-8"  # causes Dutch names for the months. Leave out if you want English
   custom_colors:
     # Used in the Excel output below

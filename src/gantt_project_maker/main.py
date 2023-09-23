@@ -183,6 +183,16 @@ def main(args):
     output_directories = general_settings.get("output_directories")
     project_settings_per_employee = settings["project_settings_file_per_employee"]
 
+    fill = "black"
+    stroke = "stroke"
+    stroke_width = "stroke_width"
+    font_family = ""
+    if font_info := general_settings.get("font_info"):
+        fill = font_info.get("fill", fill)
+        stroke = font_info.get("stroke", stroke)
+        stroke_width = font_info.get("stroke_width", stroke_width)
+        font_family = font_info.get("font_family", font_family)
+
     if custom_colors := general_settings.get("custom_colors"):
         set_custom_colors(custom_colors=custom_colors)
     if country_code := general_settings.get("country_code"):
@@ -269,7 +279,9 @@ def main(args):
     )
 
     # voeg globale informatie, vacations en employees toe
-    planning.add_global_information()
+    planning.add_global_information(
+        fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
+    )
     planning.add_vacations(vacations_info=vacations_info)
     planning.add_employees(employees_info=employees_info)
 
