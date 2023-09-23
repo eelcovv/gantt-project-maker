@@ -84,23 +84,23 @@ def add_vacation_employee(employee: gantt.Resource, vacations: dict) -> dict:
     employee: gannt.Resource
         The employee for who you want to add the vacation
     vacations: dict
-        A dictionary with items per vacation. Per vakantion you need a start and an end
+        A dictionary with items per vacation. Per vacation, you need a start and an end
 
     Returns
     -------
     dict:
         Dictionary with the vacations.
     """
-    vacations = dict()
+    vacation_objects = dict()
 
     if vacations is not None:
         for vacation_key, vacation_properties in vacations.items():
-            vacations[vacation_key] = Vacation(
+            vacation_objects[vacation_key] = Vacation(
                 vacation_properties["start"],
                 vacation_properties.get("end"),
-                werknemer=employee,
+                employee=employee,
             )
-    return vacations
+    return vacation_objects
 
 
 def define_attributes():
@@ -133,19 +133,19 @@ class StartEndBase:
 
 
 class Vacation(StartEndBase):
-    def __init__(self, start, end=None, werknemer=None, dayfirst=False):
+    def __init__(self, start, end=None, employee=None, dayfirst=False):
         super().__init__(start, end, dayfirst=dayfirst)
 
-        if werknemer is None:
+        if employee is None:
             self.pool = gantt
         else:
-            self.pool = werknemer
+            self.pool = employee
 
         self.add_vacation()
 
     def add_vacation(self):
         """
-        Add common vacations
+        Add common or employee vacations
         """
         self.pool.add_vacations(self.start, self.end)
 
