@@ -31,7 +31,7 @@ def hex_number_to_hex_hash(hex_number):
         hex_code = f"#{hex_code}"
     if len(hex_code) != 7:
         raise ValueError(f"Hex color {hex_code} is not valid as is has an invalid amount of digit ")
-    return hex_code
+    return hex_code.upper()
 
 
 def set_custom_colors(custom_colors):
@@ -55,4 +55,5 @@ def color_to_hex(color: str):
                 )
             except (AttributeError, ValueError) as err:
                 color_hex_code = hex_number_to_hex_hash(color)
-    return color_hex_code.upper()
+
+    return color_hex_code
