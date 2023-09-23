@@ -30,4 +30,4 @@ def test_hex_number_to_hex_hash_error_wrong_number():
 def test_color_to_hex():
     assert color_to_hex("black") == "#000000"
     assert color_to_hex("navy") == "#000080"
-    assert color_to_hex("pink") == "#FFC0CB"
+    assert color_to_hex("pink").upper() == "#FFC0CB"
