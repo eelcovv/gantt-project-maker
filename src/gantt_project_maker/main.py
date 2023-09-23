@@ -168,6 +168,7 @@ def main(args):
 
     general_settings = settings["general"]
     period_info = settings["periods"]
+    dayfirst = general_settings["dayfirst"]
 
     if args.scale is not None:
         scale_key = args.scale
@@ -175,8 +176,8 @@ def main(args):
         scale_key = general_settings.get("scale", "daily")
     scale = SCALES[scale_key]
 
-    start = parse_date(general_settings["planning_start"])
-    end = parse_date(general_settings["planning_end"])
+    start = parse_date(general_settings["planning_start"], dayfirst=dayfirst)
+    end = parse_date(general_settings["planning_end"], dayfirst=dayfirst)
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
@@ -247,7 +248,7 @@ def main(args):
                 today = datetime.today().date()
                 _logger.debug("Setting date to today {}".format(today))
             else:
-                today = parse_date(today_reference)
+                today = parse_date(today_reference, dayfirst=dayfirst)
                 _logger.debug("Setting date to {}".format(today))
         else:
             _logger.debug("today key found be no date defined")
@@ -260,6 +261,7 @@ def main(args):
         planning_start=start,
         planning_end=end,
         today=today,
+        dayfirst=dayfirst,
         scale=scale,
         period_info=period_info,
         excel_info=excel_info,

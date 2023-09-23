@@ -23,14 +23,17 @@ _logger = logging.getLogger(__name__)
 
 def get_nearest_saturday(date):
     """
-    Verkrijg de eerste zaterdag op basis van de
+    Get the the nearest Saturday with respect to 'date'
 
     Parameters
     ----------
-    date
+    date: datetime.date
+        The reference date
 
     Returns
     -------
+    datetime.date
+        Nearest Saturday with respect to the reference date
 
     """
     d = date.toordinal()
@@ -43,7 +46,9 @@ def get_nearest_saturday(date):
     return date.fromordinal(saturday)
 
 
-def parse_date(date_string: str, date_default: str = None) -> datetime.date:
+def parse_date(
+    date_string: str, date_default: str = None, dayfirst=False
+) -> datetime.date:
     """
     Lees de date_string en parse de datum
 
@@ -53,6 +58,8 @@ def parse_date(date_string: str, date_default: str = None) -> datetime.date:
         Datum representatie
     date_default:
         Als de date_string None is deze default waarde genomen.
+    dayfirst: bool
+        Set the day first, e.g. 25-12-2023
 
     Returns
     -------
@@ -60,9 +67,9 @@ def parse_date(date_string: str, date_default: str = None) -> datetime.date:
         Datum
     """
     if date_string is not None:
-        date = dparse.parse(date_string, dayfirst=True).date()
+        date = dparse.parse(date_string, dayfirst=dayfirst).date()
     elif date_default is not None and isinstance(date_default, str):
-        date = dparse.parse(date_default, dayfirst=True).date()
+        date = dparse.parse(date_default, dayfirst=dayfirst).date()
     else:
         date = date_default
     return date
@@ -108,24 +115,26 @@ class StartEndBase:
     Basis van alle classes met een begin- en einddatum.
     """
 
-    def __init__(self, start: str, end: str = None):
+    def __init__(self, start: str, end: str = None, dayfirst=False):
         """
         Sla de datum stings op als datetime objecten
 
         Parameters
         ----------
         start: str
-            Startdatum is verplicht
+            Start date is mandatory
         end: str or None
-            Einddatum is optioneel.
+            End date is optional.
+        dayfirst: bool
+            Use date with date first
         """
-        self.start = parse_date(start)
-        self.end = parse_date(end)
+        self.start = parse_date(start, dayfirst=dayfirst)
+        self.end = parse_date(end, dayfirst=dayfirst)
 
 
 class Vacation(StartEndBase):
-    def __init__(self, start, end=None, werknemer=None):
-        super().__init__(start, end)
+    def __init__(self, start, end=None, werknemer=None, dayfirst=False):
+        super().__init__(start, end, dayfirst=dayfirst)
 
         if werknemer is None:
             self.pool = gantt
@@ -164,8 +173,9 @@ class BasicElement(StartEndBase):
         color=None,
         detail=False,
         display=True,
+        dayfirst=False,
     ):
-        super().__init__(start, start)
+        super().__init__(start, start, dayfirst)
         if label is None:
             raise ValueError("Every task should have a label!")
         self.label = label
@@ -187,6 +197,7 @@ class Task(BasicElement):
         color=None,
         detail=False,
         display=True,
+        dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -195,8 +206,9 @@ class Task(BasicElement):
             color=color,
             detail=detail,
             display=display,
+            dayfirst=dayfirst,
         )
-        self.end = parse_date(end)
+        self.end = parse_date(end, dayfirst=dayfirst)
         self.duration = duration
         self.employees = employees
 
@@ -224,6 +236,7 @@ class Milestone(BasicElement):
         color=None,
         detail=False,
         display=True,
+        dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -232,6 +245,7 @@ class Milestone(BasicElement):
             color=color,
             detail=detail,
             display=display,
+            dayfirst=dayfirst,
         )
 
         self.element = self.add_milestone()
@@ -249,21 +263,49 @@ class Milestone(BasicElement):
 class ProjectPlanner:
     def __init__(
         self,
-        programma_title=None,
-        programma_color=None,
-        output_file_name=None,
-        planning_start=None,
-        planning_end=None,
-        today=None,
-        scale=None,
-        period_info=None,
-        excel_info=None,
-        details=None,
+        programma_title: str = None,
+        programma_color: str = None,
+        output_file_name: str = None,
+        planning_start: datetime = None,
+        planning_end: datetime = None,
+        today: datetime = None,
+        dayfirst: bool = False,
+        scale: str = None,
+        period_info: dict = None,
+        excel_info: dict = None,
+        details: bool = None,
     ):
+        """
+
+        Args:
+            programma_title: str
+                Main titel of the whole project
+            programma_color: str
+                First color of the bar
+            output_file_name: str
+                Base name of the output files
+            planning_start: datetime
+                Start of the program
+            planning_end: datetime
+                End of the program
+            today: datetime
+                Today's date
+            dayfirst: bool
+                Parse date with the day first
+            scale: str
+                Which scale is used for the output
+            period_info: dict
+               Information on the periods output
+            excel_info: dict
+                Information on the excel output
+            details: bool
+                If true, include the details to the programs
+        """
         self.period_info = period_info
         self.planning_start = planning_start
         self.planning_end = planning_end
         self.date_today = today
+        self.dayfirst = dayfirst
         self.scale = scale
         self.details = details
 
@@ -421,7 +463,7 @@ class ProjectPlanner:
             else:
                 _logger.debug(f"Vacation {v_key} at {v_prop['start']}")
             self.vacations[v_key] = Vacation(
-                start=v_prop["start"], end=v_prop.get("end")
+                start=v_prop["start"], end=v_prop.get("end"), dayfirst=self.dayfirst
             )
 
     def add_employees(self, employees_info):
@@ -467,6 +509,7 @@ class ProjectPlanner:
                 detail=task_properties.get("detail", False),
                 employees=employees,
                 dependent_of=dependencies,
+                dayfirst=self.dayfirst,
             )
         elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
@@ -475,6 +518,7 @@ class ProjectPlanner:
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
                 dependent_of=dependencies,
+                dayfirst=self.dayfirst,
             )
         else:
             raise AssertionError("Type should be 'task' or 'milestone'")
@@ -484,7 +528,9 @@ class ProjectPlanner:
             if not hasattr(task_or_milestone.element, task_key):
                 if isinstance(task_value, str):
                     try:
-                        _task_value = parse_date(task_value, task_value)
+                        _task_value = parse_date(
+                            task_value, task_value, dayfirst=self.dayfirst
+                        )
                     except ParserError:
                         _logger.debug(f"task {task_key} is not an date. No problem")
                     else:
@@ -668,9 +714,19 @@ class ProjectPlanner:
             else:
                 scale = self.scale
 
-            start = parse_date(period_prop.get("planning_start"), self.planning_start)
-            end = parse_date(period_prop.get("planning_end"), self.planning_end)
-            today = parse_date(period_prop.get("today"), self.date_today)
+            start = parse_date(
+                period_prop.get("planning_start"),
+                self.planning_start,
+                dayfirst=self.dayfirst,
+            )
+            end = parse_date(
+                period_prop.get("planning_end"),
+                self.planning_end,
+                dayfirst=self.dayfirst,
+            )
+            today = parse_date(
+                period_prop.get("today"), self.date_today, dayfirst=self.dayfirst
+            )
             if today is not None and scale != SCALES["daily"]:
                 # For any scale other than  daily, the today-line is drawn only at Saturdays
                 _logger.debug("Change the date to the nearest Saturday")
