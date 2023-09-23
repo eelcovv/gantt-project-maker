@@ -184,9 +184,9 @@ def main(args):
     project_settings_per_employee = settings["project_settings_file_per_employee"]
 
     fill = "black"
-    stroke = "stroke"
-    stroke_width = "stroke_width"
-    font_family = ""
+    stroke = "black"
+    stroke_width = 0
+    font_family = "Verdana"
     if font_info := general_settings.get("font_info"):
         fill = font_info.get("fill", fill)
         stroke = font_info.get("stroke", stroke)

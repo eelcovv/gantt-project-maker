@@ -55,4 +55,4 @@ def color_to_hex(color: str):
                 )
             except (AttributeError, ValueError) as err:
                 color_hex_code = hex_number_to_hex_hash(color)
-    return color_hex_code
+    return color_hex_code.upper()
