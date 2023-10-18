@@ -177,7 +177,7 @@ def main(args):
     exe = Path(sys.argv[0]).stem
     now = datetime.now()
     print(
-        f"Start '{exe} {' '.join(sys.argv[1:])}' om {now.date()} {now.time().strftime('%H:%M')} "
+        f"Start '{exe} {' '.join(sys.argv[1:])}'\nat {now.date()} {now.time().strftime('%H:%M')} "
     )
     print("-" * 80)
 
