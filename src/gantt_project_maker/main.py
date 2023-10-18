@@ -10,6 +10,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import dateutil.parser as dparse
 import yaml
 
 from gantt_project_maker import __version__
@@ -26,6 +27,15 @@ _logger = logging.getLogger(__name__)
 ############################################################################
 
 
+def check_if_date(value):
+    """check if an argument is a valid date. Return the original string value"""
+    try:
+        date = dparse.parse(value).date()
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Date {value} is not a valid date")
+    return value
+
+
 def parse_args(args):
     """Parse command line parameters
 
@@ -36,7 +46,8 @@ def parse_args(args):
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = argparse.ArgumentParser(description="Just a Fibonacci demonstration")
+
+    parser = argparse.ArgumentParser(description="A front end to the python-gantt project planning")
     parser.add_argument("settings_filename", help="Name of the configuration file")
     parser.add_argument("--output_filename", help="Name of the text output file")
     parser.add_argument(
@@ -74,7 +85,7 @@ def parse_args(args):
         default=True,
     )
     parser.add_argument(
-        "--geen_details",
+        "--no_details",
         help="Suppress all the tasks with the detail attribute.",
         action="store_false",
         dest="details",
@@ -95,15 +106,25 @@ def parse_args(args):
         "-m",
         "--employee",
         help="Only use the projects of this employee. Can be given multiple times for multiple employees"
-        "employees",
+             "employees",
         action="append",
     )
     parser.add_argument(
         "-p",
         "--period",
         help="On export this period from the list of periods as given in the settings file. If not given, all"
-        "the periods are writen to file",
+             "the periods are writen to file",
         action="append",
+    )
+    parser.add_argument(
+        "--start_planning",
+        type=check_if_date,
+        help="Start of the planning. If not given, the value given in de settings file is taken",
+    )
+    parser.add_argument(
+        "--end_planning",
+        type=check_if_date,
+        help="End of the planning. If not given, the value given in de settings file is taken",
     )
 
     return parser.parse_args(args)
@@ -176,8 +197,15 @@ def main(args):
         scale_key = general_settings.get("scale", "daily")
     scale = SCALES[scale_key]
 
-    start = parse_date(general_settings["planning_start"], dayfirst=dayfirst)
-    end = parse_date(general_settings["planning_end"], dayfirst=dayfirst)
+    if args.start_planning is None:
+        start = parse_date(general_settings["planning_start"], dayfirst=dayfirst)
+    else:
+        start = parse_date(args.start_planning, dayfirst=dayfirst)
+    if args.end_planning is None:
+        end = parse_date(general_settings["planning_end"], dayfirst=dayfirst)
+    else:
+        end = parse_date(args.end_planning, dayfirst=dayfirst)
+
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
@@ -226,8 +254,8 @@ def main(args):
     # lees de settings file per medewerk
     settings_per_employee = {}
     for (
-        employee_key,
-        employee_settings_file,
+            employee_key,
+            employee_settings_file,
     ) in project_settings_per_employee.items():
         _logger.info(
             f"Reading settings file {employee_settings_file} of  employee {employee_key}"
@@ -288,8 +316,8 @@ def main(args):
     # Voeg nu de algemene tasks per employee toe. Het is niet verplicht tasks_and_milestones op te geven,
     # maar kan wel. Het voordeel is dat tasks tussen employees gedeeld kunnen worden
     for (
-        employee_key,
-        employee_settings,
+            employee_key,
+            employee_settings,
     ) in settings_per_employee.items():
         if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
             _logger.info(f"Adding global tasks en milestones of {employee_key} ")
@@ -299,8 +327,8 @@ def main(args):
 
     # Voeg nu de projecten per employee toe.
     for (
-        employee_key,
-        employee_settings,
+            employee_key,
+            employee_settings,
     ) in settings_per_employee.items():
         if args.employee is not None and employee_key not in args.employee:
             _logger.debug(f"Skip employee {employee_key}")

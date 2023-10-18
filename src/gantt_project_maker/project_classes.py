@@ -10,7 +10,6 @@ import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import write_planning_to_excel
 
-
 SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
     weekly=gantt.DRAW_WITH_WEEKLY_SCALE,
@@ -47,7 +46,7 @@ def get_nearest_saturday(date):
 
 
 def parse_date(
-    date_string: str, date_default: str = None, dayfirst=False
+        date_string: str, date_default: str = None, dayfirst=False
 ) -> datetime.date:
     """
     Lees de date_string en parse de datum
@@ -159,14 +158,14 @@ class Employee:
 
 class BasicElement(StartEndBase):
     def __init__(
-        self,
-        label,
-        start=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=False,
+            self,
+            label,
+            start=None,
+            dependent_of=None,
+            color=None,
+            detail=False,
+            display=True,
+            dayfirst=False,
     ):
         super().__init__(start, start, dayfirst)
         if label is None:
@@ -180,17 +179,17 @@ class BasicElement(StartEndBase):
 
 class Task(BasicElement):
     def __init__(
-        self,
-        label,
-        start=None,
-        end=None,
-        duration=None,
-        employees=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=True,
+            self,
+            label,
+            start=None,
+            end=None,
+            duration=None,
+            employees=None,
+            dependent_of=None,
+            color=None,
+            detail=False,
+            display=True,
+            dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -222,14 +221,14 @@ class Task(BasicElement):
 
 class Milestone(BasicElement):
     def __init__(
-        self,
-        label,
-        start=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=True,
+            self,
+            label,
+            start=None,
+            dependent_of=None,
+            color=None,
+            detail=False,
+            display=True,
+            dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -255,18 +254,18 @@ class Milestone(BasicElement):
 
 class ProjectPlanner:
     def __init__(
-        self,
-        programma_title: str = None,
-        programma_color: str = None,
-        output_file_name: str = None,
-        planning_start: datetime = None,
-        planning_end: datetime = None,
-        today: datetime = None,
-        dayfirst: bool = False,
-        scale: str = None,
-        period_info: dict = None,
-        excel_info: dict = None,
-        details: bool = None,
+            self,
+            programma_title: str = None,
+            programma_color: str = None,
+            output_file_name: str = None,
+            planning_start: datetime = None,
+            planning_end: datetime = None,
+            today: datetime = None,
+            dayfirst: bool = False,
+            scale: str = None,
+            period_info: dict = None,
+            excel_info: dict = None,
+            details: bool = None,
     ):
         """
 
@@ -322,7 +321,7 @@ class ProjectPlanner:
 
     @staticmethod
     def add_global_information(
-        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+            fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     ):
         gantt.define_font_attributes(
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
@@ -477,7 +476,7 @@ class ProjectPlanner:
             )
 
     def make_task_of_milestone(
-        self, task_properties: dict = None
+            self, task_properties: dict = None
     ) -> Union[Task, Milestone]:
         """
         Add all the general tasks and milestones
@@ -541,7 +540,7 @@ class ProjectPlanner:
         return task_or_milestone
 
     def add_tasks_and_milestones(
-        self, tasks_and_milestones=None, tasks_and_milestones_info=None
+            self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
         Make all tasks en milestones
@@ -572,11 +571,11 @@ class ProjectPlanner:
             )
 
     def make_projects(
-        self,
-        subprojects_info,
-        subprojects_title,
-        subprojects_selection,
-        subprojects_color=None,
+            self,
+            subprojects_info,
+            subprojects_title,
+            subprojects_selection,
+            subprojects_color=None,
     ):
         """
         Make all projects
@@ -660,11 +659,11 @@ class ProjectPlanner:
         self.programma.add_task(projects_employee)
 
     def write_planning(
-        self,
-        planning_output_directory,
-        resource_output_directory,
-        write_resources=False,
-        periods=None,
+            self,
+            planning_output_directory,
+            resource_output_directory,
+            write_resources=False,
+            periods=None,
     ):
         """
         Write the planning to the output definitions
