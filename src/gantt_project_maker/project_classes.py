@@ -755,7 +755,7 @@ class ProjectPlanner:
                         filename=file_name_res.as_posix(),
                         start=start,
                         end=end,
-                        scale=scale,
+                        scale=SCALES["daily"],
                         today=today,
                     )
                 except TypeError as err:
@@ -764,4 +764,5 @@ class ProjectPlanner:
                         "Failed writing the resources with the above error message. Please check your "
                         "employee's input data"
                     )
+                    raise
             _logger.debug("Done")

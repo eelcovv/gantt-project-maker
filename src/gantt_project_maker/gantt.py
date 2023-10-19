@@ -577,15 +577,31 @@ class Resource(object):
         """
         affected_days = {}
         for t in self.tasks:
-            cday = t.start_date()
-            while cday <= t.end_date():
-                if cday.weekday() not in _not_worked_days():
-                    try:
-                        affected_days[cday].append(t.fullname)
-                    except KeyError:
-                        affected_days[cday] = [t.fullname]
+            try:
+                task_start_date = t.start_date()
+            except TypeError as err:
+                __LOG__.warning(err)
+                __LOG__.warning(f"Could not get initial start date for task {t.fullname}. Is is properly defined?")
+                raise
+            try:
+                task_end_date = t.end_date()
+            except TypeError as err:
+                __LOG__.warning(err)
+                __LOG__.warning(f"Could not get end date for task {t.fullname}. Is is properly defined?")
+                raise
+            try:
+                while task_start_date <= task_end_date:
+                    if task_start_date.weekday() not in _not_worked_days():
+                        try:
+                            affected_days[task_start_date].append(t.fullname)
+                        except KeyError:
+                            affected_days[task_start_date] = [t.fullname]
 
-                cday += datetime.timedelta(days=1)
+                    task_start_date += datetime.timedelta(days=1)
+            except TypeError as err:
+                __LOG__.warning(err)
+                __LOG__.warning(f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date()} and {t.end_date()}")
+                raise
 
         # return all
         if all_tasks:
@@ -2452,17 +2468,20 @@ class Project:
                 continue
 
             ress = svgwrite.container.Group()
-            ress.add(
-                svgwrite.text.Text(
-                    "{0}".format(r.fullname),
-                    insert=(3 * mm, (nline * 10 + 7) * mm),
-                    fill=_font_attributes()["fill"],
-                    stroke=_font_attributes()["stroke"],
-                    stroke_width=_font_attributes()["stroke_width"],
-                    font_family=_font_attributes()["font_family"],
-                    font_size=15 + 3,
+            try:
+                res_text = svgwrite.text.Text(
+                "{0}".format(r.fullname),
+                insert=(3 * mm, (nline * 10 + 7) * mm),
+                fill=_font_attributes()["fill"],
+                stroke=_font_attributes()["stroke"],
+                stroke_width=_font_attributes()["stroke_width"],
+                font_family=_font_attributes()["font_family"],
+                font_size=15 + 3,
                 )
-            )
+            except ValueError as err:
+                __LOG__.warning(f"Failed making text object for {r.fullname}")
+            else:
+                ress.add(res_text)
 
             overcharged_days = r.search_for_task_conflicts()
 
