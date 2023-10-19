@@ -66,9 +66,9 @@ def parse_date(
         Datum
     """
     if date_string is not None:
-        date = dparse.parse(date_string, dayfirst=dayfirst).date()
+        date = dparse.parse(date_string.strip(), dayfirst=dayfirst).date()
     elif date_default is not None and isinstance(date_default, str):
-        date = dparse.parse(date_default, dayfirst=dayfirst).date()
+        date = dparse.parse(date_default.strip(), dayfirst=dayfirst).date()
     else:
         date = date_default
     return date
