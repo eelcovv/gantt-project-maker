@@ -73,6 +73,12 @@ def parse_args(args):
         const=logging.DEBUG,
     )
     parser.add_argument(
+        "-vvv",
+        "--very_verbose",
+        help="Also show the logging of the gantt module",
+        action="store_true",
+    )
+    parser.add_argument(
         "-s",
         "--scale",
         help="The scale of the grid of the project scheme",
@@ -182,6 +188,9 @@ def main(args):
     print("-" * 80)
 
     setup_logging(args.loglevel)
+    if args.very_verbose:
+        gantt_logger=logging.getLogger("Gantt")
+        gantt_logger.setLevel(args.loglevel)
 
     _logger.info("Reading settings file {}".format(args.settings_filename))
     with codecs.open(args.settings_filename, "r", encoding="UTF-8") as stream:
