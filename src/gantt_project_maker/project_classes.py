@@ -202,6 +202,16 @@ class Task(BasicElement):
         )
         self.end = parse_date(end, dayfirst=dayfirst)
         self.duration = duration
+        if self.end is None and self.duration is None:
+            msg = (
+                f"For a Task, next to a start date, either a end date or a duration needs to be specified. "
+                f"None is given for task '{label}'"
+            )
+            raise ValueError(msg)
+        if self.end is not None:
+            if self.end < self.start:
+                msg = f"End date {self.end} is before {self.start} for Task '{label}'. Please fix this"
+                raise ValueError(msg)
         self.employees = employees
 
         self.element = self.add_task()

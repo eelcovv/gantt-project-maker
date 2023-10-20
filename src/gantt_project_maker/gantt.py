@@ -581,13 +581,17 @@ class Resource(object):
                 task_start_date = t.start_date()
             except TypeError as err:
                 __LOG__.warning(err)
-                __LOG__.warning(f"Could not get initial start date for task {t.fullname}. Is is properly defined?")
+                __LOG__.warning(
+                    f"Could not get initial start date for task {t.fullname}. Is is properly defined?"
+                )
                 raise
             try:
                 task_end_date = t.end_date()
             except TypeError as err:
                 __LOG__.warning(err)
-                __LOG__.warning(f"Could not get end date for task {t.fullname}. Is is properly defined?")
+                __LOG__.warning(
+                    f"Could not get end date for task {t.fullname}. Is is properly defined?"
+                )
                 raise
             try:
                 while task_start_date <= task_end_date:
@@ -600,7 +604,9 @@ class Resource(object):
                     task_start_date += datetime.timedelta(days=1)
             except TypeError as err:
                 __LOG__.warning(err)
-                __LOG__.warning(f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date()} and {t.end_date()}")
+                __LOG__.warning(
+                    f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date()} and {t.end_date()}"
+                )
                 raise
 
         # return all
@@ -985,6 +991,12 @@ class Task(object):
             if real_end <= self.start_date():
                 current_day = self.start_date()
                 real_duration = 0
+                if self.duration is None:
+                    msg = (
+                        f"End time {real_end} is before start time {self.start_date()} and no duration is given for\n"
+                        f"project '{self.name}'. Please fix"
+                    )
+                    raise AssertionError(msg)
                 duration: int = self.duration
                 while duration > 1 or (
                     current_day.weekday() in _not_worked_days()
@@ -2470,13 +2482,13 @@ class Project:
             ress = svgwrite.container.Group()
             try:
                 res_text = svgwrite.text.Text(
-                "{0}".format(r.fullname),
-                insert=(3 * mm, (nline * 10 + 7) * mm),
-                fill=_font_attributes()["fill"],
-                stroke=_font_attributes()["stroke"],
-                stroke_width=_font_attributes()["stroke_width"],
-                font_family=_font_attributes()["font_family"],
-                font_size=15 + 3,
+                    "{0}".format(r.fullname),
+                    insert=(3 * mm, (nline * 10 + 7) * mm),
+                    fill=_font_attributes()["fill"],
+                    stroke=_font_attributes()["stroke"],
+                    stroke_width=_font_attributes()["stroke_width"],
+                    font_family=_font_attributes()["font_family"],
+                    font_size=15 + 3,
                 )
             except ValueError as err:
                 __LOG__.warning(f"Failed making text object for {r.fullname}")
