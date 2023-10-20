@@ -232,23 +232,23 @@ def init_log_to_sysout(level=logging.INFO):
     return
 
 
-def _flatten(l, ltypes=(list, tuple)):
+def _flatten(nested_list, list_types=(list, tuple)):
     """
     Return a flatten list from a list like [1,2,[4,5,1]]
     """
-    ltype = type(l)
-    l = list(l)
+    list_type = type(nested_list)
+    nested_list = list(nested_list)
     i = 0
-    while i < len(l):
-        while isinstance(l[i], ltypes):
-            if not l[i]:
-                l.pop(i)
+    while i < len(nested_list):
+        while isinstance(nested_list[i], list_types):
+            if not nested_list[i]:
+                nested_list.pop(i)
                 i -= 1
                 break
             else:
-                l[i : i + 1] = l[i]
+                nested_list[i: i + 1] = nested_list[i]
         i += 1
-    return ltype(l)
+    return list_type(nested_list)
 
 
 ############################################################################
@@ -2575,8 +2575,8 @@ class Project:
                 if not one_line_for_tasks:
                     ldwg.add(
                         svgwrite.shapes.Line(
-                            start=((0) * cm, (nline) * cm),
-                            end=((maxx + 1 + offset / 10) * cm, (nline) * cm),
+                            start=(0 * cm, nline * cm),
+                            end=((maxx + 1 + offset / 10) * cm, nline * cm),
                             stroke="black",
                         )
                     )
