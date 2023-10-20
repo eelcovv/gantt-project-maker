@@ -2567,7 +2567,7 @@ class Project:
             if nb_tasks == 0:
                 nline -= 1
             elif nb_tasks > 0:
-                print(r.fullname, nb_tasks)
+                __LOG__.info(r.fullname, nb_tasks)
                 ldwg.add(ress)
                 ldwg.add(vac)
                 ldwg.add(conflicts)

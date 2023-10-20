@@ -47,7 +47,9 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
 
-    parser = argparse.ArgumentParser(description="A front end to the python-gantt project planning")
+    parser = argparse.ArgumentParser(
+        description="A front end to the python-gantt project planning"
+    )
     parser.add_argument("settings_filename", help="Name of the configuration file")
     parser.add_argument("--output_filename", help="Name of the text output file")
     parser.add_argument(
@@ -71,6 +73,14 @@ def parse_args(args):
         help="set loglevel to DEBUG",
         action="store_const",
         const=logging.DEBUG,
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        dest="loglevel",
+        help="set loglevel to WARNING",
+        action="store_const",
+        const=logging.WARNING,
     )
     parser.add_argument(
         "-vvv",
@@ -112,14 +122,14 @@ def parse_args(args):
         "-m",
         "--employee",
         help="Only use the projects of this employee. Can be given multiple times for multiple employees"
-             "employees",
+        "employees",
         action="append",
     )
     parser.add_argument(
         "-p",
         "--period",
         help="On export this period from the list of periods as given in the settings file. If not given, all"
-             "the periods are writen to file",
+        "the periods are writen to file",
         action="append",
     )
     parser.add_argument(
@@ -177,8 +187,15 @@ def check_if_items_are_available(requested_items, available_items, label=""):
     return True
 
 
-def main(args):
-    args = parse_args(args)
+def make_banner(width=80) -> None:
+    """
+    Make a banner with the start time
+    Args:
+        width:  int
+            With of the banner
+
+    Returns:
+    """
     print("-" * 80)
     exe = Path(sys.argv[0]).stem
     now = datetime.now()
@@ -187,9 +204,16 @@ def main(args):
     )
     print("-" * 80)
 
+
+def main(args):
+    args = parse_args(args)
+
+    if args.loglevel < logging.WARNING:
+        make_banner()
+
     setup_logging(args.loglevel)
     if args.very_verbose:
-        gantt_logger=logging.getLogger("Gantt")
+        gantt_logger = logging.getLogger("Gantt")
         gantt_logger.setLevel(args.loglevel)
 
     _logger.info("Reading settings file {}".format(args.settings_filename))
@@ -263,8 +287,8 @@ def main(args):
     # lees de settings file per medewerk
     settings_per_employee = {}
     for (
-            employee_key,
-            employee_settings_file,
+        employee_key,
+        employee_settings_file,
     ) in project_settings_per_employee.items():
         _logger.info(
             f"Reading settings file {employee_settings_file} of  employee {employee_key}"
@@ -325,8 +349,8 @@ def main(args):
     # Voeg nu de algemene tasks per employee toe. Het is niet verplicht tasks_and_milestones op te geven,
     # maar kan wel. Het voordeel is dat tasks tussen employees gedeeld kunnen worden
     for (
-            employee_key,
-            employee_settings,
+        employee_key,
+        employee_settings,
     ) in settings_per_employee.items():
         if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
             _logger.info(f"Adding global tasks en milestones of {employee_key} ")
@@ -336,8 +360,8 @@ def main(args):
 
     # Voeg nu de projecten per employee toe.
     for (
-            employee_key,
-            employee_settings,
+        employee_key,
+        employee_settings,
     ) in settings_per_employee.items():
         if args.employee is not None and employee_key not in args.employee:
             _logger.debug(f"Skip employee {employee_key}")
