@@ -121,15 +121,15 @@ def parse_args(args):
     parser.add_argument(
         "-m",
         "--employee",
-        help="Only use the projects of this employee. Can be given multiple times for multiple employees"
-        "employees",
+        help="Only use the projects of this employee. Can be given multiple times for multiple "
+             "employees",
         action="append",
     )
     parser.add_argument(
         "-p",
         "--period",
-        help="On export this period from the list of periods as given in the settings file. If not given, all"
-        "the periods are writen to file",
+        help="On export this period from the list of periods as given in the settings file. If "
+             "not given, all the periods are writen to file",
         action="append",
     )
     parser.add_argument(
@@ -221,6 +221,12 @@ def main(args):
         settings = yaml.load(stream=stream, Loader=yaml.Loader)
 
     general_settings = settings["general"]
+    try:
+        project_settings_per_employee = settings["project_settings_file_per_employee"]
+    except KeyError as err:
+        _logger.warning(err)
+        raise KeyError("Entry project_settings_file_per_employee not found. Are you sure this"
+                       "is the main settingsfile and not the settings file of an employee?")
     period_info = settings["periods"]
     dayfirst = general_settings["dayfirst"]
 
@@ -242,7 +248,6 @@ def main(args):
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
-    project_settings_per_employee = settings["project_settings_file_per_employee"]
 
     fill = "black"
     stroke = "black"

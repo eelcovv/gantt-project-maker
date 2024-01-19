@@ -22,7 +22,7 @@ _logger = logging.getLogger(__name__)
 
 def get_nearest_saturday(date):
     """
-    Get the the nearest Saturday with respect to 'date'
+    Get the nearest Saturday with respect to 'date'
 
     Parameters
     ----------
