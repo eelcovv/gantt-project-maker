@@ -2,6 +2,10 @@
 Changelog
 =========
 
+Version 0.1.7
+=============
+- Improved colouring of resources schema
+
 Version 0.1.6
 =============
 - Added some basic checks on the tasks start and end dates to be more specifics on errors
