@@ -52,6 +52,10 @@ import svgwrite
 mm = 3.543307
 cm = 35.43307
 
+COLOR_OVERCHARGE_DEFAULT = "#AA0000"
+COLOR_VACATION_DEFAULT = "#008000"
+COLOR_RESOURCE_DEFAULT = "#c5f0eb"
+
 
 class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
     """
@@ -451,16 +455,18 @@ class Resource(object):
     Class for handling resources assigned to tasks
     """
 
-    def __init__(self, name, fullname=None):
+    def __init__(self, name, fullname=None, color=None):
         """
         Init a resource
 
         Keyword arguments:
         name -- name given to the resource (id)
         fullname -- long name given to the resource
+        color -- color used to represent the resource in the resources overview
         """
         __LOG__.debug("** Resource::__init__ {0}".format({"name": name}))
         self.name = name
+        self.color = color
         if fullname is not None:
             self.fullname = fullname
         else:
@@ -2390,6 +2396,7 @@ class Project:
         scale=DRAW_WITH_DAILY_SCALE,
         title_align_on_left=False,
         offset=0,
+        color_per_taks=False,
     ):
         """
         Draw resources affectation and output it to filename. If start or end are
@@ -2409,6 +2416,7 @@ class Project:
         scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
+        color_per_task -- give a color per task
         """
 
         if scale != DRAW_WITH_DAILY_SCALE:
@@ -2517,8 +2525,8 @@ class Project:
                                 (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
-                            fill="#008000",
-                            stroke="#008000",
+                            fill=COLOR_VACATION_DEFAULT,
+                            stroke=COLOR_VACATION_DEFAULT,
                             stroke_width=1,
                             opacity=0.65,
                         )
@@ -2537,8 +2545,8 @@ class Project:
                                 (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
-                            fill="#AA0000",
-                            stroke="#AA0000",
+                            fill=COLOR_OVERCHARGE_DEFAULT,
+                            stroke=COLOR_OVERCHARGE_DEFAULT,
                             stroke_width=1,
                             opacity=0.65,
                         )
@@ -2549,11 +2557,20 @@ class Project:
             nb_tasks = 0
             for t in self.get_tasks():
                 if t.get_resources() is not None and r in t.get_resources():
+
+                    if color_per_taks:
+                        color = t.color
+                    else:
+                        color = r.color
+
+                    if color is None:
+                        color = COLOR_RESOURCE_DEFAULT
+
                     psvg, void = t.svg(
                         prev_y=nline,
                         start=start_date,
                         end=end_date,
-                        color=self.color,
+                        color=color,
                         scale=scale,
                         title_align_on_left=title_align_on_left,
                         offset=offset,

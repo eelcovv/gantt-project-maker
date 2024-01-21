@@ -31,6 +31,7 @@ tasks_and_milestones:
             deadline: 21-10-2022
             department1: ja
             employees: *emp1_emp3
+            color: pink
         ontwerp_online_vragenlijst_23:
             label: Bouwen en testen online vragenlijst 2023
             start: 24-10-2022
@@ -39,6 +40,7 @@ tasks_and_milestones:
             department1: ja
             remark: task wordt uitgevoerd i.s.m. Blaise bouwer(s).
             employees: *emp1_emp3_department1
+            color: beige
         milestone_vragenlijst_afgerond_23:
             label: Vragenlijst '23 definitief afgerond
             type: milestone

@@ -76,43 +76,51 @@ vacations:
     end: 7-1-2024
 employees:
   emp1:
-    naam: Employee One
+    name: Employee One
+    color: cyan
     vacations:
       summer_holiday:
         start: 18-7-2023
         end: 13-8-2023
   emp3:
-    naam: Employee Three
+    name: Employee Three
+    color: plum
     vacations:
       summer_holiday:
         start: 31-7-2023
         end: 4-8-2023
   emp4:
-    naam: Employee Four
+    name: Employee Four
+    color: bisque
     vacations:
       summer_holiday:
         start: 1-8-2023
         end: 16-8-2023
   emp5:
-    naam: Employee Five
+    name: Employee Five
+    color: mistyrose
     vacations:
       summer_holiday:
         start: 1-8-2023
         end: 16-8-2023
   emp2:
-    naam: Employee Two
+    name: Employee Two
+    color: khaki
     vacations:
       summer_holiday:
         start: 10-7-2023
         end: 28-7-2023
   emp6:
-    naam: Employee Six
+    name: Employee Six
+    color: lavender
   emp7:
-    naam: Employee Seven
+    name: Employee Seven
+    color: dodgerblue
   emp8:
-    naam: Employee Eight
+    name: Employee Eight
   department1:
-    naam: Department One
+    name: Department One
+    color: wheat
 excel:
   column_widths:
     name: 30

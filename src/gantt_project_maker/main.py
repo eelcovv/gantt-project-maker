@@ -344,15 +344,15 @@ def main(args):
         details=args.details,
     )
 
-    # voeg globale informatie, vacations en employees toe
+    # add global information, vacations and employees
     planning.add_global_information(
         fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
     )
     planning.add_vacations(vacations_info=vacations_info)
     planning.add_employees(employees_info=employees_info)
 
-    # Voeg nu de algemene tasks per employee toe. Het is niet verplicht tasks_and_milestones op te geven,
-    # maar kan wel. Het voordeel is dat tasks tussen employees gedeeld kunnen worden
+    # Add the general tasks per employee. It is not mandatory to add tasks_and_milestones,
+    # however, you may. The advantage is that multiply tasks can share the same milestone
     for (
         employee_key,
         employee_settings,

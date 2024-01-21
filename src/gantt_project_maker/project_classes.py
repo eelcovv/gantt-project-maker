@@ -143,10 +143,11 @@ class Vacation(StartEndBase):
 
 
 class Employee:
-    def __init__(self, label, full_name=None, vacations=None):
+    def __init__(self, label, full_name=None, vacations=None, color=None):
         self.label = label
         self.full_name = full_name
-        self.resource = gantt.Resource(name=label, fullname=full_name)
+        self.color = color
+        self.resource = gantt.Resource(name=label, fullname=full_name, color=color)
 
         if vacations is not None:
             self.vacations = add_vacation_employee(
@@ -482,6 +483,7 @@ class ProjectPlanner:
             self.employees[w_key] = Employee(
                 label=w_key,
                 full_name=w_prop.get("name"),
+                color=w_prop.get("color"),
                 vacations=w_prop.get("vacations"),
             )
 
@@ -687,7 +689,7 @@ class ProjectPlanner:
         resource_output_directory: Path
             Output directory van de svg files van de resources
         periods: list
-            List of periods we want to add. If None, add all periods
+           Periods we want to add. If None, add all periods
         """
 
         for period_key, period_prop in self.period_info.items():
@@ -701,6 +703,7 @@ class ProjectPlanner:
                 [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
             )
             file_base_resources = file_base_tasks.replace("_tasks", "_resources")
+            file_base_resources_color_tasks = file_base_tasks.replace("_tasks", "_resources_color_per_task")
 
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
@@ -712,6 +715,10 @@ class ProjectPlanner:
             )
             file_name_res = resource_output_directory / Path(
                 file_base_resources
+            ).with_suffix(suffix)
+
+            file_name_res_color_tasks = resource_output_directory / Path(
+                file_base_resources_color_tasks
             ).with_suffix(suffix)
 
             scale = period_prop.get("scale")
@@ -775,4 +782,18 @@ class ProjectPlanner:
                         "employee's input data"
                     )
                     raise
+                else:
+                    # succeeded in writing resources with color per resource.
+                    # now write with color per task
+                    _logger.info(
+                        f"Write resources of {start} to {end} with scale {scale} to {file_name_res} with color per task"
+                    )
+                    self.programma.make_svg_for_resources(
+                        filename=file_name_res_color_tasks.as_posix(),
+                        start=start,
+                        end=end,
+                        scale=SCALES["daily"],
+                        today=today,
+                        color_per_taks=True,
+                    )
             _logger.debug("Done")
