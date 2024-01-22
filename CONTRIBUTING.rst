@@ -1,28 +1,3 @@
-.. todo:: THIS IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
-
-   The document assumes you are using a source repository service that promotes a
-   contribution model similar to `GitHub's fork and pull request workflow`_.
-   While this is true for the majority of services (like GitHub, GitLab,
-   BitBucket), it might not be the case for private repositories (e.g., when
-   using Gerrit).
-
-   Also notice that the code examples might refer to GitHub URLs or the text
-   might use GitHub specific terminology (e.g., *Pull Request* instead of *Merge
-   Request*).
-
-   Please make sure to check the document having these assumptions in mind
-   and update things accordingly.
-
-.. todo:: Provide the correct links/replacements at the bottom of the document.
-
-.. todo:: You might want to have a look on `PyScaffold's contributor's guide`_,
-
-   especially if your project is open source. The text should be very similar to
-   this template, but there are a few extra contents that you might decide to
-   also include, like mentioning labels of your issue tracker or automated
-   releases.
-
-
 ============
 Contributing
 ============
@@ -71,12 +46,7 @@ by adding missing information and correcting mistakes.
 ``gantt-project-maker`` documentation uses Sphinx_ as its main documentation compiler.
 This means that the docs are kept in the same repository as the project code, and
 that any documentation update is done in the same way was a code contribution.
-
-.. todo:: Don't forget to mention which markup language you are using.
-
-    e.g.,  reStructuredText_ or CommonMark_ with MyST_ extensions.
-
-.. todo:: If your project is hosted on GitHub, you can also mention the following tip:
+The documentation is written in reStructuredText_.
 
    .. tip::
       Please notice that the `GitHub web interface`_ provides a quick way of
@@ -106,11 +76,13 @@ and use Python's built-in web server for a preview in your web browser
 Code Contributions
 ==================
 
-.. todo:: Please include a reference or explanation about the internals of the project.
+* The code is a front end to python-gantt_ project developed `Alexandre Norman`_, but as this project is not maintained
+  anymore.
+* The front end was written by `Eelco van Vliet`_
+* The gantt module has been included into this project and adapted where required.
+* A yaml file settings file is used to defined all the project and other properties
+* Task are added per project. See the User manual for more details
 
-   An architecture description, design principles or at least a summary of the
-   main concepts will make it easy for potential contributors to get started
-   quickly.
 
 Submit an issue
 ---------------
@@ -142,7 +114,7 @@ Clone the repository
    page. This creates a copy of the code under your account on |the repository service|.
 #. Clone this copy to your local disk::
 
-    git clone git@github.com:YourLogin/gantt-project-maker.git
+    git clone git@github.com:eelcovv/gantt-project-maker.git
     cd gantt-project-maker
 
 #. You should run::
@@ -150,16 +122,6 @@ Clone the repository
     pip install -U pip setuptools -e .
 
    to be able to import the package under development in the Python REPL.
-
-   .. todo:: if you are not using pre-commit, please remove the following item:
-
-#. Install |pre-commit|_::
-
-    pip install pre-commit
-    pre-commit install
-
-   ``gantt-project-maker`` comes with a lot of hooks configured to automatically help the
-   developer to check the code being written.
 
 Implement your changes
 ----------------------
@@ -181,13 +143,6 @@ Implement your changes
     git commit
 
    to record your changes in git_.
-
-   .. todo:: if you are not using pre-commit, please remove the following item:
-
-   Please make sure to see the validation messages from |pre-commit|_ and fix
-   any eventual issues.
-   This should automatically use flake8_/black_ to check/fix the code style
-   in a way that is compatible with the project.
 
    .. important:: Don't forget to add unit tests and documentation in case your
       contribution adds an additional feature and is not just a bugfix.
@@ -314,8 +269,11 @@ on PyPI_, the following steps can be used to release a new version for
 .. |the repository service| replace:: GitHub
 .. |contribute button| replace:: "Create pull request"
 
-.. _repository: https://github.com/<USERNAME>/gantt-project-maker
-.. _issue tracker: https://github.com/<USERNAME>/gantt-project-maker/issues
+.. _repository: https://github.com/eelcovv/gantt-project-maker
+.. _issue tracker: https://github.com/eelcovv/gantt-project-maker/issues
+.. _python-gantt: https//pypi.org/project/python-gantt
+.. _Alexandre Norman: norman@xael.org
+.. _Eelco van Vliet: eelcovv@gmail.org
 .. <-- end -->
 
 
