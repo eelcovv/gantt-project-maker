@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 0.1.8
+=============
+- In resources overview, task colors now match the colors in the project overview
+- The task color can now explicitly be given. Default task color matches the project color.
+
+
 Version 0.1.7
 =============
 - Improved colouring of resources schema

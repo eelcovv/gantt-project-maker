@@ -702,7 +702,7 @@ class Task(object):
         duration -- int, duration of the task, default None
         depends_of -- list of Task which are parents of this one, default None
         resources -- list of Resources assigned to the task, default None
-        percent_done -- int, percent of achievment, default 0
+        percent_done -- int, percent of achievement, default 0
         color -- string, html color, default None
         display -- boolean, display this task, default True
         state -- string, state of the task
@@ -802,9 +802,9 @@ class Task(object):
 
         __LOG__.debug("** Task::start_date ({0})".format(self.name))
         if self.start is not None:
-            # start date setted, calculate beginning
+            # start date set, calculate beginning
             if self.depends_of is None:
-                # depends of nothing... start date is start
+                # depends on nothing... start date is start
                 # __LOG__.debug('*** Do not depend of other task')
                 start = self.start
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
@@ -820,7 +820,7 @@ class Task(object):
                 self._cache_start_date = start
                 return self._cache_start_date
             else:
-                # depends of other task, start date could vary
+                # depends on other task, start date could vary
                 # __LOG__.debug('*** Do depend of other tasks')
                 start = self.start
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
@@ -876,7 +876,8 @@ class Task(object):
 
                     if depend_start_date > current_day:
                         __LOG__.error(
-                            '** Due to dependencies, Task "{0}", could not be finished on time (should start as last on {1} but will start on {2})'.format(
+                            '** Due to dependencies, Task "{0}", could not be finished on time (should start as last '
+                            'on {1} but will start on {2})'.format(
                                 self.fullname, current_day, depend_start_date
                             )
                         )

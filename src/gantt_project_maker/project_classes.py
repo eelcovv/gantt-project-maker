@@ -46,7 +46,7 @@ def get_nearest_saturday(date):
 
 
 def parse_date(
-    date_string: str, date_default: str = None, dayfirst=False
+        date_string: str, date_default: str = None, dayfirst=False
 ) -> datetime.date:
     """
     Lees de date_string en parse de datum
@@ -159,14 +159,15 @@ class Employee:
 
 class BasicElement(StartEndBase):
     def __init__(
-        self,
-        label,
-        start=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=False,
+            self,
+            label,
+            start=None,
+            dependent_of=None,
+            color=None,
+            project_color=None,
+            detail=False,
+            display=True,
+            dayfirst=False,
     ):
         super().__init__(start, start, dayfirst)
         if label is None:
@@ -175,28 +176,31 @@ class BasicElement(StartEndBase):
         self.detail = detail
         self.dependent_of = dependent_of
         self.color = color_to_hex(color)
+        self.project_color = color_to_hex(project_color)
         self.display = display
 
 
 class Task(BasicElement):
     def __init__(
-        self,
-        label,
-        start=None,
-        end=None,
-        duration=None,
-        employees=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=True,
+            self,
+            label,
+            start=None,
+            end=None,
+            duration=None,
+            employees=None,
+            dependent_of=None,
+            color=None,
+            project_color=None,
+            detail=False,
+            display=True,
+            dayfirst=True,
     ):
         super().__init__(
             label=label,
             start=start,
             dependent_of=dependent_of,
             color=color,
+            project_color=project_color,
             detail=detail,
             display=display,
             dayfirst=dayfirst,
@@ -218,6 +222,8 @@ class Task(BasicElement):
         self.element = self.add_task()
 
     def add_task(self) -> gantt.Task:
+        if self.color is None:
+            self.color = self.project_color
         task = gantt.Task(
             name=self.label,
             start=self.start,
@@ -232,20 +238,22 @@ class Task(BasicElement):
 
 class Milestone(BasicElement):
     def __init__(
-        self,
-        label,
-        start=None,
-        dependent_of=None,
-        color=None,
-        detail=False,
-        display=True,
-        dayfirst=True,
+            self,
+            label,
+            start=None,
+            dependent_of=None,
+            color=None,
+            project_color=None,
+            detail=False,
+            display=True,
+            dayfirst=True,
     ):
         super().__init__(
             label=label,
             start=start,
             dependent_of=dependent_of,
             color=color,
+            project_color=project_color,
             detail=detail,
             display=display,
             dayfirst=dayfirst,
@@ -265,18 +273,18 @@ class Milestone(BasicElement):
 
 class ProjectPlanner:
     def __init__(
-        self,
-        programma_title: str = None,
-        programma_color: str = None,
-        output_file_name: str = None,
-        planning_start: datetime = None,
-        planning_end: datetime = None,
-        today: datetime = None,
-        dayfirst: bool = False,
-        scale: str = None,
-        period_info: dict = None,
-        excel_info: dict = None,
-        details: bool = None,
+            self,
+            programma_title: str = None,
+            programma_color: str = None,
+            output_file_name: Path = None,
+            planning_start: datetime = None,
+            planning_end: datetime = None,
+            today: datetime = None,
+            dayfirst: bool = False,
+            scale: str = None,
+            period_info: dict = None,
+            excel_info: dict = None,
+            details: bool = None,
     ):
         """
 
@@ -332,7 +340,7 @@ class ProjectPlanner:
 
     @staticmethod
     def add_global_information(
-        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+            fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     ):
         gantt.define_font_attributes(
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
@@ -488,7 +496,8 @@ class ProjectPlanner:
             )
 
     def make_task_of_milestone(
-        self, task_properties: dict = None
+            self, task_properties: dict = None,
+            project_color=None,
     ) -> Union[Task, Milestone]:
         """
         Add all the general tasks and milestones
@@ -497,6 +506,8 @@ class ProjectPlanner:
         ----------
         task_properties: dict
             Dictionary with tasks or milestones
+        project_color: str
+            Color of the parent project
 
         Returns
         -------
@@ -514,6 +525,7 @@ class ProjectPlanner:
                 end=task_properties.get("end"),
                 duration=task_properties.get("duration"),
                 color=task_properties.get("color"),
+                project_color=project_color,
                 detail=task_properties.get("detail", False),
                 employees=employees,
                 dependent_of=dependencies,
@@ -525,6 +537,7 @@ class ProjectPlanner:
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
+                project_color=project_color,
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
             )
@@ -552,7 +565,7 @@ class ProjectPlanner:
         return task_or_milestone
 
     def add_tasks_and_milestones(
-        self, tasks_and_milestones=None, tasks_and_milestones_info=None
+            self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
         Make all tasks en milestones
@@ -583,11 +596,11 @@ class ProjectPlanner:
             )
 
     def make_projects(
-        self,
-        subprojects_info,
-        subprojects_title,
-        subprojects_selection,
-        subprojects_color=None,
+            self,
+            subprojects_info,
+            subprojects_title,
+            subprojects_selection,
+            subprojects_color=None,
     ):
         """
         Make all projects
@@ -654,9 +667,12 @@ class ProjectPlanner:
                                 _logger.warning(f"{err}")
                                 raise
                     else:
-                        task_obj = self.make_task_of_milestone(task_properties=task_val)
+                        task_obj = self.make_task_of_milestone(task_properties=task_val, project_color=project_color)
                         task = task_obj.element
                         is_detail = task_obj.detail
+
+                    if task.color is None:
+                        task.color = project_color
 
                     if not self.details and is_detail:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
@@ -671,11 +687,11 @@ class ProjectPlanner:
         self.programma.add_task(projects_employee)
 
     def write_planning(
-        self,
-        planning_output_directory,
-        resource_output_directory,
-        write_resources=False,
-        periods=None,
+            self,
+            planning_output_directory,
+            resource_output_directory,
+            write_resources=False,
+            periods=None,
     ):
         """
         Write the planning to the output definitions
@@ -715,10 +731,6 @@ class ProjectPlanner:
             )
             file_name_res = resource_output_directory / Path(
                 file_base_resources
-            ).with_suffix(suffix)
-
-            file_name_res_color_tasks = resource_output_directory / Path(
-                file_base_resources_color_tasks
             ).with_suffix(suffix)
 
             scale = period_prop.get("scale")
@@ -780,20 +792,5 @@ class ProjectPlanner:
                     _logger.warning(
                         "Failed writing the resources with the above error message. Please check your "
                         "employee's input data"
-                    )
-                    raise
-                else:
-                    # succeeded in writing resources with color per resource.
-                    # now write with color per task
-                    _logger.info(
-                        f"Write resources of {start} to {end} with scale {scale} to {file_name_res} with color per task"
-                    )
-                    self.programma.make_svg_for_resources(
-                        filename=file_name_res_color_tasks.as_posix(),
-                        start=start,
-                        end=end,
-                        scale=SCALES["daily"],
-                        today=today,
-                        color_per_taks=True,
                     )
             _logger.debug("Done")
