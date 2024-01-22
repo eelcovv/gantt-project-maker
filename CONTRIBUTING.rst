@@ -264,14 +264,13 @@ on PyPI_, the following steps can be used to release a new version for
 
 
 .. <-- start -->
-.. todo:: Please review and change the following definitions:
 
 .. |the repository service| replace:: GitHub
 .. |contribute button| replace:: "Create pull request"
 
 .. _repository: https://github.com/eelcovv/gantt-project-maker
 .. _issue tracker: https://github.com/eelcovv/gantt-project-maker/issues
-.. _python-gantt: https//pypi.org/project/python-gantt
+.. _python-gantt: https://pypi.org/project/python-gantt
 .. _Alexandre Norman: norman@xael.org
 .. _Eelco van Vliet: eelcovv@gmail.org
 .. <-- end -->
