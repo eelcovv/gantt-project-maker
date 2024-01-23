@@ -6,6 +6,8 @@ general:
   scale: daily
   planning_start: 1-10-2022
   planning_end: 31-12-2024
+  weeks_margin_left: 4
+  weeks_margin_right: 4
   output_directories:
     planning: output_planning
     resources: output_resources
@@ -58,6 +60,8 @@ periods:
   end_of_year:
     planning_start: 1-8-2023
     planning_end: 31-12-2023
+    weeks_margin_left: 2
+    weeks_margin_right: 2
     scale: daily
 vacations:
   easter_23:

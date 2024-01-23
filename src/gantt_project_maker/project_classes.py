@@ -279,6 +279,8 @@ class ProjectPlanner:
             output_file_name: Path = None,
             planning_start: datetime = None,
             planning_end: datetime = None,
+            weeks_margin_left: int = None,
+            weeks_margin_right: int = None,
             today: datetime = None,
             dayfirst: bool = False,
             scale: str = None,
@@ -299,6 +301,10 @@ class ProjectPlanner:
                 Start of the program
             planning_end: datetime
                 End of the program
+            weeks_margin_left: int
+                Shift the end of the planning so many weeks to the left without adding projects
+            weeks_margin_right: int
+                Shift the end of the planning so many weeks to the right without adding projects
             today: datetime
                 Today's date
             dayfirst: bool
@@ -308,7 +314,7 @@ class ProjectPlanner:
             period_info: dict
                Information on the periods output
             excel_info: dict
-                Information on the excel output
+                Information on the Excel output
             details: bool
                 If true, include the details to the programs
         """
@@ -319,6 +325,9 @@ class ProjectPlanner:
         self.dayfirst = dayfirst
         self.scale = scale
         self.details = details
+
+        self.weeks_margin_left = weeks_margin_left
+        self.weeks_margin_right = weeks_margin_right
 
         self.excel_info = excel_info
 
@@ -719,7 +728,6 @@ class ProjectPlanner:
                 [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
             )
             file_base_resources = file_base_tasks.replace("_tasks", "_resources")
-            file_base_resources_color_tasks = file_base_tasks.replace("_tasks", "_resources_color_per_task")
 
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
@@ -732,6 +740,9 @@ class ProjectPlanner:
             file_name_res = resource_output_directory / Path(
                 file_base_resources
             ).with_suffix(suffix)
+
+            weeks_margin_left = period_prop.get("weeks_margin_left", self.weeks_margin_left)
+            weeks_margin_right = period_prop.get("weeks_margin_left", self.weeks_margin_right)
 
             scale = period_prop.get("scale")
             if scale is not None:
@@ -769,6 +780,8 @@ class ProjectPlanner:
             self.programma.make_svg_for_tasks(
                 filename=file_name.as_posix(),
                 start=start,
+                margin_left=weeks_margin_left,
+                margin_right=weeks_margin_right,
                 end=end,
                 scale=scale,
                 today=today,

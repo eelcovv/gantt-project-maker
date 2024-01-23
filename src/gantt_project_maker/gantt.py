@@ -2272,6 +2272,8 @@ class Project:
         filename,
         today=None,
         start=None,
+        margin_left=None,
+        margin_right=None,
         end=None,
         scale=DRAW_WITH_DAILY_SCALE,
         title_align_on_left=False,
@@ -2286,6 +2288,8 @@ class Project:
         today -- datetime.date of day marked as a reference
         start -- datetime.date of first day to draw
         end -- datetime.date of last day to draw
+        margin_left -- number of week to add to the grid before the project start
+        margin_right -- number of week to add to the grid after the project end
         scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
@@ -2305,6 +2309,12 @@ class Project:
             end_date = self.end_date()
         else:
             end_date = end
+
+        # add a margin to the left and right of the right in order to make some space for the project labels
+        if margin_left is not None:
+            start_date -= datetime.timedelta(weeks=margin_left)
+        if margin_right is not None:
+            end_date += datetime.timedelta(weeks=margin_right)
 
         if start_date > end_date:
             __LOG__.critical(

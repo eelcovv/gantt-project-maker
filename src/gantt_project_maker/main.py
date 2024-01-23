@@ -142,6 +142,18 @@ def parse_args(args):
         type=check_if_date,
         help="End of the planning. If not given, the value given in de settings file is taken",
     )
+    parser.add_argument(
+        "--weeks_margin_left",
+        type=int,
+        help="Shifts start of planning with this number of weeks left without adding projects. Default is read "
+             "from the settings file. This value overrides the default",
+    )
+    parser.add_argument(
+        "--weeks_margin_right",
+        type=int,
+        help="Shifts start of planning with this number of weeks right without adding projects. Default is read "
+             "from the settings file. This value overrides the default."
+    )
 
     return parser.parse_args(args)
 
@@ -245,6 +257,16 @@ def main(args):
     else:
         end = parse_date(args.end_planning, dayfirst=dayfirst)
 
+    if args.weeks_margin_left is None:
+        weeks_margin_left = general_settings.get("weeks_margin_left")
+    else:
+        weeks_margin_left = args.weeks_margin_left
+
+    if args.weeks_margin_right is None:
+        weeks_margin_right = general_settings.get("weeks_margin_right")
+    else:
+        weeks_margin_right = args.weeks_margin_right
+
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
@@ -336,6 +358,8 @@ def main(args):
         output_file_name=output_filename,
         planning_start=start,
         planning_end=end,
+        weeks_margin_left=weeks_margin_left,
+        weeks_margin_right=weeks_margin_right,
         today=today,
         dayfirst=dayfirst,
         scale=scale,
