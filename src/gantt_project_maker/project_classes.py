@@ -1,4 +1,5 @@
 import logging
+import tkinter
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -46,7 +47,7 @@ def get_nearest_saturday(date):
 
 
 def parse_date(
-        date_string: str, date_default: str = None, dayfirst=False
+    date_string: str, date_default: str = None, dayfirst=False
 ) -> datetime.date:
     """
     Lees de date_string en parse de datum
@@ -159,15 +160,15 @@ class Employee:
 
 class BasicElement(StartEndBase):
     def __init__(
-            self,
-            label,
-            start=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=False,
+        self,
+        label,
+        start=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=False,
     ):
         super().__init__(start, start, dayfirst)
         if label is None:
@@ -182,18 +183,18 @@ class BasicElement(StartEndBase):
 
 class Task(BasicElement):
     def __init__(
-            self,
-            label,
-            start=None,
-            end=None,
-            duration=None,
-            employees=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=True,
+        self,
+        label,
+        start=None,
+        end=None,
+        duration=None,
+        employees=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -238,15 +239,15 @@ class Task(BasicElement):
 
 class Milestone(BasicElement):
     def __init__(
-            self,
-            label,
-            start=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=True,
+        self,
+        label,
+        start=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=True,
     ):
         super().__init__(
             label=label,
@@ -273,20 +274,21 @@ class Milestone(BasicElement):
 
 class ProjectPlanner:
     def __init__(
-            self,
-            programma_title: str = None,
-            programma_color: str = None,
-            output_file_name: Path = None,
-            planning_start: datetime = None,
-            planning_end: datetime = None,
-            weeks_margin_left: int = None,
-            weeks_margin_right: int = None,
-            today: datetime = None,
-            dayfirst: bool = False,
-            scale: str = None,
-            period_info: dict = None,
-            excel_info: dict = None,
-            details: bool = None,
+        self,
+        programma_title: str = None,
+        programma_color: str = None,
+        output_file_name: Path = None,
+        planning_start: datetime = None,
+        planning_end: datetime = None,
+        weeks_margin_left: int = None,
+        weeks_margin_right: int = None,
+        today: datetime = None,
+        dayfirst: bool = False,
+        scale: str = None,
+        period_info: dict = None,
+        excel_info: dict = None,
+        details: bool = None,
+        filter_employees: list = None,
     ):
         """
 
@@ -317,6 +319,8 @@ class ProjectPlanner:
                 Information on the Excel output
             details: bool
                 If true, include the details to the programs
+            filter_employees: list
+                If not None, only add task to which  employees in this list contribute
         """
         self.period_info = period_info
         self.planning_start = planning_start
@@ -325,6 +329,11 @@ class ProjectPlanner:
         self.dayfirst = dayfirst
         self.scale = scale
         self.details = details
+        if filter_employees:
+            # if filter_employees are given, add them as a set
+            self.filter_employees = set(filter_employees)
+        else:
+            self.filter_employees = None
 
         self.weeks_margin_left = weeks_margin_left
         self.weeks_margin_right = weeks_margin_right
@@ -349,7 +358,7 @@ class ProjectPlanner:
 
     @staticmethod
     def add_global_information(
-            fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     ):
         gantt.define_font_attributes(
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
@@ -409,7 +418,13 @@ class ProjectPlanner:
                 depends_of = self.subprojects[key]
                 _logger.debug(f"Dependent of project: {key}")
             except KeyError:
-                raise AssertionError(f"Dependency {key} does not exist")
+                msg = f"Dependency {key} does not exist"
+                if self.filter_employees is not None:
+                    # in case we are filtering on employees, some dependencies may be missing. Just give a warning
+                    _logger.warning(msg)
+                    depends_of = None
+                else:
+                    raise AssertionError(msg)
 
         return depends_of
 
@@ -505,8 +520,9 @@ class ProjectPlanner:
             )
 
     def make_task_of_milestone(
-            self, task_properties: dict = None,
-            project_color=None,
+        self,
+        task_properties: dict = None,
+        project_color=None,
     ) -> Union[Task, Milestone]:
         """
         Add all the general tasks and milestones
@@ -574,7 +590,7 @@ class ProjectPlanner:
         return task_or_milestone
 
     def add_tasks_and_milestones(
-            self, tasks_and_milestones=None, tasks_and_milestones_info=None
+        self, tasks_and_milestones=None, tasks_and_milestones_info=None
     ):
         """
         Make all tasks en milestones
@@ -592,6 +608,17 @@ class ProjectPlanner:
                         msg = f"De task key {task_key} has been used before. Please pick another name"
                         _logger.warning(msg)
                         raise ValueError(msg)
+                    if self.filter_employees is not None:
+                        contributors = task_val.get("employees")
+                        is_contributing = check_if_employee_in_contributing(
+                            filter_employees=self.filter_employees,
+                            contributing_employees=contributors,
+                        )
+                        if not is_contributing:
+                            _logger.debug(
+                                f"None of {contributors} are in {self.filter_employees}. Skipping"
+                            )
+                            continue
                     tasks_en_mp[task_key] = tasks_and_milestones_info[module_key][
                         task_key
                     ]
@@ -605,11 +632,11 @@ class ProjectPlanner:
             )
 
     def make_projects(
-            self,
-            subprojects_info,
-            subprojects_title,
-            subprojects_selection,
-            subprojects_color=None,
+        self,
+        subprojects_info,
+        subprojects_title,
+        subprojects_selection,
+        subprojects_color=None,
     ):
         """
         Make all projects
@@ -673,15 +700,39 @@ class ProjectPlanner:
                                 # de task een ander project?
                                 task = self.subprojects[task_val]
                             except KeyError as err:
-                                _logger.warning(f"{err}")
-                                raise
+                                if not self.filter_employees:
+                                    _logger.warning(f"{err}")
+                                    raise
+                                else:
+                                    _logger.debug(f"{err}")
+                                    continue
                     else:
-                        task_obj = self.make_task_of_milestone(task_properties=task_val, project_color=project_color)
+                        task_obj = self.make_task_of_milestone(
+                            task_properties=task_val, project_color=project_color
+                        )
                         task = task_obj.element
                         is_detail = task_obj.detail
 
                     if task.color is None:
                         task.color = project_color
+
+                    if self.filter_employees:
+                        try:
+                            contributors = task.employees
+                        except AttributeError:
+                            _logger.debug(
+                                "No employees found, but can be a projects, so just add"
+                            )
+                        else:
+                            is_contributing = check_if_employee_in_contributing(
+                                filter_employees=self.filter_employees,
+                                contributing_employees=contributors,
+                            )
+                            if not is_contributing:
+                                _logger.debug(
+                                    f"None of {contributors} are in {self.filter_employees}. Skipping"
+                                )
+                                continue
 
                     if not self.details and is_detail:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
@@ -696,11 +747,11 @@ class ProjectPlanner:
         self.programma.add_task(projects_employee)
 
     def write_planning(
-            self,
-            planning_output_directory,
-            resource_output_directory,
-            write_resources=False,
-            periods=None,
+        self,
+        planning_output_directory,
+        resource_output_directory,
+        write_resources=False,
+        periods=None,
     ):
         """
         Write the planning to the output definitions
@@ -718,7 +769,6 @@ class ProjectPlanner:
         """
 
         for period_key, period_prop in self.period_info.items():
-
             if periods is not None and period_key not in periods:
                 _logger.debug(f"Employee {period_key} is skipped")
                 continue
@@ -741,8 +791,12 @@ class ProjectPlanner:
                 file_base_resources
             ).with_suffix(suffix)
 
-            weeks_margin_left = period_prop.get("weeks_margin_left", self.weeks_margin_left)
-            weeks_margin_right = period_prop.get("weeks_margin_left", self.weeks_margin_right)
+            weeks_margin_left = period_prop.get(
+                "weeks_margin_left", self.weeks_margin_left
+            )
+            weeks_margin_right = period_prop.get(
+                "weeks_margin_right", self.weeks_margin_right
+            )
 
             scale = period_prop.get("scale")
             if scale is not None:
@@ -760,6 +814,7 @@ class ProjectPlanner:
                 self.planning_end,
                 dayfirst=self.dayfirst,
             )
+
             today = parse_date(
                 period_prop.get("today"), self.date_today, dayfirst=self.dayfirst
             )
@@ -780,9 +835,9 @@ class ProjectPlanner:
             self.programma.make_svg_for_tasks(
                 filename=file_name.as_posix(),
                 start=start,
+                end=end,
                 margin_left=weeks_margin_left,
                 margin_right=weeks_margin_right,
-                end=end,
                 scale=scale,
                 today=today,
             )
@@ -807,3 +862,53 @@ class ProjectPlanner:
                         "employee's input data"
                     )
             _logger.debug("Done")
+
+
+def check_if_employee_in_contributing(
+    filter_employees: list, contributing_employees: list
+) -> bool:
+    """
+    Check if any of the employees given in filter_employees is in contributing to this taks
+    """
+
+    is_contributing = False
+
+    if contributing_employees is not None:
+        if isinstance(contributing_employees, str):
+            contributing_employees = set(list([contributing_employees]))
+        else:
+            contributing_employees = set(contributing_employees)
+        if contributing_employees.intersection(filter_employees):
+            _logger.debug(
+                f"Contributing employees {contributing_employees} not in filter list"
+            )
+            is_contributing = True
+
+    return is_contributing
+
+
+def extend_suffix(output_filename: Path, extensions: list):
+    """
+    Add an extra suffix to the base filename
+
+    Parameters
+    ----------
+    output_filename: Path
+        Base filename
+    extensions: list
+        Extra suffixes to add
+
+    Returns
+    -------
+    Path:
+        New filename with extra suffix
+
+    """
+    suffix = output_filename.suffix
+    output_filename = Path(
+        "_".join([output_filename.with_suffix("").as_posix()] + extensions)
+    ).with_suffix(suffix)
+
+    return output_filename
+
+

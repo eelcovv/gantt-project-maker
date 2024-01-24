@@ -14,11 +14,27 @@ projects:
     tasks:
       request_documents:
         label: Request documents
-        start: 1-8-2023
-        end: 1-10-2023
+        start: 7-8-2023
+        end: 1-9-2023
         project_leader: emp3
         department1: "Yes"
         cci: "No"
+        remark: Priority
+        employees:
+          - emp3
+      prepare_request:
+        label: Prepare request
+        start: 1-7-2023
+        end: 21-7-2023
+        project_leader: emp3
+        remark: Priority
+        employees:
+          - emp3
+      finish_project:
+        label: Finish project
+        start: 1-9-2023
+        end: 17-9-2023
+        project_leader: emp3
         remark: Priority
         employees:
           - emp3

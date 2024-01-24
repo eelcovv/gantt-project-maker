@@ -15,7 +15,7 @@ import yaml
 
 from gantt_project_maker import __version__
 from gantt_project_maker.colors import set_custom_colors
-from gantt_project_maker.project_classes import ProjectPlanner, SCALES, parse_date
+from gantt_project_maker.project_classes import ProjectPlanner, SCALES, parse_date, extend_suffix
 
 __author__ = "Eelco van Vliet"
 __copyright__ = "Eelco van Vliet"
@@ -122,7 +122,14 @@ def parse_args(args):
         "-m",
         "--employee",
         help="Only use the projects of this employee. Can be given multiple times for multiple "
-             "employees",
+             "employees.",
+        action="append",
+    )
+    parser.add_argument(
+        "-f",
+        "--filter_employees",
+        help="Only include tasks to which this employee contributes. Can be given multiple times for multiple "
+             "employees.",
         action="append",
     )
     parser.add_argument(
@@ -270,6 +277,9 @@ def main(args):
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
+    vacations_info = settings.get("vacations")
+    employees_info = settings.get("employees")
+    excel_info = settings.get("excel")
 
     fill = "black"
     stroke = "black"
@@ -299,7 +309,13 @@ def main(args):
         check_if_items_are_available(
             requested_items=args.employee,
             available_items=project_settings_per_employee,
-            label="employee",
+            label="employee project",
+        )
+    if args.filter_employees is not None:
+        check_if_items_are_available(
+            requested_items=args.filter_employees,
+            available_items=employees_info,
+            label="employee task",
         )
 
     if args.period is not None:
@@ -307,11 +323,7 @@ def main(args):
             requested_items=args.period, available_items=period_info, label="period"
         )
 
-    vacations_info = settings.get("vacations")
-    employees_info = settings.get("employees")
-    excel_info = settings.get("excel")
-
-    # lees de settings file per medewerk
+    # read the settings file per employee
     settings_per_employee = {}
     for (
         employee_key,
@@ -331,9 +343,11 @@ def main(args):
         output_filename = Path(args.output_filename).with_suffix(".svg")
 
     if args.employee is not None:
-        output_filename = Path(
-            "_".join([output_filename.with_suffix("").as_posix()] + args.employee)
-        ).with_suffix(".svg")
+        output_filename = extend_suffix(output_filename=output_filename, extensions=args.employee)
+
+    if args.filter_employees is not None:
+        extensions = ["contributors"] + sorted(args.filter_employees)
+        output_filename = extend_suffix(output_filename=output_filename, extensions=extensions)
 
     today = None
     try:
@@ -366,6 +380,7 @@ def main(args):
         period_info=period_info,
         excel_info=excel_info,
         details=args.details,
+        filter_employees=args.filter_employees,
     )
 
     # add global information, vacations and employees

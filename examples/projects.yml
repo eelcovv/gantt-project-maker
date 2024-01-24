@@ -59,7 +59,7 @@ periods:
     scale: weekly
   end_of_year:
     planning_start: 1-8-2023
-    planning_end: 31-12-2023
+    planning_end: 10-9-2023
     weeks_margin_left: 2
     weeks_margin_right: 2
     scale: daily
@@ -86,6 +86,13 @@ employees:
       summer_holiday:
         start: 18-7-2023
         end: 13-8-2023
+  emp2:
+    name: Employee Two
+    color: khaki
+    vacations:
+      summer_holiday:
+        start: 10-7-2023
+        end: 28-7-2023
   emp3:
     name: Employee Three
     color: plum
@@ -107,13 +114,6 @@ employees:
       summer_holiday:
         start: 1-8-2023
         end: 16-8-2023
-  emp2:
-    name: Employee Two
-    color: khaki
-    vacations:
-      summer_holiday:
-        start: 10-7-2023
-        end: 28-7-2023
   emp6:
     name: Employee Six
     color: lavender

@@ -1072,6 +1072,8 @@ class Task(object):
         prev_y=0,
         start=None,
         end=None,
+        planning_start=None,
+        planning_end=None,
         color=None,
         level=None,
         scale=DRAW_WITH_DAILY_SCALE,
@@ -1688,6 +1690,8 @@ class Milestone(Task):
         prev_y=0,
         start=None,
         end=None,
+        planning_start=None,
+        planning_end=None,
         color=None,
         level=None,
         scale=DRAW_WITH_DAILY_SCALE,
@@ -1701,6 +1705,8 @@ class Milestone(Task):
         prev_y -- int, line to start to draw
         start -- datetime.date of first day to draw
         end -- datetime.date of last day to draw
+        planning_start -- datetime.date start date of planning
+        planning_end -- datetime.date  end date of planning
         color -- string of color for drawing the project
         level -- int, indentation level of the project, not used here
         scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
@@ -1998,7 +2004,7 @@ class Project:
     Class for handling projects
     """
 
-    def __init__(self, name="", color=None, side_bar_color=None):
+    def __init__(self, name="", color=None, side_bar_color=None, project_start=None, project_end=None):
         """
         Initialize project with a given name and color for all tasks
 
@@ -2012,6 +2018,9 @@ class Project:
             self.color = "#FFFF90"
         else:
             self.color = color
+
+        self.project_start = project_start
+        self.project_end = project_end
 
         if side_bar_color is None:
             self.side_bar_color = self.color
@@ -2272,9 +2281,9 @@ class Project:
         filename,
         today=None,
         start=None,
+        end=None,
         margin_left=None,
         margin_right=None,
-        end=None,
         scale=DRAW_WITH_DAILY_SCALE,
         title_align_on_left=False,
         offset=0,
@@ -2290,6 +2299,8 @@ class Project:
         end -- datetime.date of last day to draw
         margin_left -- number of week to add to the grid before the project start
         margin_right -- number of week to add to the grid after the project end
+        planning_start -- start of the planning
+        planning_end -- end of the planning
         scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
         title_align_on_left -- boolean, align task title on left
         offset -- X offset from image border to start of drawing zone
@@ -2327,6 +2338,8 @@ class Project:
             prev_y=2,
             start=start_date,
             end=end_date,
+            planning_start=start,
+            planning_end=end,
             color=self.side_bar_color,
             scale=scale,
             title_align_on_left=title_align_on_left,
@@ -2345,7 +2358,6 @@ class Project:
         elif scale == DRAW_WITH_WEEKLY_SCALE:
             # how many weeks do we need to draw ?
             maxx = 0
-            guess = start_date
 
             guess = start_date
             while guess.weekday() != 0:
@@ -2673,6 +2685,8 @@ class Project:
         prev_y=0,
         start=None,
         end=None,
+        planning_start=None,
+        planning_end=None,
         color=None,
         level=0,
         scale=DRAW_WITH_DAILY_SCALE,
@@ -2705,10 +2719,16 @@ class Project:
         prj = svgwrite.container.Group()
 
         for t in self.tasks:
+            if isinstance(t, Task):
+                if not task_within_range(t, planning_start, planning_end):
+                    continue
+
             trepr, theight = t.svg(
                 cy,
                 start=start,
                 end=end,
+                planning_start=planning_start,
+                planning_end=planning_end,
                 color=color,
                 level=level + 1,
                 scale=scale,
@@ -2721,6 +2741,10 @@ class Project:
 
         fprj = svgwrite.container.Group()
         prj_bar = False
+        # if margin_left is not None:
+        #     start += datetime.timedelta(days=margin_left)
+        # if margin_right is not None:
+        #     end -= datetime.timedelta(days=margin_right)
         if self.name != "":
             if (
                 (self.start_date() >= start and self.end_date() <= end)
@@ -2881,6 +2905,44 @@ class Project:
                     stream.write(csv_text)
 
         return csv_text
+
+
+def task_within_range(task, planning_start, planning_end):
+    """
+    Check if task is in de range of the planning
+
+    Parameters
+    ----------
+    task: object
+        The task
+    planning_start: datetime
+        Start of the planning
+    planning_end: datetime
+        End of the planning
+
+    Returns
+    -------
+    bool:
+        True if task is in range
+    """
+    is_in_range = True
+    if planning_start:
+        try:
+            task_start = task.start
+        except AttributeError:
+            pass
+        else:
+            if task_start < planning_start:
+                is_in_range = False
+    if planning_end:
+        try:
+            task_end = task.end
+        except AttributeError:
+            pass
+        else:
+            if task_end > planning_end:
+                is_in_range = False
+    return is_in_range
 
 
 # MAIN -------------------
