@@ -1,5 +1,4 @@
 import logging
-import tkinter
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -642,7 +641,12 @@ class ProjectPlanner:
         Make all projects
         """
         employee_color = color_to_hex(subprojects_color)
-        projects_employee = gantt.Project(name=subprojects_title, color=employee_color)
+
+        projects_employee = gantt.Project(
+            name=subprojects_title,
+            color=employee_color,
+            font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
+        )
 
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
@@ -910,5 +914,3 @@ def extend_suffix(output_filename: Path, extensions: list):
     ).with_suffix(suffix)
 
     return output_filename
-
-

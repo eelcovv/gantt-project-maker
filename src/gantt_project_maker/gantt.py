@@ -128,11 +128,17 @@ FONT_ATTR = {
     "stroke_width": 0,
     "font_family": "Verdana",
     "font_size": 15,
+    "font_weight": "normal",
 }
 
 
 def define_font_attributes(
-    fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+    fill="black",
+    stroke="black",
+    stroke_width=0,
+    font_family="Verdana",
+    font_weight="normal",
+    font_size=15,
 ):
     """
     Define font attributes
@@ -150,6 +156,8 @@ def define_font_attributes(
         "stroke": stroke,
         "stroke_width": stroke_width,
         "font_family": font_family,
+        "font_weight": font_weight,
+        "font_size": font_size,
     }
 
     return
@@ -168,6 +176,36 @@ def _font_attributes():
     """
     global FONT_ATTR
     return FONT_ATTR
+
+
+def get_font_attributes(
+        fill=None,
+        stroke=None,
+        stroke_width=None,
+        font_family=None,
+        font_weight=None,
+        font_size=None,
+):
+    """
+    Return dictionary of font attributes
+    """
+    global FONT_ATTR
+
+    font_attributes = FONT_ATTR.copy()
+    if fill is not None:
+        font_attributes["fill"] = fill
+    if stroke is not None:
+        font_attributes["stroke"] = stroke
+    if stroke_width is not None:
+        font_attributes["stroke_width"] = stroke_width
+    if font_family is not None:
+        font_attributes["font_family"] = font_family
+    if font_weight is not None:
+        font_attributes["font_weight"] = font_weight
+    if font_size is not None:
+        font_attributes["font_size"] = font_size
+
+    return font_attributes
 
 
 ############################################################################
@@ -250,7 +288,7 @@ def _flatten(nested_list, list_types=(list, tuple)):
                 i -= 1
                 break
             else:
-                nested_list[i: i + 1] = nested_list[i]
+                nested_list[i : i + 1] = nested_list[i]
         i += 1
     return list_type(nested_list)
 
@@ -877,7 +915,7 @@ class Task(object):
                     if depend_start_date > current_day:
                         __LOG__.error(
                             '** Due to dependencies, Task "{0}", could not be finished on time (should start as last '
-                            'on {1} but will start on {2})'.format(
+                            "on {1} but will start on {2})".format(
                                 self.fullname, current_day, depend_start_date
                             )
                         )
@@ -2004,7 +2042,15 @@ class Project:
     Class for handling projects
     """
 
-    def __init__(self, name="", color=None, side_bar_color=None, project_start=None, project_end=None):
+    def __init__(
+        self,
+        name="",
+        color=None,
+        side_bar_color=None,
+        project_start=None,
+        project_end=None,
+        font=None,
+    ):
         """
         Initialize project with a given name and color for all tasks
 
@@ -2018,6 +2064,8 @@ class Project:
             self.color = "#FFFF90"
         else:
             self.color = color
+
+        self.font = font
 
         self.project_start = project_start
         self.project_end = project_end
@@ -2580,7 +2628,6 @@ class Project:
             nb_tasks = 0
             for t in self.get_tasks():
                 if t.get_resources() is not None and r in t.get_resources():
-
                     if color_per_taks:
                         color = t.color
                     else:
@@ -2750,6 +2797,17 @@ class Project:
                 (self.start_date() >= start and self.end_date() <= end)
                 or (self.end_date() >= start and self.start_date() <= end)
             ) or level == 1:
+                # Adjust font level for level 0 (main project) and 1 (projects per project leader)
+                # todo: allow modification in settings file
+                if level == 0:
+                    font_weight = "bold"
+                    font_size = 18
+                elif level == 1:
+                    font_weight = "bold"
+                    font_size = 16
+                else:
+                    font_weight = "normal"
+                    font_size = 13
                 fprj.add(
                     svgwrite.text.Text(
                         "{0}".format(self.name),
@@ -2761,7 +2819,8 @@ class Project:
                         stroke=_font_attributes()["stroke"],
                         stroke_width=_font_attributes()["stroke_width"],
                         font_family=_font_attributes()["font_family"],
-                        font_size=15 + 3,
+                        font_weight=font_weight,
+                        font_size=font_size,
                     )
                 )
 
@@ -2895,7 +2954,6 @@ class Project:
                 csv_text += c
 
         if csv is not None:
-
             test = type(csv) == io.TextIOWrapper
 
             if test:
