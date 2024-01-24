@@ -305,6 +305,21 @@ def main(args):
     employees_info = get_info_from_file_or_settings(settings=settings, key="employees")
     vacations_info = get_info_from_file_or_settings(settings=settings, key="vacations")
 
+    if args.employee:
+        all_employees = []
+        for employee in args.employee:
+            all_employees.append(employees_info[employee]["name"])
+        all_employees = ", ".join(all_employees)
+
+        programma_title += f"/{all_employees}"
+
+    if args.filter_employees:
+        all_employees = []
+        for employee in args.filter_employees:
+            all_employees.append(employees_info[employee]["name"])
+        all_employees = ", ".join(all_employees)
+        programma_title += f": {all_employees}"
+
     fill = "black"
     stroke = "black"
     stroke_width = 0
