@@ -2,6 +2,12 @@
 Changelog
 =========
 
+
+Version 0.2.0
+=============
+- Added possibility to add margin_left and margin_right property to project to prevent cluttering of labels
+- Added possibility to filter on one or more employees to only display the project of the selected employees
+
 Version 0.1.9
 =============
 - In resources overview, task colors now match the colors in the project overview
