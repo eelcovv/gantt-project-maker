@@ -26,6 +26,30 @@ _logger = logging.getLogger(__name__)
 
 ############################################################################
 
+def get_info_from_file_or_settings(settings, key):
+    """
+    Get the information directly from the settings or from a separate file if a filename is given
+    Parameters
+    ----------
+    settings: dict
+        Settings file
+    key: str
+        Key of the settings file we want to read
+
+    Returns
+    -------
+    dict:
+        Structure with information from the settings or separate file
+
+    """
+    information = settings[key]
+
+    if isinstance(information, str):
+        with codecs.open(information, "r", encoding="UTF-8") as stream:
+            information = yaml.load( stream=stream, Loader=yaml.Loader)
+
+    return information
+
 
 def check_if_date(value):
     """check if an argument is a valid date. Return the original string value"""
@@ -277,9 +301,9 @@ def main(args):
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
     output_directories = general_settings.get("output_directories")
-    vacations_info = settings.get("vacations")
-    employees_info = settings.get("employees")
     excel_info = settings.get("excel")
+    employees_info = get_info_from_file_or_settings(settings=settings, key="employees")
+    vacations_info = get_info_from_file_or_settings(settings=settings, key="vacations")
 
     fill = "black"
     stroke = "black"

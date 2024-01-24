@@ -1,0 +1,46 @@
+emp1:
+  name: Employee One
+  color: cyan
+  vacations:
+    summer_holiday:
+      start: 18-7-2023
+      end: 13-8-2023
+emp2:
+  name: Employee Two
+  color: khaki
+  vacations:
+    summer_holiday:
+      start: 10-7-2023
+      end: 28-7-2023
+emp3:
+  name: Employee Three
+  color: plum
+  vacations:
+    summer_holiday:
+      start: 31-7-2023
+      end: 4-8-2023
+emp4:
+  name: Employee Four
+  color: bisque
+  vacations:
+    summer_holiday:
+      start: 1-8-2023
+      end: 16-8-2023
+emp5:
+  name: Employee Five
+  color: mistyrose
+  vacations:
+    summer_holiday:
+      start: 1-8-2023
+      end: 16-8-2023
+emp6:
+  name: Employee Six
+  color: lavender
+emp7:
+  name: Employee Seven
+  color: dodgerblue
+emp8:
+  name: Employee Eight
+department1:
+  name: Department One
+  color: wheat

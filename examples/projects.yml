@@ -63,68 +63,8 @@ periods:
     weeks_margin_left: 2
     weeks_margin_right: 2
     scale: daily
-vacations:
-  easter_23:
-    start: 9-4-2023
-    end: 10-4-2023
-  kings_day_23:
-    start: 27-4-2023
-  ascension_day_23:
-    start: 28-5-2023
-    end: 29-5-2023
-  pentecost_23:
-    start: 18-5-2023
-    end: 18-5-2023
-  christmas_23:
-    start: 25-12-2023
-    end: 7-1-2024
-employees:
-  emp1:
-    name: Employee One
-    color: cyan
-    vacations:
-      summer_holiday:
-        start: 18-7-2023
-        end: 13-8-2023
-  emp2:
-    name: Employee Two
-    color: khaki
-    vacations:
-      summer_holiday:
-        start: 10-7-2023
-        end: 28-7-2023
-  emp3:
-    name: Employee Three
-    color: plum
-    vacations:
-      summer_holiday:
-        start: 31-7-2023
-        end: 4-8-2023
-  emp4:
-    name: Employee Four
-    color: bisque
-    vacations:
-      summer_holiday:
-        start: 1-8-2023
-        end: 16-8-2023
-  emp5:
-    name: Employee Five
-    color: mistyrose
-    vacations:
-      summer_holiday:
-        start: 1-8-2023
-        end: 16-8-2023
-  emp6:
-    name: Employee Six
-    color: lavender
-  emp7:
-    name: Employee Seven
-    color: dodgerblue
-  emp8:
-    name: Employee Eight
-  department1:
-    name: Department One
-    color: wheat
+vacations: vacations.yml
+employees: employees.yml
 excel:
   column_widths:
     name: 30
