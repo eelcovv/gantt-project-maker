@@ -2,6 +2,9 @@
 Changelog
 =========
 
+Version 0.2.4
+=============
+- Added --pdf option in order to convert svg file into pdf as well
 
 Version 0.2.3
 =============
