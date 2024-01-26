@@ -6,6 +6,7 @@ from typing import Union
 from dateutil.parser import ParserError
 import dateutil.parser as dparse
 
+
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import write_planning_to_excel
@@ -288,6 +289,7 @@ class ProjectPlanner:
         excel_info: dict = None,
         details: bool = None,
         filter_employees: list = None,
+        save_svg_as_pdf: bool = False,
     ):
         """
 
@@ -328,6 +330,7 @@ class ProjectPlanner:
         self.dayfirst = dayfirst
         self.scale = scale
         self.details = details
+        self.save_svg_as_pdf = save_svg_as_pdf
         if filter_employees:
             # if filter_employees are given, add them as a set
             self.filter_employees = set(filter_employees)
@@ -847,6 +850,20 @@ class ProjectPlanner:
             )
             _logger.debug("Done")
 
+            if self.save_svg_as_pdf:
+                try:
+                    import svg42pdf
+                except ImportError as err:
+                    _logger.warning(f"{err}\nFailed writing pdf because svg42pdf is")
+                    svg42pdf = None
+                else:
+                    pdf_file_name = file_name.with_suffix(".pdf")
+                    svg42pdf.svg42pdf(
+                        svg_fn=file_name.as_posix(),
+                        pdf_fn=pdf_file_name.as_posix(),
+                        method="any",
+                    )
+
             if write_resources:
                 _logger.info(
                     f"Write resources of {start} to {end} with scale {scale} to {file_name_res}"
@@ -865,6 +882,14 @@ class ProjectPlanner:
                         "Failed writing the resources with the above error message. Please check your "
                         "employee's input data"
                     )
+                else:
+                    if self.save_svg_as_pdf and svg42pdf is not None:
+                        pdf_file_name_res = file_name_res.with_suffix(".pdf")
+                        svg42pdf.svg42pdf(
+                            svg_fn=file_name_res.as_posix(),
+                            pdf_fn=pdf_file_name_res.as_posix(),
+                            method="any",
+                        )
             _logger.debug("Done")
 
 

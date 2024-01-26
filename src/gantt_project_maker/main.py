@@ -185,6 +185,11 @@ def parse_args(args):
         help="Shifts start of planning with this number of weeks right without adding projects. Default is read "
              "from the settings file. This value overrides the default."
     )
+    parser.add_argument(
+        "--pdf",
+        help="Save the svg also as pdf ",
+        action="store_true"
+    )
 
     return parser.parse_args(args)
 
@@ -420,6 +425,7 @@ def main(args):
         excel_info=excel_info,
         details=args.details,
         filter_employees=args.filter_employees,
+        save_svg_as_pdf=args.pdf,
     )
 
     # add global information, vacations and employees
