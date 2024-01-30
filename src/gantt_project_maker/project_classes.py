@@ -544,12 +544,18 @@ class ProjectPlanner:
             if employee_vacations_info is not None:
                 for v_key, v_prop in employee_vacations_info.items():
                     vacation_name = v_prop.get("label", v_key)
+                    vacation_start = v_prop.get("start")
+                    vacation_end = v_prop.get("end")
+                    if vacation_end is None:
+                        vacation_duration = 1
+                    else:
+                        vacation_duration = None
                     vacation_task = Task(
                         label=vacation_name,
                         color=v_prop.get("color"),
-                        start=v_prop.get("start"),
-                        end=v_prop.get("end"),
-                        duration=v_prop.get("duration"),
+                        start=vacation_start,
+                        end=vacation_end,
+                        duration=vacation_duration,
                         dayfirst=self.dayfirst,
                     )
                     employee_vacations.add_task(vacation_task.element)
@@ -832,7 +838,6 @@ class ProjectPlanner:
 
             if write_resources:
                 resource_output_directory.mkdir(exist_ok=True, parents=True)
-
 
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
                 suffix
