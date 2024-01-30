@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 0.2.5
+Version 0.2.6
 =============
 - Added option --vacations in order to export a gantt chart of the vacations per employer
 
