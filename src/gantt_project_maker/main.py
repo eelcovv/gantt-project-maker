@@ -9,7 +9,6 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-import gantt
 
 import dateutil.parser as dparse
 import yaml
