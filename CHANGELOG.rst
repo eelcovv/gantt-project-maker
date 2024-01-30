@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Version 0.2.5
+=============
+- Added option --vacations in order to export a gantt chart of the vacations per employer
+
+
 Version 0.2.4
 =============
 - Added --pdf option in order to convert svg file into pdf as well
