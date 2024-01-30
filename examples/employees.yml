@@ -2,35 +2,44 @@ emp1:
   name: Employee One
   color: cyan
   vacations:
-    summer_holiday:
+    spring_holiday_23:
+      label: Spring vacation '23
+      start: 2-2-2023
+      end: 23-2-2023
+    summer_holiday_23:
+      label: Summer holiday '23
       start: 18-7-2023
       end: 13-8-2023
 emp2:
   name: Employee Two
   color: khaki
   vacations:
-    summer_holiday:
+    summer_holiday_23:
+      label: Summer holiday '23
       start: 10-7-2023
       end: 28-7-2023
 emp3:
   name: Employee Three
   color: plum
   vacations:
-    summer_holiday:
+    summer_holiday_23:
+      label: Summer holiday '23
       start: 31-7-2023
       end: 4-8-2023
 emp4:
   name: Employee Four
   color: bisque
   vacations:
-    summer_holiday:
+    summer_holiday_23:
+      label: Summer holiday '23
       start: 1-8-2023
       end: 16-8-2023
 emp5:
   name: Employee Five
   color: mistyrose
   vacations:
-    summer_holiday:
+    summer_holiday_23:
+      label: Summer holiday '23
       start: 1-8-2023
       end: 16-8-2023
 emp6:

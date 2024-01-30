@@ -543,8 +543,9 @@ class ProjectPlanner:
             )
             if employee_vacations_info is not None:
                 for v_key, v_prop in employee_vacations_info.items():
+                    vacation_name = v_prop.get("label", v_key)
                     vacation_task = Task(
-                        label=v_key,
+                        label=vacation_name,
                         color=v_prop.get("color"),
                         start=v_prop.get("start"),
                         end=v_prop.get("end"),
