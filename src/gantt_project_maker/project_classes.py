@@ -802,10 +802,14 @@ class ProjectPlanner:
         ----------
         write_resources: bool
             Write the resources file as well (next to the gantt charts which is always written)
+        write_vacations: bool
+            Write the vacations file as well
         planning_output_directory: Path
-            Output directory van de svg files van de planning
+            Output directory of the svg files of the planning
         resource_output_directory: Path
-            Output directory van de svg files van de resources
+            Output directory of the svg files of the resources
+        vacations_output_directory: Path
+            Output directory of the svg files of the vacations
         periods: list
            Periods we want to add. If None, add all periods
         """
@@ -828,8 +832,6 @@ class ProjectPlanner:
             if write_resources:
                 resource_output_directory.mkdir(exist_ok=True, parents=True)
 
-            if write_vacations:
-                vacations_output_directory.mkdir(exist_ok=True, parents=True)
 
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
                 suffix
@@ -838,7 +840,9 @@ class ProjectPlanner:
                 file_base_resources
             ).with_suffix(suffix)
 
-            file_name_vac = vacations_output_directory / Path(file_base_vacations).with_suffix(suffix)
+            file_name_vac = vacations_output_directory / Path(
+                file_base_vacations
+            ).with_suffix(suffix)
 
             weeks_margin_left = period_prop.get(
                 "weeks_margin_left", self.weeks_margin_left
@@ -932,7 +936,9 @@ class ProjectPlanner:
                             method="any",
                         )
 
-            if write_vacations:
+            write_vacations_this_period = period_prop.get("export_vacations", False)
+            if write_vacations or write_vacations_this_period:
+                vacations_output_directory.mkdir(exist_ok=True, parents=True)
                 _logger.info(f"Writing vacation file {file_name_vac}")
                 self.vacations_gantt.make_svg_for_tasks(
                     filename=file_name_vac,
@@ -943,6 +949,13 @@ class ProjectPlanner:
                     scale=scale,
                     today=today,
                 )
+                if self.save_svg_as_pdf and svg42pdf is not None:
+                    pdf_file_name_vac = file_name_vac.with_suffix(".pdf")
+                    svg42pdf.svg42pdf(
+                        svg_fn=file_name_vac.as_posix(),
+                        pdf_fn=pdf_file_name_vac.as_posix(),
+                        method="any",
+                    )
 
             _logger.debug("Done")
 

@@ -12,6 +12,7 @@ general:
     planning: output_planning
     resources: output_resources
     excel: output_excel
+    vacations: output_vacations
   font_info:
     fill: black
     stroke: black
@@ -57,6 +58,14 @@ project_settings_file_per_employee:
 periods:
   all:
     scale: weekly
+    export_vacations: true
+  summer_holiday:
+    planning_start: 1-6-2023
+    planning_end: 10-9-2023
+    weeks_margin_left: 2
+    weeks_margin_right: 2
+    scale: daily
+    export_vacations: true
   end_of_year:
     planning_start: 1-8-2023
     planning_end: 10-9-2023
