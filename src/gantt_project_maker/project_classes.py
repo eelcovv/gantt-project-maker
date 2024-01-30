@@ -276,8 +276,11 @@ class ProjectPlanner:
     def __init__(
         self,
         programma_title: str = None,
+        vacations_title: str = None,
         programma_color: str = None,
+        vacation_color: str = None,
         output_file_name: Path = None,
+        vacation_output_file_name: Path = None,
         planning_start: datetime = None,
         planning_end: datetime = None,
         weeks_margin_left: int = None,
@@ -296,6 +299,8 @@ class ProjectPlanner:
         Args:
             programma_title: str
                 Main titel of the whole project
+            vacations_title: str
+                Titel of the vacations project
             programma_color: str
                 First color of the bar
             output_file_name: str
@@ -347,9 +352,14 @@ class ProjectPlanner:
         else:
             self.output_file_name = Path(output_file_name)
 
-        # het hoofdproject maken we alvast aan.
+        # Make the main project
         self.programma = gantt.Project(
             name=programma_title, color=color_to_hex(programma_color)
+        )
+
+        # Make the project to store all the vacations
+        self.vacations_gantt = gantt.Project(
+            name=vacations_title, color=color_to_hex(vacation_color)
         )
 
         self.project_tasks = dict()
@@ -514,12 +524,35 @@ class ProjectPlanner:
         _logger.info("Adding employees...")
         for w_key, w_prop in employees_info.items():
             _logger.debug(f"Adding {w_key} ({w_prop.get('name')})")
+            full_name = w_prop.get("name")
+            employee_vacations_info = w_prop.get("vacations")
+            employee_color = w_prop.get("color")
+
             self.employees[w_key] = Employee(
                 label=w_key,
-                full_name=w_prop.get("name"),
-                color=w_prop.get("color"),
-                vacations=w_prop.get("vacations"),
+                full_name=full_name,
+                color=employee_color,
+                vacations=employee_vacations_info,
             )
+
+            # also add the vacations of this employee to the vacation gantt project in order to give an overview later
+            employee_vacations = gantt.Project(
+                name=full_name,
+                color=employee_color,
+                font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
+            )
+            if employee_vacations_info is not None:
+                for v_key, v_prop in employee_vacations_info.items():
+                    vacation_task = Task(
+                        label=v_key,
+                        color=v_prop.get("color"),
+                        start=v_prop.get("start"),
+                        end=v_prop.get("end"),
+                        duration=v_prop.get("duration"),
+                        dayfirst=self.dayfirst,
+                    )
+                    employee_vacations.add_task(vacation_task.element)
+            self.vacations_gantt.add_task(employee_vacations)
 
     def make_task_of_milestone(
         self,
@@ -653,9 +686,9 @@ class ProjectPlanner:
 
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
-            _logger.info(f"Making project: {project_values['title']}")
+            project_name = project_values.get("title", project_key)
 
-            project_name = project_values["title"]
+            _logger.info(f"Making project: {project_name}")
 
             project_color = color_to_hex(project_values.get("color"))
 
@@ -757,7 +790,9 @@ class ProjectPlanner:
         self,
         planning_output_directory,
         resource_output_directory,
+        vacations_output_directory,
         write_resources=False,
+        write_vacations=False,
         periods=None,
     ):
         """
@@ -786,10 +821,15 @@ class ProjectPlanner:
             )
             file_base_resources = file_base_tasks.replace("_tasks", "_resources")
 
+            file_base_vacations = file_base_tasks.replace("_tasks", "_vacations")
+
             planning_output_directory.mkdir(exist_ok=True, parents=True)
 
             if write_resources:
                 resource_output_directory.mkdir(exist_ok=True, parents=True)
+
+            if write_vacations:
+                vacations_output_directory.mkdir(exist_ok=True, parents=True)
 
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
                 suffix
@@ -797,6 +837,8 @@ class ProjectPlanner:
             file_name_res = resource_output_directory / Path(
                 file_base_resources
             ).with_suffix(suffix)
+
+            file_name_vac = vacations_output_directory / Path(file_base_vacations).with_suffix(suffix)
 
             weeks_margin_left = period_prop.get(
                 "weeks_margin_left", self.weeks_margin_left
@@ -840,7 +882,7 @@ class ProjectPlanner:
                 f"Writing project starting at {start} and ending at {end} with a scale {scale} to {file_name}"
             )
             self.programma.make_svg_for_tasks(
-                filename=file_name.as_posix(),
+                filename=file_name,
                 start=start,
                 end=end,
                 margin_left=weeks_margin_left,
@@ -855,7 +897,6 @@ class ProjectPlanner:
                     import svg42pdf
                 except ImportError as err:
                     _logger.warning(f"{err}\nFailed writing pdf because svg42pdf is")
-                    svg42pdf = None
                 else:
                     pdf_file_name = file_name.with_suffix(".pdf")
                     svg42pdf.svg42pdf(
@@ -890,6 +931,19 @@ class ProjectPlanner:
                             pdf_fn=pdf_file_name_res.as_posix(),
                             method="any",
                         )
+
+            if write_vacations:
+                _logger.info(f"Writing vacation file {file_name_vac}")
+                self.vacations_gantt.make_svg_for_tasks(
+                    filename=file_name_vac,
+                    start=start,
+                    end=end,
+                    margin_left=weeks_margin_left,
+                    margin_right=weeks_margin_right,
+                    scale=scale,
+                    today=today,
+                )
+
             _logger.debug("Done")
 
 
@@ -916,7 +970,7 @@ def check_if_employee_in_contributing(
     return is_contributing
 
 
-def extend_suffix(output_filename: Path, extensions: list):
+def extend_suffix(output_filename: Path, extensions: Union[list, str]):
     """
     Add an extra suffix to the base filename
 
@@ -924,7 +978,7 @@ def extend_suffix(output_filename: Path, extensions: list):
     ----------
     output_filename: Path
         Base filename
-    extensions: list
+    extensions: str or list
         Extra suffixes to add
 
     Returns
@@ -934,6 +988,8 @@ def extend_suffix(output_filename: Path, extensions: list):
 
     """
     suffix = output_filename.suffix
+    if isinstance(extensions, str):
+        extensions = [extensions]
     output_filename = Path(
         "_".join([output_filename.with_suffix("").as_posix()] + extensions)
     ).with_suffix(suffix)

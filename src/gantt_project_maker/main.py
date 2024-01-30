@@ -9,13 +9,19 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+import gantt
 
 import dateutil.parser as dparse
 import yaml
 
 from gantt_project_maker import __version__
 from gantt_project_maker.colors import set_custom_colors
-from gantt_project_maker.project_classes import ProjectPlanner, SCALES, parse_date, extend_suffix
+from gantt_project_maker.project_classes import (
+    ProjectPlanner,
+    SCALES,
+    parse_date,
+    extend_suffix,
+)
 
 __author__ = "Eelco van Vliet"
 __copyright__ = "Eelco van Vliet"
@@ -25,6 +31,7 @@ _logger = logging.getLogger(__name__)
 
 
 ############################################################################
+
 
 def get_info_from_file_or_settings(settings, key):
     """
@@ -46,7 +53,7 @@ def get_info_from_file_or_settings(settings, key):
 
     if isinstance(information, str):
         with codecs.open(information, "r", encoding="UTF-8") as stream:
-            information = yaml.load( stream=stream, Loader=yaml.Loader)
+            information = yaml.load(stream=stream, Loader=yaml.Loader)
 
     return information
 
@@ -143,24 +150,29 @@ def parse_args(args):
         action="store_true",
     )
     parser.add_argument(
+        "--vacations",
+        help="Write the vacations file of all the  employees",
+        action="store_true",
+    )
+    parser.add_argument(
         "-m",
         "--employee",
         help="Only use the projects of this employee. Can be given multiple times for multiple "
-             "employees.",
+        "employees.",
         action="append",
     )
     parser.add_argument(
         "-f",
         "--filter_employees",
         help="Only include tasks to which this employee contributes. Can be given multiple times for multiple "
-             "employees.",
+        "employees.",
         action="append",
     )
     parser.add_argument(
         "-p",
         "--period",
         help="On export this period from the list of periods as given in the settings file. If "
-             "not given, all the periods are writen to file",
+        "not given, all the periods are writen to file",
         action="append",
     )
     parser.add_argument(
@@ -177,19 +189,15 @@ def parse_args(args):
         "--weeks_margin_left",
         type=int,
         help="Shifts start of planning with this number of weeks left without adding projects. Default is read "
-             "from the settings file. This value overrides the default",
+        "from the settings file. This value overrides the default",
     )
     parser.add_argument(
         "--weeks_margin_right",
         type=int,
         help="Shifts start of planning with this number of weeks right without adding projects. Default is read "
-             "from the settings file. This value overrides the default."
+        "from the settings file. This value overrides the default.",
     )
-    parser.add_argument(
-        "--pdf",
-        help="Save the svg also as pdf ",
-        action="store_true"
-    )
+    parser.add_argument("--pdf", help="Save the svg also as pdf ", action="store_true")
 
     return parser.parse_args(args)
 
@@ -270,11 +278,15 @@ def main(args):
 
     general_settings = settings["general"]
     try:
-        project_settings_per_employee = settings["project_settings_file_per_employee"]
+        project_settings_per_project_leader = settings[
+            "project_settings_file_per_employee"
+        ]
     except KeyError as err:
         _logger.warning(err)
-        raise KeyError("Entry project_settings_file_per_employee not found. Are you sure this"
-                       "is the main settingsfile and not the settings file of an employee?")
+        raise KeyError(
+            "Entry project_settings_file_per_employee not found. Are you sure this"
+            "is the main settingsfile and not the settings file of an employee?"
+        )
     period_info = settings["periods"]
     dayfirst = general_settings["dayfirst"]
 
@@ -305,6 +317,7 @@ def main(args):
 
     programma_title = general_settings["title"]
     programma_color = general_settings.get("color")
+    vacation_color = general_settings.get("vacation_color", programma_color)
     output_directories = general_settings.get("output_directories")
     excel_info = settings.get("excel")
     employees_info = get_info_from_file_or_settings(settings=settings, key="employees")
@@ -337,22 +350,29 @@ def main(args):
 
     if custom_colors := general_settings.get("custom_colors"):
         set_custom_colors(custom_colors=custom_colors)
+
+    vacations_title_default = "Vacations"
     if country_code := general_settings.get("country_code"):
         locale.setlocale(locale.LC_TIME, country_code)
+        if country_code.startswith("nl"):
+            vacations_title_default = "Vakanties"
+    vacations_title = general_settings.get("vacations_title", vacations_title_default)
 
     if output_directories is not None:
         planning_directory = Path(output_directories.get("planning", "."))
         resources_directory = Path(output_directories.get("resources", "."))
         excel_directory = Path(output_directories.get("excel", "."))
+        vacations_directory = Path(output_directories.get("vacations", "."))
     else:
         planning_directory = Path(".")
         resources_directory = Path(".")
         excel_directory = Path(".")
+        vacations_directory = Path(".")
 
     if args.employee is not None:
         check_if_items_are_available(
             requested_items=args.employee,
-            available_items=project_settings_per_employee,
+            available_items=project_settings_per_project_leader,
             label="employee project",
         )
     if args.filter_employees is not None:
@@ -368,16 +388,16 @@ def main(args):
         )
 
     # read the settings file per employee
-    settings_per_employee = {}
+    settings_per_project_leader = {}
     for (
-        employee_key,
+        project_leader_key,
         employee_settings_file,
-    ) in project_settings_per_employee.items():
+    ) in project_settings_per_project_leader.items():
         _logger.info(
-            f"Reading settings file {employee_settings_file} of  employee {employee_key}"
+            f"Reading settings file {employee_settings_file} of  employee {project_leader_key}"
         )
         with codecs.open(employee_settings_file, "r", encoding="UTF-8") as stream:
-            settings_per_employee[employee_key] = yaml.load(
+            settings_per_project_leader[project_leader_key] = yaml.load(
                 stream=stream, Loader=yaml.Loader
             )
 
@@ -387,11 +407,15 @@ def main(args):
         output_filename = Path(args.output_filename).with_suffix(".svg")
 
     if args.employee is not None:
-        output_filename = extend_suffix(output_filename=output_filename, extensions=args.employee)
+        output_filename = extend_suffix(
+            output_filename=output_filename, extensions=args.employee
+        )
 
     if args.filter_employees is not None:
         extensions = ["contributors"] + sorted(args.filter_employees)
-        output_filename = extend_suffix(output_filename=output_filename, extensions=extensions)
+        output_filename = extend_suffix(
+            output_filename=output_filename, extensions=extensions
+        )
 
     today = None
     try:
@@ -412,7 +436,9 @@ def main(args):
     # Begin de planning
     planning = ProjectPlanner(
         programma_title=programma_title,
+        vacations_title=vacations_title,
         programma_color=programma_color,
+        vacation_color=vacation_color,
         output_file_name=output_filename,
         planning_start=start,
         planning_end=end,
@@ -438,26 +464,28 @@ def main(args):
     # Add the general tasks per employee. It is not mandatory to add tasks_and_milestones,
     # however, you may. The advantage is that multiply tasks can share the same milestone
     for (
-        employee_key,
-        employee_settings,
-    ) in settings_per_employee.items():
-        if tasks_and_milestones_info := employee_settings.get("tasks_and_milestones"):
-            _logger.info(f"Adding global tasks en milestones of {employee_key} ")
+        project_leader_key,
+        project_leader_settings,
+    ) in settings_per_project_leader.items():
+        if tasks_and_milestones_info := project_leader_settings.get(
+            "tasks_and_milestones"
+        ):
+            _logger.info(f"Adding global tasks en milestones of {project_leader_key} ")
             planning.add_tasks_and_milestones(
                 tasks_and_milestones_info=tasks_and_milestones_info
             )
 
     # Voeg nu de projecten per employee toe.
     for (
-        employee_key,
-        employee_settings,
-    ) in settings_per_employee.items():
-        if args.employee is not None and employee_key not in args.employee:
-            _logger.debug(f"Skip employee {employee_key}")
+        project_leader_key,
+        project_leader_settings,
+    ) in settings_per_project_leader.items():
+        if args.employee is not None and project_leader_key not in args.employee:
+            _logger.debug(f"Skip employee {project_leader_key}")
             continue
 
-        project_employee_info = employee_settings["general"]
-        subprojects_info = employee_settings["projects"]
+        project_employee_info = project_leader_settings["general"]
+        subprojects_info = project_leader_settings["projects"]
 
         subprojects_selection = project_employee_info["projects"]
         subprojects_title = project_employee_info["title"]
@@ -469,11 +497,13 @@ def main(args):
             subprojects_color=subprojects_color,
         )
 
-    # Alles is aan de planning toegevoegd. Schrijf hem nu naar svg en eventueel naar excel
+    # Everything has been added to the planning. Write it to file
     planning.write_planning(
         write_resources=args.resources,
+        write_vacations=args.vacations,
         planning_output_directory=planning_directory,
         resource_output_directory=resources_directory,
+        vacations_output_directory=vacations_directory,
         periods=args.period,
     )
 
