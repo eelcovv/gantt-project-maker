@@ -57,6 +57,35 @@ def get_info_from_file_or_settings(settings, key):
     return information
 
 
+def get_pasted_employees(args_employee, employees_info):
+    """ get the list of full names or requested employees and return as a comma separated string """
+    all_employees = []
+    for employee in args_employee:
+        employee_name = get_employee_name(employees_info, employee)
+        all_employees.append(employee_name)
+    all_employees = ", ".join(all_employees)
+    return all_employees
+
+
+def get_employee_name(employees_info, employee):
+    """ get the full name of the employee from the settings file """
+    try:
+        request_employee = employees_info[employee]
+    except KeyError as err:
+        _logger.warning(err)
+        raise KeyError(
+            f"Employee {employee} given via argument is not find in section 'employees' "
+            f"in settings file. Please add this employee to your settings"
+        )
+    else:
+        try:
+            request_name = request_employee["name"]
+        except KeyError as err:
+            _logger.warning(err)
+            raise  KeyError("'name' not given for employee {request_employee} ")
+
+    return request_name
+
 def check_if_date(value):
     """check if an argument is a valid date. Return the original string value"""
     try:
@@ -323,35 +352,12 @@ def main(args):
     vacations_info = get_info_from_file_or_settings(settings=settings, key="vacations")
 
     if args.employee:
-        all_employees = []
-        for employee in args.employee:
-            try:
-                request_employee = employees_info[employee]["name"]
-            except KeyError as err:
-                _logger.warning(err)
-                raise KeyError(
-                    f"Employee {employee} given via argument is not find in section 'employees' "
-                    f"in settings file. Please add this employee to your settings"
-                )
-            all_employees.append(request_employee["name"])
-        all_employees = ", ".join(all_employees)
-
+        all_employees = get_pasted_employees(args.employee, employees_info=employees_info)
         programma_title += f"/{all_employees}"
 
     if args.filter_employees:
-        all_employees = []
-        for employee in args.filter_employees:
-            try:
-                request_employee = employees_info[employee]["name"]
-            except KeyError as err:
-                _logger.warning(err)
-                raise KeyError(
-                    f"Employee {employee} given via argument is not find in section 'employees' "
-                    f"in settings file. Please add this employee to your settings"
-                )
-            all_employees.append(request_employee["name"])
-        all_employees = ", ".join(all_employees)
-        programma_title += f": {all_employees}"
+        all_filter_employees = get_pasted_employees(args.filter_employees, employees_info=employees_info)
+        programma_title += f": {all_filter_employees}"
 
     fill = "black"
     stroke = "black"
