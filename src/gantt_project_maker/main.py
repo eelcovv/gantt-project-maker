@@ -325,7 +325,15 @@ def main(args):
     if args.employee:
         all_employees = []
         for employee in args.employee:
-            all_employees.append(employees_info[employee]["name"])
+            try:
+                request_employee = employees_info[employee]["name"]
+            except KeyError as err:
+                _logger.warning(err)
+                raise KeyError(
+                    f"Employee {employee} given via argument is not find in section 'employees' "
+                    f"in settings file. Please add this employee to your settings"
+                )
+            all_employees.append(request_employee["name"])
         all_employees = ", ".join(all_employees)
 
         programma_title += f"/{all_employees}"
@@ -333,7 +341,15 @@ def main(args):
     if args.filter_employees:
         all_employees = []
         for employee in args.filter_employees:
-            all_employees.append(employees_info[employee]["name"])
+            try:
+                request_employee = employees_info[employee]["name"]
+            except KeyError as err:
+                _logger.warning(err)
+                raise KeyError(
+                    f"Employee {employee} given via argument is not find in section 'employees' "
+                    f"in settings file. Please add this employee to your settings"
+                )
+            all_employees.append(request_employee["name"])
         all_employees = ", ".join(all_employees)
         programma_title += f": {all_employees}"
 
