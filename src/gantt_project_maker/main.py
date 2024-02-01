@@ -58,7 +58,7 @@ def get_info_from_file_or_settings(settings, key):
 
 
 def get_pasted_employees(args_employee, employees_info):
-    """ get the list of full names or requested employees and return as a comma separated string """
+    """get the list of full names or requested employees and return as a comma separated string"""
     all_employees = []
     for employee in args_employee:
         employee_name = get_employee_name(employees_info, employee)
@@ -68,7 +68,7 @@ def get_pasted_employees(args_employee, employees_info):
 
 
 def get_employee_name(employees_info, employee):
-    """ get the full name of the employee from the settings file """
+    """get the full name of the employee from the settings file"""
     try:
         request_employee = employees_info[employee]
     except KeyError as err:
@@ -82,9 +82,10 @@ def get_employee_name(employees_info, employee):
             request_name = request_employee["name"]
         except KeyError as err:
             _logger.warning(err)
-            raise  KeyError("'name' not given for employee {request_employee} ")
+            raise KeyError("'name' not given for employee {request_employee} ")
 
     return request_name
+
 
 def check_if_date(value):
     """check if an argument is a valid date. Return the original string value"""
@@ -352,11 +353,15 @@ def main(args):
     vacations_info = get_info_from_file_or_settings(settings=settings, key="vacations")
 
     if args.employee:
-        all_employees = get_pasted_employees(args.employee, employees_info=employees_info)
+        all_employees = get_pasted_employees(
+            args.employee, employees_info=employees_info
+        )
         programma_title += f"/{all_employees}"
 
     if args.filter_employees:
-        all_filter_employees = get_pasted_employees(args.filter_employees, employees_info=employees_info)
+        all_filter_employees = get_pasted_employees(
+            args.filter_employees, employees_info=employees_info
+        )
         programma_title += f": {all_filter_employees}"
 
     fill = "black"

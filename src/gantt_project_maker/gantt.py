@@ -179,12 +179,12 @@ def _font_attributes():
 
 
 def get_font_attributes(
-        fill=None,
-        stroke=None,
-        stroke_width=None,
-        font_family=None,
-        font_weight=None,
-        font_size=None,
+    fill=None,
+    stroke=None,
+    stroke_width=None,
+    font_family=None,
+    font_weight=None,
+    font_size=None,
 ):
     """
     Return dictionary of font attributes

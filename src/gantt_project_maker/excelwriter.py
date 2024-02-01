@@ -207,7 +207,6 @@ def indent(string, n_char=5):
 
 def write_planning_to_excel(excel_file, project, header_info, column_widths):
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-
         try:
             projects_per_employee = project.tasks
         except AttributeError as err:

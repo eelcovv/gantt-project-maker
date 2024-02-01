@@ -3,9 +3,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
-from dateutil.parser import ParserError
 import dateutil.parser as dparse
-
+from dateutil.parser import ParserError
 
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
