@@ -766,9 +766,15 @@ class ProjectPlanner:
                         try:
                             contributors = task.employees
                         except AttributeError:
-                            _logger.debug(
-                                "No employees found, but can be a projects, so just add"
-                            )
+                            if isinstance(task, gantt.Task):
+                                _logger.debug(
+                                    "No employees found and this is a task. Skip it!"
+                                )
+                                continue
+                            else:
+                                _logger.debug(
+                                    "No employees found, but can be a projects, so just add"
+                                )
                         else:
                             is_contributing = check_if_employee_in_contributing(
                                 filter_employees=self.filter_employees,
@@ -974,7 +980,7 @@ def check_if_employee_in_contributing(
 
     is_contributing = False
 
-    if contributing_employees is not None:
+    if contributing_employees:
         if isinstance(contributing_employees, str):
             contributing_employees = set(list([contributing_employees]))
         else:
