@@ -2,10 +2,11 @@
 Changelog
 =========
 
-Version 0.2.7
+Version 0.2.8
 =============
 - Added option --vacations in order to export a gantt chart of the vacations per employer
 - Improved some feedback at errors with missing employees
+- Added option --global_program in order to export a program without the tasks
 
 Version 0.2.4
 =============
