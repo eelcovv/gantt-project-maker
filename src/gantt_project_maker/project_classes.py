@@ -1004,11 +1004,16 @@ class ProjectPlanner:
                 except ImportError as err:
                     _logger.warning(f"{err}\nFailed writing pdf because svg42pdf is")
                 else:
-                    pdf_file_name = file_name.with_suffix(".pdf")
-                    svg42pdf.svg42pdf(
-                        svg_fn=file_name.as_posix(),
-                        pdf_fn=pdf_file_name.as_posix(),
-                        method="any",
+                    for fn in (file_name, file_name_main):
+                        if fn is None:
+                            continue
+
+                        pdf_file_name = fn.with_suffix(".pdf")
+                        _logger.info(f"Saving as {pdf_file_name}")
+                        svg42pdf.svg42pdf(
+                            svg_fn=fn.as_posix(),
+                            pdf_fn=pdf_file_name.as_posix(),
+                            method="any",
                     )
 
             if write_resources:
