@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Union
+import copy
 
 import dateutil.parser as dparse
 from dateutil.parser import ParserError
@@ -279,7 +280,6 @@ class ProjectPlanner:
         programma_color: str = None,
         vacation_color: str = None,
         output_file_name: Path = None,
-        vacation_output_file_name: Path = None,
         planning_start: datetime = None,
         planning_end: datetime = None,
         weeks_margin_left: int = None,
@@ -353,6 +353,11 @@ class ProjectPlanner:
 
         # Make the main project
         self.programma = gantt.Project(
+            name=programma_title, color=color_to_hex(programma_color)
+        )
+
+        # Make the main project only with the subprojects, not the tasks
+        self.programma_main = gantt.Project(
             name=programma_title, color=color_to_hex(programma_color)
         )
 
@@ -689,10 +694,19 @@ class ProjectPlanner:
             color=employee_color,
             font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
         )
+        projects_employee_main = gantt.Project(
+            name=subprojects_title,
+            color=employee_color,
+            font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
+        )
 
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
             project_name = project_values.get("title", project_key)
+            project_name_global = project_values.get("global_title", project_name)
+            projects_employee_global = project_values.get("global_employees")
+            if projects_employee_global is not None and isinstance(projects_employee_global, str):
+                projects_employee_global = [projects_employee_global]
 
             _logger.info(f"Making project: {project_name}")
 
@@ -700,6 +714,11 @@ class ProjectPlanner:
 
             _logger.debug("Creating project {}".format(project_name))
             project = gantt.Project(name=project_name, color=project_color)
+
+            project_main = gantt.Project(name=project_name, color=project_color)
+            main_start_date = None
+            main_end_date = None
+            contributors = None
 
             # add all the other elements as attributes
             for p_key, p_value in project_values.items():
@@ -789,14 +808,46 @@ class ProjectPlanner:
                     if not self.details and is_detail:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
                     else:
+                        # hier min en max data bijhouden
                         project.add_task(task)
+
+                        if task.resources:
+                            for employee in task.resources:
+                                if projects_employee_global:
+                                    if employee.name not in projects_employee_global:
+                                        continue
+                                if contributors is None:
+                                    contributors = [employee]
+                                else:
+                                    contributors.append(employee)
+
+                        # each project with task is stored as a main project with the project begin and end
+                        if main_start_date is None:
+                            main_start_date = task.start_date()
+                            main_end_date = task.end_date()
+                        else:
+                            main_end_date = task.end_date()
+
+            # every project with tasks will be a course project plan as well
+            if main_start_date is not None:
+                main_contributors = list(set(contributors))
+                main_task = gantt.Task(
+                    name=project_name_global,
+                    start=main_start_date,
+                    stop=main_end_date,
+                    resources=main_contributors,
+                )
+                project_main.add_task(main_task)
 
             self.subprojects[project_key] = project
             if project_key in subprojects_selection:
+                # hier project zonder taken toevoegen
                 projects_employee.add_task(project)
+                projects_employee_main.add_task(project_main)
 
         # add now all projects of the employee to the program
         self.programma.add_task(projects_employee)
+        self.programma_main.add_task(projects_employee_main)
 
     def write_planning(
         self,
@@ -835,6 +886,7 @@ class ProjectPlanner:
             file_base_tasks = "_".join(
                 [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
             )
+            file_base_tasks_main = file_base_tasks + "_main"
             file_base_resources = file_base_tasks.replace("_tasks", "_resources")
 
             file_base_vacations = file_base_tasks.replace("_tasks", "_vacations")
@@ -847,6 +899,9 @@ class ProjectPlanner:
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
                 suffix
             )
+            file_name_main = planning_output_directory / Path(
+                file_base_tasks_main
+            ).with_suffix(suffix)
             file_name_res = resource_output_directory / Path(
                 file_base_resources
             ).with_suffix(suffix)
@@ -905,6 +960,21 @@ class ProjectPlanner:
                 scale=scale,
                 today=today,
             )
+
+            _logger.info(
+                f"Writing main project starting at {start} and ending at {end} with a scale {scale} to {file_name_main}"
+            )
+
+            self.programma_main.make_svg_for_tasks(
+                filename=file_name_main,
+                start=start,
+                end=end,
+                margin_left=weeks_margin_left,
+                margin_right=weeks_margin_right,
+                scale=scale,
+                today=today,
+            )
+            _logger.debug("Done")
             _logger.debug("Done")
 
             if self.save_svg_as_pdf:

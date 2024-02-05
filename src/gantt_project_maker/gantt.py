@@ -294,7 +294,7 @@ def _flatten(nested_list, list_types=(list, tuple)):
 
 
 ############################################################################
-class GroupOfResources(object):
+class GroupOfResources:
     """
     Class for grouping resources
     """
@@ -488,7 +488,7 @@ class GroupOfResources(object):
 ############################################################################
 
 
-class Resource(object):
+class Resource:
     """
     Class for handling resources assigned to tasks
     """
@@ -707,7 +707,7 @@ class Resource(object):
 ############################################################################
 
 
-class Task(object):
+class Task:
     """
     Class for manipulating Tasks
     """
@@ -1015,6 +1015,19 @@ class Task(object):
                 )
             )
         return self._cache_start_date
+
+    def set_end_date(self, end_date):
+        """
+        Set a end date, overriding the previous end date
+        Parameters
+        ----------
+        end_date: datetime
+            End date
+
+        """
+
+        self._cache_end_date = end_date
+        self.end = end_date
 
     def end_date(self):
         """
