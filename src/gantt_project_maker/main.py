@@ -173,6 +173,12 @@ def parse_args(args):
         action="store_true",
     )
     parser.add_argument(
+        "-g",
+        "--global_program",
+        help="Export the project to a global gantt chart",
+        action="store_true",
+    )
+    parser.add_argument(
         "-b",
         "--resources",
         help="Write the resources file of the planning",
@@ -478,6 +484,7 @@ def main(args):
         details=args.details,
         filter_employees=args.filter_employees,
         save_svg_as_pdf=args.pdf,
+        export_global_program=args.global_program,
     )
 
     # add global information, vacations and employees

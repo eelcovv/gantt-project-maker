@@ -292,6 +292,7 @@ class ProjectPlanner:
         details: bool = None,
         filter_employees: list = None,
         save_svg_as_pdf: bool = False,
+        export_global_program: bool = False,
     ):
         """
 
@@ -357,9 +358,12 @@ class ProjectPlanner:
         )
 
         # Make the main project only with the subprojects, not the tasks
-        self.programma_main = gantt.Project(
-            name=programma_title, color=color_to_hex(programma_color)
-        )
+        if export_global_program:
+            self.programma_main = gantt.Project(
+                name=programma_title, color=color_to_hex(programma_color)
+            )
+        else:
+            self.programma_main = None
 
         # Make the project to store all the vacations
         self.vacations_gantt = gantt.Project(
@@ -694,18 +698,23 @@ class ProjectPlanner:
             color=employee_color,
             font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
         )
-        projects_employee_main = gantt.Project(
-            name=subprojects_title,
-            color=employee_color,
-            font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
-        )
+        if self.programma_main is not None:
+            projects_employee_main = gantt.Project(
+                name=subprojects_title,
+                color=employee_color,
+                font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
+            )
+        else:
+            projects_employee_main = None
 
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
             project_name = project_values.get("title", project_key)
             project_name_global = project_values.get("global_title", project_name)
             projects_employee_global = project_values.get("global_employees")
-            if projects_employee_global is not None and isinstance(projects_employee_global, str):
+            if projects_employee_global is not None and isinstance(
+                projects_employee_global, str
+            ):
                 projects_employee_global = [projects_employee_global]
 
             _logger.info(f"Making project: {project_name}")
@@ -715,7 +724,10 @@ class ProjectPlanner:
             _logger.debug("Creating project {}".format(project_name))
             project = gantt.Project(name=project_name, color=project_color)
 
-            project_main = gantt.Project(name=project_name, color=project_color)
+            if self.programma_main is not None:
+                project_main = gantt.Project(name=project_name, color=project_color)
+            else:
+                project_main = None
             main_start_date = None
             main_end_date = None
             contributors = None
@@ -837,17 +849,20 @@ class ProjectPlanner:
                     stop=main_end_date,
                     resources=main_contributors,
                 )
-                project_main.add_task(main_task)
+                if project_main is not None:
+                    project_main.add_task(main_task)
 
             self.subprojects[project_key] = project
             if project_key in subprojects_selection:
                 # hier project zonder taken toevoegen
                 projects_employee.add_task(project)
-                projects_employee_main.add_task(project_main)
+                if project_main is not None:
+                    projects_employee_main.add_task(project_main)
 
         # add now all projects of the employee to the program
         self.programma.add_task(projects_employee)
-        self.programma_main.add_task(projects_employee_main)
+        if self.programma_main is not None:
+            self.programma_main.add_task(projects_employee_main)
 
     def write_planning(
         self,
@@ -886,7 +901,10 @@ class ProjectPlanner:
             file_base_tasks = "_".join(
                 [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
             )
-            file_base_tasks_main = file_base_tasks + "_main"
+            if self.programma_main is not None:
+                file_base_tasks_main = file_base_tasks + "_main"
+            else:
+                file_base_tasks_main = None
             file_base_resources = file_base_tasks.replace("_tasks", "_resources")
 
             file_base_vacations = file_base_tasks.replace("_tasks", "_vacations")
@@ -899,9 +917,13 @@ class ProjectPlanner:
             file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
                 suffix
             )
-            file_name_main = planning_output_directory / Path(
-                file_base_tasks_main
-            ).with_suffix(suffix)
+            if file_base_tasks_main:
+                file_name_main = planning_output_directory / Path(
+                    file_base_tasks_main
+                ).with_suffix(suffix)
+            else:
+                file_name_main = None
+
             file_name_res = resource_output_directory / Path(
                 file_base_resources
             ).with_suffix(suffix)
@@ -961,20 +983,19 @@ class ProjectPlanner:
                 today=today,
             )
 
-            _logger.info(
-                f"Writing main project starting at {start} and ending at {end} with a scale {scale} to {file_name_main}"
-            )
-
-            self.programma_main.make_svg_for_tasks(
-                filename=file_name_main,
-                start=start,
-                end=end,
-                margin_left=weeks_margin_left,
-                margin_right=weeks_margin_right,
-                scale=scale,
-                today=today,
-            )
-            _logger.debug("Done")
+            if self.programma_main is not None:
+                _logger.info(
+                    f"Writing main project starting at {start} and ending at {end} with a scale {scale} to {file_name_main}"
+                )
+                self.programma_main.make_svg_for_tasks(
+                    filename=file_name_main,
+                    start=start,
+                    end=end,
+                    margin_left=weeks_margin_left,
+                    margin_right=weeks_margin_right,
+                    scale=scale,
+                    today=today,
+                )
             _logger.debug("Done")
 
             if self.save_svg_as_pdf:
