@@ -823,15 +823,7 @@ class ProjectPlanner:
                         # hier min en max data bijhouden
                         project.add_task(task)
 
-                        if task.resources:
-                            for employee in task.resources:
-                                if projects_employee_global:
-                                    if employee.name not in projects_employee_global:
-                                        continue
-                                if contributors is None:
-                                    contributors = [employee]
-                                else:
-                                    contributors.append(employee)
+                        contributors = get_contributors(task,contributors, projects_employee_global)
 
                         # each project with task is stored as a main project with the project begin and end
                         if main_start_date is None:
@@ -841,7 +833,7 @@ class ProjectPlanner:
                             main_end_date = task.end_date()
 
             # every project with tasks will be a course project plan as well
-            if main_start_date is not None:
+            if main_start_date is not None and contributors is not None:
                 main_contributors = list(set(contributors))
                 main_task = gantt.Task(
                     name=project_name_global,
@@ -1115,3 +1107,31 @@ def extend_suffix(output_filename: Path, extensions: Union[list, str]):
     ).with_suffix(suffix)
 
     return output_filename
+
+def get_contributors(task, contributors, projects_employee_global):
+    """
+    get of the contributors of this Task
+
+    Parameters
+    ----------
+    task
+    contributors
+    projects_employee_global
+
+    Returns
+    -------
+
+    """
+    try:
+        if task.resources:
+            for employee in task.resources:
+                if projects_employee_global:
+                    if employee.name not in projects_employee_global:
+                        continue
+                if contributors is None:
+                    contributors = [employee]
+                else:
+                    contributors.append(employee)
+    except AttributeError:
+        pass
+    return contributors
