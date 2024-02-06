@@ -1,421 +1,421 @@
 general:
-    title: Project Leader One
-    color: rood
-    projects:
-        - emp1_project_1
-        - emp1_project_2
-        - project_module_6
+  title: Project Leader One
+  color: rood
+  projects:
+    - emp1_project_1
+    - emp1_project_2
+    - project_module_6
 employees_defaults:
-    emp1_emp3: &emp1_emp3
-        - emp1
-        - emp3
-    emp1_emp3_department1: &emp1_emp3_department1
-        - emp1
-        - emp3
-        - department1
-    emp1_emp3_emp4: &emp1_emp3_emp4
-        - emp1
-        - emp3
-        - emp4
-    emp1_emp4: &emp1_emp4
-        - emp1
-        - emp4
+  emp1_emp3: &emp1_emp3
+    - emp1
+    - emp3
+  emp1_emp3_department1: &emp1_emp3_department1
+    - emp1
+    - emp3
+    - department1
+  emp1_emp3_emp4: &emp1_emp3_emp4
+    - emp1
+    - emp3
+    - emp4
+  emp1_emp4: &emp1_emp4
+    - emp1
+    - emp4
 tasks_and_milestones:
-    project_module_1:
-        ontwerp_concept_vragenlijst_23:
-            type: task
-            label: Ontwerp settingsfile conceptvragenlijst ict_survey 23
-            start: 3-10-2022
-            end: 21-10-2022
-            remark: T.b.v. Blaise bouwer(s)
-            deadline: 21-10-2022
-            department1: ja
-            employees: *emp1_emp3
-            color: pink
-        ontwerp_online_vragenlijst_23:
-            label: Bouwen en testen online vragenlijst 2023
-            start: 24-10-2022
-            end: 27-1-2023
-            dependent_of: ontwerp_concept_vragenlijst_23
-            department1: ja
-            remark: task wordt uitgevoerd i.s.m. Blaise bouwer(s).
-            employees: *emp1_emp3_department1
-            color: beige
-        milestone_vragenlijst_afgerond_23:
-            label: Vragenlijst '23 definitief afgerond
-            type: milestone
-            color: rood
-            department1: ja
-            start: 27-1-2023
-            dependent_of: ontwerp_online_vragenlijst_23
-        logistieke_test_uitvoeren_23:
-            label: Logistieke test ontwerp department1 '23 uitvoeren
-            start: 30-1-2023
-            end: 17-2-2023
-            dependent_of: milestone_vragenlijst_afgerond_23
-            department1: ja
-            employees: *emp1_emp3_department1
-        aanleveren_nieuwe_dtc_bedrijven_23:
-            label: Aanleveren DTC-bedrijven 23
-            start: 9-1-2023
-            end: 27-1-2023
-            department1: ja
-            employees: *emp1_emp3
-        aanleveren_verrijkingsbestand_23:
-            label: Verrijkingsbestand steekproef 23 aanleveren!
-            start: 9-1-2023
-            end: 27-1-2023
-            department1: ja
-            detail: true
-            employees: *emp1_emp3
-        uitzending_online_ict_enquete_23:
-            label: ICT-enquête uitzenden
-            start: 27-2-2023
-            end: 6-3-2023
-            department1: ja
-            dependent_of: logistieke_test_uitvoeren_23
-            employees: department1
-        uitzending_online_ict_enquete_23_monitoren:
-            label: Uitgezonden ICT-enquête monitoren
-            start: 28-2-2023
-            end: 16-3-2023
-            dependent_of: uitzending_online_ict_enquete_23
-            employees: *emp1_emp3
-    project_module_2:
-        ontwerp_concept_vragenlijst_24:
-            type: task
-            label: Ontwerp settingsfile conceptvragenlijst ict_survey 24
-            start: 3-10-2023
-            end: 21-10-2023
-            department1: ja
-            deadline: 21-10-2023
-            employees: *emp1_emp3
-        ontwerp_online_vragenlijst_24:
-            label: Bouwen en testen online vragenlijst 2024
-            start: 24-10-2023
-            end: 27-1-2024
-            department1: ja
-            dependent_of: ontwerp_concept_vragenlijst_24
-            employees: *emp1_emp3_department1
-        milestone_vragenlijst_afgerond_24:
-            label: Vragenlijst '23 definitief afgerond
-            type: milestone
-            color: rood
-            start: 27-1-2024
-            department1: ja
-            dependent_of: ontwerp_online_vragenlijst_24
-        logistieke_test_uitvoeren_24:
-            label: Logistieke test ontwerp department1 '24 uitvoeren
-            start: 30-1-2024
-            end: 17-2-2024
-            dependent_of: milestone_vragenlijst_afgerond_24
-            department1: ja
-            employees: *emp1_emp3_department1
-        aanleveren_nieuwe_dtc_bedrijven_24:
-            label: Aanleveren DTC-bedrijven 2024
-            start: 9-1-2024
-            end: 27-1-2024
-            department1: ja
-            employees: *emp1_emp3
-        aanleveren_verrijkingsbestand_24:
-            label: Verrijkingsbestand steekproef 24 aanleveren
-            start: 9-1-2024
-            end: 27-1-2024
-            department1: ja
-            employees: *emp1_emp3
-        uitzending_online_ict_enquete_24:
-            label: ICT-enquête uitzenden
-            start: 27-2-2024
-            end: 6-3-2024
-            dependent_of: logistieke_test_uitvoeren_24
-            department1: ja
-            employees: department1
-        uitzending_online_ict_enquete_24_monitoren:
-            label: Uitgezonden ICT-enquête monitoren
-            start: 28-2-2024
-            end: 16-3-2024
-            employees: *emp1_emp3
-            dependent_of: uitzending_online_ict_enquete_24
-    project_module_3:
-        ontwerp_nieuwe_settings_file_23:
-            label: Ontwerp settingsfile ict_analyser 23
-            start: 28-2-2023
-            end: 1-7-2023
-            employees: emp3
-        com_systeem_bijhouden_23:
-            label: COM-systeem bijhouden
-            start: 28-2-2023
-            end: 15-9-2023
-            employees: emp3
-            detail: true
-        koppeling_btw_en_abr_23:
-            label: Koppeling BTW en ABR
-            start: 1-5-2023
-            end: 1-6-2023
-            employees: emp3
-            detail: true
-        levering_eurostat_data_meta_en_qr_22:
-            label: Levering Eurostat meta + quality Report '22
-            start: 10-11-2022
-            end: 5-1-2023
-            deadline: 5-1-2023
-            employees: emp3
-        eurostat_kwaliteitsanalyse_data:
-            label: Validatie en kwaliteitsanalyse ESTAT data
-            start: 1-9-2023
-            end: 15-9-2023
-            employees: *emp1_emp3
-        levering_eurostat_data_23:
-            label: Levering Eurostat data
-            start: 16-9-2023
-            end: 28-10-2023
-            deadline: 5-10-2023
-            employees: *emp1_emp3
-        levering_eurostat_data_meta_en_qr_23:
-            label: Levering Eurostat meta + quality Report '23
-            start: 10-11-2023
-            end: 5-1-2024
-            deadline: 5-1-2024
-            employees: *emp1_emp3
-        inleveren_meta_data_23:
-            label: Inleveren Eurostat meta-data bestand
-            start: 14-5-2023
-            end: 30-5-2023
-            deadline: 30-5-2023
-            employees: emp1
-        levering_statline_tabellen_23:
-            label: Statlinetabellen maken en publiceren
-            start: 15-10-2023
-            end: 20-12-2023
-            employees: *emp1_emp3
-        levering_microdata_23:
-            label: Levering microdata 2023 t.b.v. RA-omgeving
-            start: 15-3-2024
-            end: 15-4-2024
-            employees: *emp1_emp3
-        levering_maatwerktabel_dtc_23:
-            label: DTC Maatwerktabel maken en publiceren '23
-            start: 12-12-2023
-            end: 16-12-2023
-            deadline: 16-12-2023
-            employees: *emp1_emp3
-    project_module_4:
-        csm_datacollectie_23:
-            label: Datacollectie Cybersecuritymonitor 2022
-            start: 1-4-2023
-            end: 1-5-2023
-            employees: *emp1_emp4
-        csm_bijlagen_23:
-            label: Aanpassen bijlagen en controleren referenties
-            start: 1-6-2023
-            end: 14-6-2023
-            employees: emp4
-        csm_schrijven_23:
-            label: Cybersecuritymonitor 2022 schrijven en publiceren
-            start: 1-6-2023
-            end: 18-7-2023
-            cci: ja
-            employees: *emp1_emp4
-        csm_schrijven_persbericht_23:
-            label: Persbericht bij CSM 2022 schrijven
-            start: 11-7-2023
-            end: 18-7-2023
-            cci: ja
-            employees: emp1
-    project_module_5:
-        internetstandaarden_scan_23:
-            label: Uitvoeren scan voor Internet.nl 2023 (ter controle)
-            start: 1-4-2023
-            end: 5-4-2023
-            employees: emp1
-        internetstandaarden_analyse_23:
-            label: Data-analyse Internet.nl scan-data
-            start: 5-4-2023
-            end: 15-4-2023
-            dependent_of: internetstandaarden_scan_23
-            employees: emp1
-        internetstandaarden_rapport_23:
-            label: Schrijven rapport Internetstandaarden
-            start: 16-4-2023
-            end: 10-5-2023
-            dependent_of: internetstandaarden_analyse_23
-            employees: emp1
-        internetstandaarden_scan_24:
-            label: Uitvoeren scan voor Internet.nl 2024
-            start: 1-12-2023
-            end: 5-12-2023
-            employees: emp1
-    project_module_6:
-        pycharm_juni_23_voorbereiden:
-            label: Voorbereiden Pycharm cursus
-            start: 1-6-2023
-            end: 7-6-2023
-            employees: emp1
-        pycharm_juni_23:
-            label: Pycharm cursus geven
-            start: 7-6-2023
-            end: 28-6-2023
-            employees: emp1
-        python_cursus_sep_23:
-            label: Python cursus geven
-            start: 6-9-2023
-            end: 11-10-2023
-            employees: *emp1_emp4
-        pycharm_nov_23_voorbereiden:
-            label: Voorbereiden Pycharm cursus
-            start: 1-11-2023
-            end: 7-11-2023
-            employees: emp1
-        pycharm_nov_23:
-            label: Pycharm cursus geven
-            start: 7-11-2023
-            end: 28-11-2023
-            employees: emp1
+  project_module_1:
+    ontwerp_concept_vragenlijst_23:
+      type: task
+      label: Ontwerp settingsfile conceptvragenlijst ict_survey 23
+      start: 3-10-2022
+      end: 21-10-2022
+      remark: T.b.v. Blaise bouwer(s)
+      deadline: 21-10-2022
+      department1: ja
+      employees: *emp1_emp3
+      color: pink
+    ontwerp_online_vragenlijst_23:
+      label: Bouwen en testen online vragenlijst 2023
+      start: 24-10-2022
+      end: 27-1-2023
+      dependent_of: ontwerp_concept_vragenlijst_23
+      department1: ja
+      remark: task wordt uitgevoerd i.s.m. Blaise bouwer(s).
+      employees: *emp1_emp3_department1
+      color: beige
+    milestone_vragenlijst_afgerond_23:
+      label: Vragenlijst '23 definitief afgerond
+      type: milestone
+      color: rood
+      department1: ja
+      start: 27-1-2023
+      dependent_of: ontwerp_online_vragenlijst_23
+    logistieke_test_uitvoeren_23:
+      label: Logistieke test ontwerp department1 '23 uitvoeren
+      start: 30-1-2023
+      end: 17-2-2023
+      dependent_of: milestone_vragenlijst_afgerond_23
+      department1: ja
+      employees: *emp1_emp3_department1
+    aanleveren_nieuwe_dtc_bedrijven_23:
+      label: Aanleveren DTC-bedrijven 23
+      start: 9-1-2023
+      end: 27-1-2023
+      department1: ja
+      employees: *emp1_emp3
+    aanleveren_verrijkingsbestand_23:
+      label: Verrijkingsbestand steekproef 23 aanleveren!
+      start: 9-1-2023
+      end: 27-1-2023
+      department1: ja
+      detail: true
+      employees: *emp1_emp3
+    uitzending_online_ict_enquete_23:
+      label: ICT-enquête uitzenden
+      start: 27-2-2023
+      end: 6-3-2023
+      department1: ja
+      dependent_of: logistieke_test_uitvoeren_23
+      employees: department1
+    uitzending_online_ict_enquete_23_monitoren:
+      label: Uitgezonden ICT-enquête monitoren
+      start: 28-2-2023
+      end: 16-3-2023
+      dependent_of: uitzending_online_ict_enquete_23
+      employees: *emp1_emp3
+  project_module_2:
+    ontwerp_concept_vragenlijst_24:
+      type: task
+      label: Ontwerp settingsfile conceptvragenlijst ict_survey 24
+      start: 3-10-2023
+      end: 21-10-2023
+      department1: ja
+      deadline: 21-10-2023
+      employees: *emp1_emp3
+    ontwerp_online_vragenlijst_24:
+      label: Bouwen en testen online vragenlijst 2024
+      start: 24-10-2023
+      end: 27-1-2024
+      department1: ja
+      dependent_of: ontwerp_concept_vragenlijst_24
+      employees: *emp1_emp3_department1
+    milestone_vragenlijst_afgerond_24:
+      label: Vragenlijst '23 definitief afgerond
+      type: milestone
+      color: rood
+      start: 27-1-2024
+      department1: ja
+      dependent_of: ontwerp_online_vragenlijst_24
+    logistieke_test_uitvoeren_24:
+      label: Logistieke test ontwerp department1 '24 uitvoeren
+      start: 30-1-2024
+      end: 17-2-2024
+      dependent_of: milestone_vragenlijst_afgerond_24
+      department1: ja
+      employees: *emp1_emp3_department1
+    aanleveren_nieuwe_dtc_bedrijven_24:
+      label: Aanleveren DTC-bedrijven 2024
+      start: 9-1-2024
+      end: 27-1-2024
+      department1: ja
+      employees: *emp1_emp3
+    aanleveren_verrijkingsbestand_24:
+      label: Verrijkingsbestand steekproef 24 aanleveren
+      start: 9-1-2024
+      end: 27-1-2024
+      department1: ja
+      employees: *emp1_emp3
+    uitzending_online_ict_enquete_24:
+      label: ICT-enquête uitzenden
+      start: 27-2-2024
+      end: 6-3-2024
+      dependent_of: logistieke_test_uitvoeren_24
+      department1: ja
+      employees: department1
+    uitzending_online_ict_enquete_24_monitoren:
+      label: Uitgezonden ICT-enquête monitoren
+      start: 28-2-2024
+      end: 16-3-2024
+      employees: *emp1_emp3
+      dependent_of: uitzending_online_ict_enquete_24
+  project_module_3:
+    ontwerp_nieuwe_settings_file_23:
+      label: Ontwerp settingsfile ict_analyser 23
+      start: 28-2-2023
+      end: 1-7-2023
+      employees: emp3
+    com_systeem_bijhouden_23:
+      label: COM-systeem bijhouden
+      start: 28-2-2023
+      end: 15-9-2023
+      employees: emp3
+      detail: true
+    koppeling_btw_en_abr_23:
+      label: Koppeling BTW en ABR
+      start: 1-5-2023
+      end: 1-6-2023
+      employees: emp3
+      detail: true
+    levering_eurostat_data_meta_en_qr_22:
+      label: Levering Eurostat meta + quality Report '22
+      start: 10-11-2022
+      end: 5-1-2023
+      deadline: 5-1-2023
+      employees: emp3
+    eurostat_kwaliteitsanalyse_data:
+      label: Validatie en kwaliteitsanalyse ESTAT data
+      start: 1-9-2023
+      end: 15-9-2023
+      employees: *emp1_emp3
+    levering_eurostat_data_23:
+      label: Levering Eurostat data
+      start: 16-9-2023
+      end: 28-10-2023
+      deadline: 5-10-2023
+      employees: *emp1_emp3
+    levering_eurostat_data_meta_en_qr_23:
+      label: Levering Eurostat meta + quality Report '23
+      start: 10-11-2023
+      end: 5-1-2024
+      deadline: 5-1-2024
+      employees: *emp1_emp3
+    inleveren_meta_data_23:
+      label: Inleveren Eurostat meta-data bestand
+      start: 14-5-2023
+      end: 30-5-2023
+      deadline: 30-5-2023
+      employees: emp1
+    levering_statline_tabellen_23:
+      label: Statlinetabellen maken en publiceren
+      start: 15-10-2023
+      end: 20-12-2023
+      employees: *emp1_emp3
+    levering_microdata_23:
+      label: Levering microdata 2023 t.b.v. RA-omgeving
+      start: 15-3-2024
+      end: 15-4-2024
+      employees: *emp1_emp3
+    levering_maatwerktabel_dtc_23:
+      label: DTC Maatwerktabel maken en publiceren '23
+      start: 12-12-2023
+      end: 16-12-2023
+      deadline: 16-12-2023
+      employees: *emp1_emp3
+  project_module_4:
+    csm_datacollectie_23:
+      label: Datacollectie Cybersecuritymonitor 2022
+      start: 1-4-2023
+      end: 1-5-2023
+      employees: *emp1_emp4
+    csm_bijlagen_23:
+      label: Aanpassen bijlagen en controleren referenties
+      start: 1-6-2023
+      end: 14-6-2023
+      employees: emp4
+    csm_schrijven_23:
+      label: Cybersecuritymonitor 2022 schrijven en publiceren
+      start: 1-6-2023
+      end: 18-7-2023
+      cci: ja
+      employees: *emp1_emp4
+    csm_schrijven_persbericht_23:
+      label: Persbericht bij CSM 2022 schrijven
+      start: 11-7-2023
+      end: 18-7-2023
+      cci: ja
+      employees: emp1
+  project_module_5:
+    internetstandaarden_scan_23:
+      label: Uitvoeren scan voor Internet.nl 2023 (ter controle)
+      start: 1-4-2023
+      end: 5-4-2023
+      employees: emp1
+    internetstandaarden_analyse_23:
+      label: Data-analyse Internet.nl scan-data
+      start: 5-4-2023
+      end: 15-4-2023
+      dependent_of: internetstandaarden_scan_23
+      employees: emp1
+    internetstandaarden_rapport_23:
+      label: Schrijven rapport Internetstandaarden
+      start: 16-4-2023
+      end: 10-5-2023
+      dependent_of: internetstandaarden_analyse_23
+      employees: emp1
+    internetstandaarden_scan_24:
+      label: Uitvoeren scan voor Internet.nl 2024
+      start: 1-12-2023
+      end: 5-12-2023
+      employees: emp1
+  project_module_6:
+    pycharm_juni_23_voorbereiden:
+      label: Voorbereiden Pycharm cursus
+      start: 1-6-2023
+      end: 7-6-2023
+      employees: emp1
+    pycharm_juni_23:
+      label: Pycharm cursus geven
+      start: 7-6-2023
+      end: 28-6-2023
+      employees: emp1
+    python_cursus_sep_23:
+      label: Python cursus geven
+      start: 6-9-2023
+      end: 11-10-2023
+      employees: *emp1_emp4
+    pycharm_nov_23_voorbereiden:
+      label: Voorbereiden Pycharm cursus
+      start: 1-11-2023
+      end: 7-11-2023
+      employees: emp1
+    pycharm_nov_23:
+      label: Pycharm cursus geven
+      start: 7-11-2023
+      end: 28-11-2023
+      employees: emp1
 projects:
-    vragenlijst_department1_23:
-        title: Dataverzameling 2023
-        color: corporatelichtblauw
-        tasks:
-            concept: ontwerp_concept_vragenlijst_23
-            webversie: ontwerp_online_vragenlijst_23
-            milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_23
-            aanleveren_nieuwe_dtc_bedrijven_23: aanleveren_nieuwe_dtc_bedrijven_23
-            aanleveren_verrijkingsbestand_23: aanleveren_verrijkingsbestand_23
-            logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
-            uitzending_online_ict_enquete_23: uitzending_online_ict_enquete_23
-            uitzending_online_ict_enquete_23_monitoren: uitzending_online_ict_enquete_23_monitoren
-    vragenlijst_department1_24:
-        title: Dataverzameling 2024
-        color: geel
-        tasks:
-            concept: ontwerp_concept_vragenlijst_24
-            webversie: ontwerp_online_vragenlijst_24
-            milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_24
-            aanleveren_nieuwe_dtc_bedrijven_24: aanleveren_nieuwe_dtc_bedrijven_24
-            aanleveren_verrijkingsbestand_24: aanleveren_verrijkingsbestand_24
-            logistieke_test_uitvoeren_24: logistieke_test_uitvoeren_24
-            uitzending_online_ict_enquete_24: uitzending_online_ict_enquete_24
-            uitzending_online_ict_enquete_24_monitoren: uitzending_online_ict_enquete_24_monitoren
-    data_collectie_en_analyse_23:
-        title: Datacollectie, analyse en publicatie '23
-        color: appelgroen
-        tasks:
-            #levering_eurostat_data_meta_en_qr_22: levering_eurostat_data_meta_en_qr_22
-            ontwerp_nieuwe_settings_file_23: ontwerp_nieuwe_settings_file_23
-            com_systeem_bijhouden_23: com_systeem_bijhouden_23
-            koppeling_btw_en_abr_23: koppeling_btw_en_abr_23
-            inleveren_meta_data_23: inleveren_meta_data_23
-            levering_eurostat_data_meta_en_qr_23: levering_eurostat_data_meta_en_qr_23
-            eurostat_kwaliteitsanalyse_data: eurostat_kwaliteitsanalyse_data
-            levering_eurostat_data_23: levering_eurostat_data_23
-            levering_statline_tabellen_23: levering_statline_tabellen_23
-            levering_microdata_23: levering_microdata_23
-    zzp_bedrijven_23:
-        title: ICT-gebruik ZZP'ers '23
-        color: grasgroen
-        link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
-        vir: WTE
-        project_leader: emp1
-        casper_project: PR002512
-        tasks:
-            concept: ontwerp_concept_vragenlijst_23
-            logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
-            levering_statline_tabellen_23: levering_statline_tabellen_23
-    dtc_maatwerk_tabel_23:
-        title: DTC maatwerktabel '23
-        color: oranje
-        link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
-        vir: WTE
-        project_leader: emp1
-        casper_project: PR002513
-        tasks:
-            concept: ontwerp_concept_vragenlijst_23
-            logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
-            levering_maatwerktabel_dtc_23: levering_maatwerktabel_dtc_23
-    estat_ict_gebruik_bedrijven_23:
-        title: Eurostat in '23
-        color: roze
-        link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
-        project_leader: emp1
-        vir: WTE
-        casper_project: PR002398
-        tasks:
-            wg_vergadering_mq_24:
-                label: WG vergadering MQ'24
-                start: 8-2-2023
-                end: 10-2-2023
-                employees: emp1
-            grant_proposal_23:
-                label: Insturen Grand proposal 23-24
-                start: 1-5-2023
-                end: 10-5-2023
-                employees: emp1
-            tf_vergadering_mq_25:
-                label: TF vergadering MQ'25
-                start: 7-8-2023
-                end: 10-8-2023
-                employees: emp1
-            wg_vergadering_mq_25:
-                label: WG vergadering MQ'25
-                start: 12-9-2023
-                end: 14-9-2023
-                employees: emp1
-            tf_vergadering_mq_25_2:
-                label: TF vergadering MQ'25
-                start: 16-11-2023
-                end: 17-11-2023
-                employees: emp1
-    project_module_4:
-        title: Cybersecuritymonitor '23
-        color: LightGreen
-        vir: WTE
-        casper_project: PR002639
-        project_leader: emp1
-        tasks:
-            - csm_datacollectie_23
-            - csm_bijlagen_23
-            - csm_schrijven_23
-            - csm_schrijven_persbericht_23
-    project_module_5:
-        title: InternetNL-standaarden BAS23
-        color: LightSeaGreen
-        vir: WTE
-        link: "\\\\cbsp.nl/productie/primair/WTE/Werk/Users/emp1/Projects/InternetNL"
-        casper_project: PR002639
-        project_leader: emp1
-        tasks:
-            - internetstandaarden_scan_23
-            - internetstandaarden_analyse_23
-            - internetstandaarden_rapport_23
-            - internetstandaarden_scan_24
-    emp1_project_1:
-        title: ICT-gebruik bij bedrijven 2023
-        vir: WTE
-        link: "\\\\cbsp.nl/productie/primair/WTE/Werk/ICT-gebruik bedrijven/Bedrijven/wte/Stat"
-        casper_project: PR002398
-        casper_task: 1
-        project_leader: emp1
-        tasks:
-            - vragenlijst_department1_23
-            - data_collectie_en_analyse_23
-            - zzp_bedrijven_23
-            - dtc_maatwerk_tabel_23
-            - estat_ict_gebruik_bedrijven_23
-            - vragenlijst_department1_24
-    emp1_project_2:
-        title: BAS 2023 ASD Projecten
-        tasks:
-            project_module_4: project_module_4
-            project_module_5: project_module_5
-    project_module_6:
-        title: CBS Academy 2023
-        vir: n.v.t
-        link: "\\\\cbsp.nl/productie/primair/WTE/Werk/other_business/Python cursussen"
-        casper_project: PR305653
-        color: LightCyan
-        tasks:
-            pycharm_juni_23_voorbereiden: pycharm_juni_23_voorbereiden
-            pycharm_juni_23: pycharm_juni_23
-            python_cursus_sep_23: python_cursus_sep_23
-            pycharm_nov_23_voorbereiden: pycharm_nov_23_voorbereiden
-            pycharm_nov_23: pycharm_nov_23
+  vragenlijst_department1_23:
+    title: Dataverzameling 2023
+    color: corporatelichtblauw
+    tasks:
+      concept: ontwerp_concept_vragenlijst_23
+      webversie: ontwerp_online_vragenlijst_23
+      milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_23
+      aanleveren_nieuwe_dtc_bedrijven_23: aanleveren_nieuwe_dtc_bedrijven_23
+      aanleveren_verrijkingsbestand_23: aanleveren_verrijkingsbestand_23
+      logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
+      uitzending_online_ict_enquete_23: uitzending_online_ict_enquete_23
+      uitzending_online_ict_enquete_23_monitoren: uitzending_online_ict_enquete_23_monitoren
+  vragenlijst_department1_24:
+    title: Dataverzameling 2024
+    color: geel
+    tasks:
+      concept: ontwerp_concept_vragenlijst_24
+      webversie: ontwerp_online_vragenlijst_24
+      milestone_vragenlijst_afgerond: milestone_vragenlijst_afgerond_24
+      aanleveren_nieuwe_dtc_bedrijven_24: aanleveren_nieuwe_dtc_bedrijven_24
+      aanleveren_verrijkingsbestand_24: aanleveren_verrijkingsbestand_24
+      logistieke_test_uitvoeren_24: logistieke_test_uitvoeren_24
+      uitzending_online_ict_enquete_24: uitzending_online_ict_enquete_24
+      uitzending_online_ict_enquete_24_monitoren: uitzending_online_ict_enquete_24_monitoren
+  data_collectie_en_analyse_23:
+    title: Datacollectie, analyse en publicatie '23
+    color: appelgroen
+    tasks:
+      #levering_eurostat_data_meta_en_qr_22: levering_eurostat_data_meta_en_qr_22
+      ontwerp_nieuwe_settings_file_23: ontwerp_nieuwe_settings_file_23
+      com_systeem_bijhouden_23: com_systeem_bijhouden_23
+      koppeling_btw_en_abr_23: koppeling_btw_en_abr_23
+      inleveren_meta_data_23: inleveren_meta_data_23
+      levering_eurostat_data_meta_en_qr_23: levering_eurostat_data_meta_en_qr_23
+      eurostat_kwaliteitsanalyse_data: eurostat_kwaliteitsanalyse_data
+      levering_eurostat_data_23: levering_eurostat_data_23
+      levering_statline_tabellen_23: levering_statline_tabellen_23
+      levering_microdata_23: levering_microdata_23
+  zzp_bedrijven_23:
+    title: ICT-gebruik ZZP'ers '23
+    color: grasgroen
+    link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
+    vir: WTE
+    project_leader: emp1
+    casper_project: PR002512
+    tasks:
+      concept: ontwerp_concept_vragenlijst_23
+      logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
+      levering_statline_tabellen_23: levering_statline_tabellen_23
+  dtc_maatwerk_tabel_23:
+    title: DTC maatwerktabel '23
+    color: oranje
+    link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
+    vir: WTE
+    project_leader: emp1
+    casper_project: PR002513
+    tasks:
+      concept: ontwerp_concept_vragenlijst_23
+      logistieke_test_uitvoeren_23: logistieke_test_uitvoeren_23
+      levering_maatwerktabel_dtc_23: levering_maatwerktabel_dtc_23
+  estat_ict_gebruik_bedrijven_23:
+    title: Eurostat in '23
+    color: roze
+    link: \\cbsp.nl\productie\primair\WTE\Werk\ICT-gebruik bedrijven\Bedrijven\wte\Stat
+    project_leader: emp1
+    vir: WTE
+    casper_project: PR002398
+    tasks:
+      wg_vergadering_mq_24:
+        label: WG vergadering MQ'24
+        start: 8-2-2023
+        end: 10-2-2023
+        employees: emp1
+      grant_proposal_23:
+        label: Insturen Grand proposal 23-24
+        start: 1-5-2023
+        end: 10-5-2023
+        employees: emp1
+      tf_vergadering_mq_25:
+        label: TF vergadering MQ'25
+        start: 7-8-2023
+        end: 10-8-2023
+        employees: emp1
+      wg_vergadering_mq_25:
+        label: WG vergadering MQ'25
+        start: 12-9-2023
+        end: 14-9-2023
+        employees: emp1
+      tf_vergadering_mq_25_2:
+        label: TF vergadering MQ'25
+        start: 16-11-2023
+        end: 17-11-2023
+        employees: emp1
+  project_module_4:
+    title: Cybersecuritymonitor '23
+    color: LightGreen
+    vir: WTE
+    casper_project: PR002639
+    project_leader: emp1
+    tasks:
+      - csm_datacollectie_23
+      - csm_bijlagen_23
+      - csm_schrijven_23
+      - csm_schrijven_persbericht_23
+  project_module_5:
+    title: InternetNL-standaarden BAS23
+    color: LightSeaGreen
+    vir: WTE
+    link: "\\\\cbsp.nl/productie/primair/WTE/Werk/Users/emp1/Projects/InternetNL"
+    casper_project: PR002639
+    project_leader: emp1
+    tasks:
+      - internetstandaarden_scan_23
+      - internetstandaarden_analyse_23
+      - internetstandaarden_rapport_23
+      - internetstandaarden_scan_24
+  emp1_project_1:
+    title: ICT-gebruik bij bedrijven 2023
+    vir: WTE
+    link: "\\\\cbsp.nl/productie/primair/WTE/Werk/ICT-gebruik bedrijven/Bedrijven/wte/Stat"
+    casper_project: PR002398
+    casper_task: 1
+    project_leader: emp1
+    tasks:
+      - vragenlijst_department1_23
+      - data_collectie_en_analyse_23
+      - zzp_bedrijven_23
+      - dtc_maatwerk_tabel_23
+      - estat_ict_gebruik_bedrijven_23
+      - vragenlijst_department1_24
+  emp1_project_2:
+    title: BAS 2023 ASD Projecten
+    tasks:
+      project_module_4: project_module_4
+      project_module_5: project_module_5
+  project_module_6:
+    title: CBS Academy 2023
+    vir: n.v.t
+    link: "\\\\cbsp.nl/productie/primair/WTE/Werk/other_business/Python cursussen"
+    casper_project: PR305653
+    color: LightCyan
+    tasks:
+      pycharm_juni_23_voorbereiden: pycharm_juni_23_voorbereiden
+      pycharm_juni_23: pycharm_juni_23
+      python_cursus_sep_23: python_cursus_sep_23
+      pycharm_nov_23_voorbereiden: pycharm_nov_23_voorbereiden
+      pycharm_nov_23: pycharm_nov_23

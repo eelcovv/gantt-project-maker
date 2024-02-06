@@ -1,303 +1,303 @@
 general:
-    title: Project Leader Two
-    color: purple
-    projects:
-        - emp3_sbs
-        - emp3_sport_statistieken
-        - emp3_SBI_5digit
+  title: Project Leader Two
+  color: purple
+  projects:
+    - emp3_sbs
+    - emp3_sport_statistieken
+    - emp3_SBI_5digit
 projects:
-    emp3_sbs_23:
-        title: SBS 2022 V
-        color: corporatelichtblauw
-        tasks:
-            basis_bestanden_opvragen:
-                label: Basisbestanden opvragen/klaar zetten
-                start: 1-8-2023
-                end: 1-10-2023
-                employees:
-                    - emp4
-                    - emp5
-            jaarverslagen_opvragen:
-                label: Jaarverslagen opvragen
-                start: 1-8-2023
-                end: 1-10-2023
-                employees: emp5
-            data_maken_en_controleren:
-                label: Dataset maken en controleren
-                start: 1-8-2023
-                end: 1-10-2023
-                employees:
-                    - emp4
-                    - emp7
-                    - emp3
-            data_afronden_en_sturen:
-                type: milestone
-                label: Dataset afronden en sturen naar EBN/NR
-                start: 20-10-2023
-                employees:
-                    - emp7
-                    - emp3
-    emp3_sbs_ontw:
-        title: SBS ontwikkeling
-        color: corporatelichtblauw
-        tasks:
-            meta_info_eurostat:
-                label: Input maken voor meta info voor Eurostat
-                start: 1-8-2023
-                end: 31-8-2023
-                employees: emp3
-            pub_cbs_website:
-                label: Publicatie 2021 D als maatwerk op cbs.nl
-                start: 1-9-2023
-                end: 31-10-2023
-                employees:
-                    - emp3
-                    - emp6
-            documentatie:
-                label: Documentatie SBS NACE R uitbreiden
-                start: 1-9-2023
-                end: 31-12-2023
-                employees:
-                    - emp3
-                    - emp6
-                    - emp7
-            rf_model:
-                label: RF model KUK bekijken/verbeteren
-                start: 1-9-2023
-                end: 30-10-2023
-                employees:
-                    - emp4
-                    - emp3
-                    - emp6
-            abr_kader_zaken:
-                label: ABR kader zaken
-                start: 1-10-2023
-                end: 31-12-2023
-                employees:
-                    - emp3
-                    - emp6
-                    - emp7
-            validatie_systeem:
-                label: set validatieregels opstellen
-                start: 15-9-2023
-                end: 30-11-2023
-                employees:
-                    - emp3
-                    - emp6
-                    - emp7
-    emp3_sbs_24:
-        title: SBS 2022 D
-        color: corporatelichtblauw
-        tasks:
-            basis_bestanden_opvragen:
-                label: Basisbestanden opvragen/klaar zetten
-                start: 1-4-2024
-                end: 1-6-2024
-                employees:
-                    - emp4
-                    - emp5
-            jaarverslagen_opvragen:
-                label: Jaarverslagen opvragen
-                start: 1-4-2024
-                end: 1-6-2024
-                employees: emp5
-            methode_verbeteringen:
-                label: Methode verbeteringen en aanpassingen doorvoeren
-                start: 1-4-2024
-                end: 1-6-2024
-                employees:
-                    - emp4
-                    - emp7
-                    - emp3
-            data_maken_en_controleren:
-                label: Dataset maken en controleren
-                start: 1-5-2024
-                end: 1-6-2024
-                employees: emp4
-            data_afronden_en_sturen:
-                type: milestone
-                label: Dataset afronden en sturen naar EBN/NR
-                start: 15-6-2024
-                employees: emp4
-            vlaggen_bestand_maken:
-                label: Vlaggen verwerken in bestand voor EBN
-                start: 15-6-2024
-                end: 22-6-2024
-                employees: emp3
-            geheimhouding_uitzoeken:
-                label: Uitzoeken waar geheimhouding nodig is
-                start: 15-6-2024
-                end: 22-6-2024
-                employees: emp3
-    emp3_sbs:
-        title: SBS general
-        vir: WTE
-        project_leader: emp3
-        link: "\\\\cbsp.nl/Productie/primair/FNR/Werk"
-        casper_project: PR002399
-        color: corporatelichtblauw
-        tasks:
-            - emp3_sbs_23
-            - emp3_sbs_ontw
-            - emp3_sbs_24
-    emp3_sport_2021:
-        title: Afrondzaken sportstatistieken 2021
-        color: appelgroen
-        tasks:
-            dsc_bestanden:
-                label: DSC bestanden maken van 2021 data
-                start: 15-9-2023
-                end: 15-10-2023
-                employees:
-                    - emp8
-                    - emp3
-            archief_netwerk:
-                label: Archivering op netwerk aanpassen
-                start: 1-10-2023
-                end: 30-10-2023
-                employees: emp8
-    emp3_fitness_2023:
-        title: Fitness statistiek 2023
-        color: appelgroen
-        tasks:
-            vragenlijst:
-                label: vragenlijst maken/afstemmen met department1
-                start: 1-9-2023
-                end: 1-1-2024
-                employees:
-                    - emp3
-                    - emp8
-                    - department1
-            populatie_steekproef:
-                label: Populatie- steekproefbestand maken
-                start: 1-12-2023
-                end: 1-1-2024
-                employees:
-                    - emp3
-                    - emp8
-            dataverzameling_period:
-                label: datatverzameling department1 volgen
-                start: 1-1-2024
-                end: 1-5-2024
-                employees:
-                    - emp3
-                    - emp8
-            analyse_bestand:
-                label: analysebestand maken
-                start: 1-5-2024
-                end: 1-6-2024
-                employees:
-                    - emp3
-                    - emp8
-            controle_gaafmaken:
-                label: controle correctie gaafmaken
-                start: 1-6-2024
-                end: 1-7-2024
-                employees:
-                    - emp3
-                    - emp8
-            statline_updaten:
-                label: StatLine tabellen fitness updaten
-                start: 1-7-2024
-                end: 15-7-2024
-                employees:
-                    - emp3
-                    - emp8
-            nieuwsbericht:
-                label: Nieuwsbericht maken over fitness
-                start: 1-7-2024
-                end: 15-7-2024
-                employees:
-                    - emp3
-                    - emp8
-    emp3_taskforce:
-        title: Deelname Eurostat TaskForce Sport
-        color: appelgroen
-        tasks:
-            voorbereiden:
-                label: inlezen en voorbereiden meeting okt 2023
-                start: 1-9-2023
-                end: 6-10-2023
-                employees: emp3
-            meeting:
-                label: reizen en meeting okt 2023
-                start: 9-10-2023
-                end: 11-10-2023
-                employees: emp3
-    emp3_sport_statistieken:
-        title: Sportstatistieken
-        vir: CBB
-        project_leader: emp3
-        link: "\\\\cbsp.nl/Productie/primair/CBB/Werk"
-        casper_project: PR002397
-        color: appelgroen
-        tasks:
-            - emp3_sport_2021
-            - emp3_fitness_2023
-            - emp3_taskforce
-    emp3_SBI_5digit:
-        title: SBI 2025 5e digit
-        color: geel
-        tasks:
-            voorstel_uitwerken:
-                label: voorstel 5e digits uitwerken
-                start: 1-6-2023
-                end: 31-8-2023
-                employees: emp3
-            voorstel_afstemmen:
-                label: voorstel 5e digits afstemmen en communiceren
-                start: 1-9-2023
-                end: 30-9-2023
-                employees: emp3
-            voorstel_verwerken:
-                label: voorstel 5e digits verwerken in SER overzicht
-                start: 15-8-2023
-                end: 15-9-2023
-                employees: emp3
-            omschrijvingen:
-                label: omschrijvingen en toelichtingen bekijken
-                start: 1-10-2023
-                end: 30-11-2023
-                employees: emp3
+  emp3_sbs_23:
+    title: SBS 2022 V
+    color: corporatelichtblauw
+    tasks:
+      basis_bestanden_opvragen:
+        label: Basisbestanden opvragen/klaar zetten
+        start: 1-8-2023
+        end: 1-10-2023
+        employees:
+          - emp4
+          - emp5
+      jaarverslagen_opvragen:
+        label: Jaarverslagen opvragen
+        start: 1-8-2023
+        end: 1-10-2023
+        employees: emp5
+      data_maken_en_controleren:
+        label: Dataset maken en controleren
+        start: 1-8-2023
+        end: 1-10-2023
+        employees:
+          - emp4
+          - emp7
+          - emp3
+      data_afronden_en_sturen:
+        type: milestone
+        label: Dataset afronden en sturen naar EBN/NR
+        start: 20-10-2023
+        employees:
+          - emp7
+          - emp3
+  emp3_sbs_ontw:
+    title: SBS ontwikkeling
+    color: corporatelichtblauw
+    tasks:
+      meta_info_eurostat:
+        label: Input maken voor meta info voor Eurostat
+        start: 1-8-2023
+        end: 31-8-2023
+        employees: emp3
+      pub_cbs_website:
+        label: Publicatie 2021 D als maatwerk op cbs.nl
+        start: 1-9-2023
+        end: 31-10-2023
+        employees:
+          - emp3
+          - emp6
+      documentatie:
+        label: Documentatie SBS NACE R uitbreiden
+        start: 1-9-2023
+        end: 31-12-2023
+        employees:
+          - emp3
+          - emp6
+          - emp7
+      rf_model:
+        label: RF model KUK bekijken/verbeteren
+        start: 1-9-2023
+        end: 30-10-2023
+        employees:
+          - emp4
+          - emp3
+          - emp6
+      abr_kader_zaken:
+        label: ABR kader zaken
+        start: 1-10-2023
+        end: 31-12-2023
+        employees:
+          - emp3
+          - emp6
+          - emp7
+      validatie_systeem:
+        label: set validatieregels opstellen
+        start: 15-9-2023
+        end: 30-11-2023
+        employees:
+          - emp3
+          - emp6
+          - emp7
+  emp3_sbs_24:
+    title: SBS 2022 D
+    color: corporatelichtblauw
+    tasks:
+      basis_bestanden_opvragen:
+        label: Basisbestanden opvragen/klaar zetten
+        start: 1-4-2024
+        end: 1-6-2024
+        employees:
+          - emp4
+          - emp5
+      jaarverslagen_opvragen:
+        label: Jaarverslagen opvragen
+        start: 1-4-2024
+        end: 1-6-2024
+        employees: emp5
+      methode_verbeteringen:
+        label: Methode verbeteringen en aanpassingen doorvoeren
+        start: 1-4-2024
+        end: 1-6-2024
+        employees:
+          - emp4
+          - emp7
+          - emp3
+      data_maken_en_controleren:
+        label: Dataset maken en controleren
+        start: 1-5-2024
+        end: 1-6-2024
+        employees: emp4
+      data_afronden_en_sturen:
+        type: milestone
+        label: Dataset afronden en sturen naar EBN/NR
+        start: 15-6-2024
+        employees: emp4
+      vlaggen_bestand_maken:
+        label: Vlaggen verwerken in bestand voor EBN
+        start: 15-6-2024
+        end: 22-6-2024
+        employees: emp3
+      geheimhouding_uitzoeken:
+        label: Uitzoeken waar geheimhouding nodig is
+        start: 15-6-2024
+        end: 22-6-2024
+        employees: emp3
+  emp3_sbs:
+    title: SBS general
+    vir: WTE
+    project_leader: emp3
+    link: "\\\\cbsp.nl/Productie/primair/FNR/Werk"
+    casper_project: PR002399
+    color: corporatelichtblauw
+    tasks:
+      - emp3_sbs_23
+      - emp3_sbs_ontw
+      - emp3_sbs_24
+  emp3_sport_2021:
+    title: Afrondzaken sportstatistieken 2021
+    color: appelgroen
+    tasks:
+      dsc_bestanden:
+        label: DSC bestanden maken van 2021 data
+        start: 15-9-2023
+        end: 15-10-2023
+        employees:
+          - emp8
+          - emp3
+      archief_netwerk:
+        label: Archivering op netwerk aanpassen
+        start: 1-10-2023
+        end: 30-10-2023
+        employees: emp8
+  emp3_fitness_2023:
+    title: Fitness statistiek 2023
+    color: appelgroen
+    tasks:
+      vragenlijst:
+        label: vragenlijst maken/afstemmen met department1
+        start: 1-9-2023
+        end: 1-1-2024
+        employees:
+          - emp3
+          - emp8
+          - department1
+      populatie_steekproef:
+        label: Populatie- steekproefbestand maken
+        start: 1-12-2023
+        end: 1-1-2024
+        employees:
+          - emp3
+          - emp8
+      dataverzameling_period:
+        label: datatverzameling department1 volgen
+        start: 1-1-2024
+        end: 1-5-2024
+        employees:
+          - emp3
+          - emp8
+      analyse_bestand:
+        label: analysebestand maken
+        start: 1-5-2024
+        end: 1-6-2024
+        employees:
+          - emp3
+          - emp8
+      controle_gaafmaken:
+        label: controle correctie gaafmaken
+        start: 1-6-2024
+        end: 1-7-2024
+        employees:
+          - emp3
+          - emp8
+      statline_updaten:
+        label: StatLine tabellen fitness updaten
+        start: 1-7-2024
+        end: 15-7-2024
+        employees:
+          - emp3
+          - emp8
+      nieuwsbericht:
+        label: Nieuwsbericht maken over fitness
+        start: 1-7-2024
+        end: 15-7-2024
+        employees:
+          - emp3
+          - emp8
+  emp3_taskforce:
+    title: Deelname Eurostat TaskForce Sport
+    color: appelgroen
+    tasks:
+      voorbereiden:
+        label: inlezen en voorbereiden meeting okt 2023
+        start: 1-9-2023
+        end: 6-10-2023
+        employees: emp3
+      meeting:
+        label: reizen en meeting okt 2023
+        start: 9-10-2023
+        end: 11-10-2023
+        employees: emp3
+  emp3_sport_statistieken:
+    title: Sportstatistieken
+    vir: CBB
+    project_leader: emp3
+    link: "\\\\cbsp.nl/Productie/primair/CBB/Werk"
+    casper_project: PR002397
+    color: appelgroen
+    tasks:
+      - emp3_sport_2021
+      - emp3_fitness_2023
+      - emp3_taskforce
+  emp3_SBI_5digit:
+    title: SBI 2025 5e digit
+    color: geel
+    tasks:
+      voorstel_uitwerken:
+        label: voorstel 5e digits uitwerken
+        start: 1-6-2023
+        end: 31-8-2023
+        employees: emp3
+      voorstel_afstemmen:
+        label: voorstel 5e digits afstemmen en communiceren
+        start: 1-9-2023
+        end: 30-9-2023
+        employees: emp3
+      voorstel_verwerken:
+        label: voorstel 5e digits verwerken in SER overzicht
+        start: 15-8-2023
+        end: 15-9-2023
+        employees: emp3
+      omschrijvingen:
+        label: omschrijvingen en toelichtingen bekijken
+        start: 1-10-2023
+        end: 30-11-2023
+        employees: emp3
 excel:
-    column_widths:
-        name: 30
-        task: 50
-        period: 10
-        other_business: 30
-    header:
-        what:
-            color: 5b9bd5
-            title: what
-            columns:
-                name: Statistiek / project
-                vir: VIR-procescode
-                link: Link naar hoofdmap
-                casper_project: CASPER-project
-                casper_task: CASPER-task
-                task: Fasen / Activiteiten
-                focal_point: focal_point werkzaamheden
-        when:
-            color: 70ad47
-            title: when
-            columns:
-                period: period
-                start: Begindatum
-                stop: Einddatum
-                deadline: Deadline
-        who:
-            color: ed7d31
-            title: who
-            columns:
-                project_leader: project_leader
-                employee_1: Employee 1
-                employee_2: Employee 2
-                employee_3: Employee 3
-                department1: department1
-                cci: CCI
-        other_business:
-            color: 808080
-            title: other_business
-            columns:
-                remark: Remarks
+  column_widths:
+    name: 30
+    task: 50
+    period: 10
+    other_business: 30
+  header:
+    what:
+      color: 5b9bd5
+      title: what
+      columns:
+        name: Statistiek / project
+        vir: VIR-procescode
+        link: Link naar hoofdmap
+        casper_project: CASPER-project
+        casper_task: CASPER-task
+        task: Fasen / Activiteiten
+        focal_point: focal_point werkzaamheden
+    when:
+      color: 70ad47
+      title: when
+      columns:
+        period: period
+        start: Begindatum
+        stop: Einddatum
+        deadline: Deadline
+    who:
+      color: ed7d31
+      title: who
+      columns:
+        project_leader: project_leader
+        employee_1: Employee 1
+        employee_2: Employee 2
+        employee_3: Employee 3
+        department1: department1
+        cci: CCI
+    other_business:
+      color: 808080
+      title: other_business
+      columns:
+        remark: Remarks
 
