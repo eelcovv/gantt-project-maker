@@ -2,7 +2,7 @@ general:
   title: Project Leader Three
   color: blue
   projects:
-    - project_1
+    - all_project
 projects:
   project_1:
     title: Project One 2022
@@ -38,3 +38,46 @@ projects:
         remark: Priority
         employees:
           - emp3
+  project_2:
+    title: Project Two 2022
+    global_title: Long description of project two 2022
+    global_employees: "default"
+    color: yellow
+    project_leader: PL1
+    department1: "Yes"
+    cci: "No"
+    remark: "Check with Bob"
+    tasks:
+      do_something:
+        label: Do something
+        start: 4-5-2023
+        end: 20-5-2023
+        project_leader: emp3
+        department1: "Yes"
+        cci: "No"
+        remark: Priority
+        employees:
+          - emp3
+      another_thing:
+        label: Do something else
+        start: 5-6-2023
+        end: 21-7-2023
+        project_leader: emp3
+        remark: Priority
+        employees:
+          - emp3
+      last_thing:
+        label: Final thing of project 2
+        start: 1-7-2023
+        end: 1-8-2023
+        project_leader: emp3
+        remark: Priority
+        employees:
+          - emp3
+  all_project:
+    title: All projects of major project
+    color: red
+    project_leader: PL3
+    tasks:
+      - project_1
+      - project_2

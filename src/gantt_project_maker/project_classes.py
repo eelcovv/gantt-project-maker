@@ -292,7 +292,7 @@ class ProjectPlanner:
         details: bool = None,
         filter_employees: list = None,
         save_svg_as_pdf: bool = False,
-        export_global_program: bool = False,
+        collaps_tasks: bool = False,
     ):
         """
 
@@ -336,6 +336,7 @@ class ProjectPlanner:
         self.scale = scale
         self.details = details
         self.save_svg_as_pdf = save_svg_as_pdf
+        self.collaps_tasks = collaps_tasks
         if filter_employees:
             # if filter_employees are given, add them as a set
             self.filter_employees = set(filter_employees)
@@ -356,14 +357,6 @@ class ProjectPlanner:
         self.programma = gantt.Project(
             name=programma_title, color=color_to_hex(programma_color)
         )
-
-        # Make the main project only with the subprojects, not the tasks
-        if export_global_program:
-            self.programma_main = gantt.Project(
-                name=programma_title, color=color_to_hex(programma_color)
-            )
-        else:
-            self.programma_main = None
 
         # Make the project to store all the vacations
         self.vacations_gantt = gantt.Project(
@@ -698,14 +691,6 @@ class ProjectPlanner:
             color=employee_color,
             font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
         )
-        if self.programma_main is not None:
-            projects_employee_main = gantt.Project(
-                name=subprojects_title,
-                color=employee_color,
-                font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
-            )
-        else:
-            projects_employee_main = None
 
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
@@ -724,10 +709,6 @@ class ProjectPlanner:
             _logger.debug("Creating project {}".format(project_name))
             project = gantt.Project(name=project_name, color=project_color)
 
-            if self.programma_main is not None:
-                project_main = gantt.Project(name=project_name, color=project_color)
-            else:
-                project_main = None
             main_start_date = None
             main_end_date = None
             main_contributors = None
@@ -743,6 +724,7 @@ class ProjectPlanner:
                 raise ValueError(msg)
 
             self.subprojects[project_key] = project
+            added_projects = list()
 
             if tasks := project_values.get("tasks"):
                 if isinstance(tasks, list):
@@ -821,40 +803,52 @@ class ProjectPlanner:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
                     else:
                         # hier min en max data bijhouden
-                        project.add_task(task)
+                        if not self.collaps_tasks or isinstance(
+                            task, gantt.Project
+                        ):
+                            added_projects.append(project_key)
+                            project.add_task(task)
 
-                        main_contributors = get_contributors(task, main_contributors, projects_employee_global)
+                        if projects_employee_global is None:
+                            main_contributors = get_contributors_task(
+                                task,
+                                main_contributors,
+                            )
+                        else:
+                            main_contributors = get_contributors_from_resources(
+                                projects_employee_global,
+                                main_contributors,
+                                self.employees,
+                            )
 
                         # each project with task is stored as a main project with the project begin and end
                         if main_start_date is None:
                             main_start_date = task.start_date()
                             main_end_date = task.end_date()
-                        else:
+
+                        if task.end_date() > main_end_date:
                             main_end_date = task.end_date()
 
             # every project with tasks will be a course project plan as well
-            if main_start_date is not None and main_contributors is not None:
-                main_contributors = list(set(main_contributors))
+            if self.collaps_tasks and project_key not in added_projects:
+                if main_contributors is not None:
+                    main_contributors = list(set(main_contributors))
                 main_task = gantt.Task(
                     name=project_name_global,
                     start=main_start_date,
                     stop=main_end_date,
                     resources=main_contributors,
                 )
-                if project_main is not None:
-                    project_main.add_task(main_task)
+                if project is not None:
+                    project.add_task(main_task)
 
             self.subprojects[project_key] = project
             if project_key in subprojects_selection:
                 # hier project zonder taken toevoegen
                 projects_employee.add_task(project)
-                if project_main is not None:
-                    projects_employee_main.add_task(project_main)
 
         # add now all projects of the employee to the program
         self.programma.add_task(projects_employee)
-        if self.programma_main is not None:
-            self.programma_main.add_task(projects_employee_main)
 
     def write_planning(
         self,
@@ -884,45 +878,36 @@ class ProjectPlanner:
            Periods we want to add. If None, add all periods
         """
 
+        directories = {
+            "tasks": planning_output_directory,
+            "resources": resource_output_directory,
+            "vacations": vacations_output_directory,
+        }
+        svg42pdf = None
+        # make output directories. Vacations can be made per period, so do later
+        directories["tasks"].mkdir(parents=True, exist_ok=True)
+        if write_resources:
+            directories["resources"].mkdir(parents=True, exist_ok=True)
+
         for period_key, period_prop in self.period_info.items():
             if periods is not None and period_key not in periods:
                 _logger.debug(f"Employee {period_key} is skipped")
                 continue
 
-            suffix = self.output_file_name.suffix
-            file_base_tasks = "_".join(
-                [self.output_file_name.with_suffix("").as_posix(), period_key, "tasks"]
-            )
-            if self.programma_main is not None:
-                file_base_tasks_main = file_base_tasks + "_main"
-            else:
-                file_base_tasks_main = None
-            file_base_resources = file_base_tasks.replace("_tasks", "_resources")
+            file_names = dict()
+            leading_suffix = [period_key]
+            if self.collaps_tasks:
+                leading_suffix = ["collapsed"] + leading_suffix
 
-            file_base_vacations = file_base_tasks.replace("_tasks", "_vacations")
+            write_vacations_this_period = period_prop.get("export_vacations", False)
 
-            planning_output_directory.mkdir(exist_ok=True, parents=True)
-
-            if write_resources:
-                resource_output_directory.mkdir(exist_ok=True, parents=True)
-
-            file_name = planning_output_directory / Path(file_base_tasks).with_suffix(
-                suffix
-            )
-            if file_base_tasks_main:
-                file_name_main = planning_output_directory / Path(
-                    file_base_tasks_main
-                ).with_suffix(suffix)
-            else:
-                file_name_main = None
-
-            file_name_res = resource_output_directory / Path(
-                file_base_resources
-            ).with_suffix(suffix)
-
-            file_name_vac = vacations_output_directory / Path(
-                file_base_vacations
-            ).with_suffix(suffix)
+            for file_suffix in directories.keys():
+                file_names[file_suffix] = extend_suffix(
+                    self.output_file_name, extensions=leading_suffix + [file_suffix]
+                )
+                file_names[file_suffix] = (
+                    directories[file_suffix] / file_names[file_suffix]
+                )
 
             weeks_margin_left = period_prop.get(
                 "weeks_margin_left", self.weeks_margin_left
@@ -962,6 +947,7 @@ class ProjectPlanner:
                     )
 
             # the planning is a collection of all the projects
+            file_name = file_names["tasks"]
             _logger.info(
                 f"Writing project starting at {start} and ending at {end} with a scale {scale} to {file_name}"
             )
@@ -975,46 +961,28 @@ class ProjectPlanner:
                 today=today,
             )
 
-            if self.programma_main is not None:
-                _logger.info(
-                    f"Writing main project starting at {start} and ending at {end} with a scale {scale} to {file_name_main}"
-                )
-                self.programma_main.make_svg_for_tasks(
-                    filename=file_name_main,
-                    start=start,
-                    end=end,
-                    margin_left=weeks_margin_left,
-                    margin_right=weeks_margin_right,
-                    scale=scale,
-                    today=today,
-                )
-            _logger.debug("Done")
-
             if self.save_svg_as_pdf:
                 try:
                     import svg42pdf
                 except ImportError as err:
                     _logger.warning(f"{err}\nFailed writing pdf because svg42pdf is")
                 else:
-                    for fn in (file_name, file_name_main):
-                        if fn is None:
-                            continue
-
-                        pdf_file_name = fn.with_suffix(".pdf")
-                        _logger.info(f"Saving as {pdf_file_name}")
-                        svg42pdf.svg42pdf(
-                            svg_fn=fn.as_posix(),
-                            pdf_fn=pdf_file_name.as_posix(),
-                            method="any",
+                    pdf_file_name = file_name.with_suffix(".pdf")
+                    _logger.info(f"Saving as {pdf_file_name}")
+                    svg42pdf.svg42pdf(
+                        svg_fn=file_name.as_posix(),
+                        pdf_fn=pdf_file_name.as_posix(),
+                        method="any",
                     )
 
             if write_resources:
+                file_name_resources = file_names["resources"]
                 _logger.info(
-                    f"Write resources of {start} to {end} with scale {scale} to {file_name_res}"
+                    f"Write resources of {start} to {end} with scale {scale} to {file_name_resources}"
                 )
                 try:
                     self.programma.make_svg_for_resources(
-                        filename=file_name_res.as_posix(),
+                        filename=file_name_resources.as_posix(),
                         start=start,
                         end=end,
                         scale=SCALES["daily"],
@@ -1028,19 +996,19 @@ class ProjectPlanner:
                     )
                 else:
                     if self.save_svg_as_pdf and svg42pdf is not None:
-                        pdf_file_name_res = file_name_res.with_suffix(".pdf")
+                        pdf_file_name_res = file_name_resources
                         svg42pdf.svg42pdf(
-                            svg_fn=file_name_res.as_posix(),
+                            svg_fn=file_name_resources.as_posix(),
                             pdf_fn=pdf_file_name_res.as_posix(),
                             method="any",
                         )
 
-            write_vacations_this_period = period_prop.get("export_vacations", False)
             if write_vacations or write_vacations_this_period:
+                file_name_vacations = file_names["vacations"]
                 vacations_output_directory.mkdir(exist_ok=True, parents=True)
-                _logger.info(f"Writing vacation file {file_name_vac}")
+                _logger.info(f"Writing vacation file {file_name_vacations}")
                 self.vacations_gantt.make_svg_for_tasks(
-                    filename=file_name_vac,
+                    filename=file_name_vacations,
                     start=start,
                     end=end,
                     margin_left=weeks_margin_left,
@@ -1049,9 +1017,9 @@ class ProjectPlanner:
                     today=today,
                 )
                 if self.save_svg_as_pdf and svg42pdf is not None:
-                    pdf_file_name_vac = file_name_vac.with_suffix(".pdf")
+                    pdf_file_name_vac = file_name_vacations.with_suffix(".pdf")
                     svg42pdf.svg42pdf(
-                        svg_fn=file_name_vac.as_posix(),
+                        svg_fn=file_name_vacations.as_posix(),
                         pdf_fn=pdf_file_name_vac.as_posix(),
                         method="any",
                     )
@@ -1108,30 +1076,57 @@ def extend_suffix(output_filename: Path, extensions: Union[list, str]):
 
     return output_filename
 
-def get_contributors(task, contributors, projects_employee_global):
+
+def get_contributors_task(task, contributors):
     """
-    get of the contributors of this Task
+    get of the contributors of this Task based on the task resources
 
     Parameters
     ----------
     task
     contributors
-    projects_employee_global
 
     Returns
     -------
+    list:
+        contributors
 
     """
     try:
-        if task.resources:
-            for employee in task.resources:
-                if projects_employee_global:
-                    if employee.name not in projects_employee_global:
-                        continue
+        task_resources = task.resources
+    except AttributeError:
+        pass
+    else:
+        if task_resources:
+            for employee in task_resources:
                 if contributors is None:
                     contributors = [employee]
                 else:
                     contributors.append(employee)
-    except AttributeError:
-        pass
+    return contributors
+
+
+def get_contributors_from_resources(
+    projects_employee_global, contributors, all_resources
+):
+    """
+    get the contributors of this Task based on the global resources
+
+    Parameters
+    ----------
+    projects_employee_global
+    contributors
+
+    Returns
+    -------
+    list:
+        contributors
+
+    """
+    for emp_key, emp_val in all_resources.items():
+        if emp_key in projects_employee_global:
+            if contributors is None:
+                contributors = [emp_val.resource]
+            else:
+                contributors.append(emp_val.resource)
     return contributors

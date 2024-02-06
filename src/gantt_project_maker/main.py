@@ -174,8 +174,8 @@ def parse_args(args):
     )
     parser.add_argument(
         "-g",
-        "--global_program",
-        help="Export the project to a global gantt chart",
+        "--collaps_tasks",
+        help="Collaps the tasks per project to one task to remove details",
         action="store_true",
     )
     parser.add_argument(
@@ -484,7 +484,7 @@ def main(args):
         details=args.details,
         filter_employees=args.filter_employees,
         save_svg_as_pdf=args.pdf,
-        export_global_program=args.global_program,
+        collaps_tasks=args.collaps_tasks,
     )
 
     # add global information, vacations and employees
