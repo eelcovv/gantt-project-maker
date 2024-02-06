@@ -730,7 +730,7 @@ class ProjectPlanner:
                 project_main = None
             main_start_date = None
             main_end_date = None
-            contributors = None
+            main_contributors = None
 
             # add all the other elements as attributes
             for p_key, p_value in project_values.items():
@@ -823,7 +823,7 @@ class ProjectPlanner:
                         # hier min en max data bijhouden
                         project.add_task(task)
 
-                        contributors = get_contributors(task,contributors, projects_employee_global)
+                        main_contributors = get_contributors(task, main_contributors, projects_employee_global)
 
                         # each project with task is stored as a main project with the project begin and end
                         if main_start_date is None:
@@ -833,8 +833,8 @@ class ProjectPlanner:
                             main_end_date = task.end_date()
 
             # every project with tasks will be a course project plan as well
-            if main_start_date is not None and contributors is not None:
-                main_contributors = list(set(contributors))
+            if main_start_date is not None and main_contributors is not None:
+                main_contributors = list(set(main_contributors))
                 main_task = gantt.Task(
                     name=project_name_global,
                     start=main_start_date,
