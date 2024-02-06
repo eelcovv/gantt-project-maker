@@ -803,9 +803,7 @@ class ProjectPlanner:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
                     else:
                         # hier min en max data bijhouden
-                        if not self.collaps_tasks or isinstance(
-                            task, gantt.Project
-                        ):
+                        if not self.collaps_tasks or isinstance(task, gantt.Project):
                             added_projects.append(project_key)
                             project.add_task(task)
 
@@ -897,7 +895,7 @@ class ProjectPlanner:
             file_names = dict()
             leading_suffix = [period_key]
             if self.collaps_tasks:
-                leading_suffix = ["collapsed"] + leading_suffix
+                leading_suffix += ["collapsed"]
 
             write_vacations_this_period = period_prop.get("export_vacations", False)
 
