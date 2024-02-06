@@ -40,8 +40,8 @@ projects:
           - emp3
   project_2:
     title: Project Two 2022
-    global_title: Long description of project two 2022
-    global_employees: "default"
+    title_collapsed: Long description of project two 2022
+    employees_collapsed: "default"
     color: yellow
     project_leader: PL1
     department1: "Yes"

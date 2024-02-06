@@ -695,8 +695,8 @@ class ProjectPlanner:
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
             project_name = project_values.get("title", project_key)
-            project_name_global = project_values.get("global_title", project_name)
-            projects_employee_global = project_values.get("global_employees")
+            project_name_global = project_values.get("title_collapsed", project_name)
+            projects_employee_global = project_values.get("employees_collapsed")
             if projects_employee_global is not None and isinstance(
                 projects_employee_global, str
             ):
@@ -1114,6 +1114,7 @@ def get_contributors_from_resources(
     ----------
     projects_employee_global
     contributors
+    all_resources: list
 
     Returns
     -------
