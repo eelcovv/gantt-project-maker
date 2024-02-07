@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 0.3.3
+Version 0.3.4
 =============
 - Added option --vacations in order to export a gantt chart of the vacations per employer
 - Added option --collaps_tasks in order to collaps the tasks per project to one task in order to simplify the output
