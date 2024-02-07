@@ -173,7 +173,7 @@ def parse_args(args):
         action="store_true",
     )
     parser.add_argument(
-        "-g",
+        "-c",
         "--collaps_tasks",
         help="Collaps the tasks per project to one task to remove details",
         action="store_true",
@@ -485,6 +485,7 @@ def main(args):
         filter_employees=args.filter_employees,
         save_svg_as_pdf=args.pdf,
         collaps_tasks=args.collaps_tasks,
+        periods=args.period,
     )
 
     # add global information, vacations and employees

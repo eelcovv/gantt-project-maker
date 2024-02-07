@@ -293,6 +293,7 @@ class ProjectPlanner:
         filter_employees: list = None,
         save_svg_as_pdf: bool = False,
         collaps_tasks: bool = False,
+        periods: list = None,
     ):
         """
 
@@ -345,6 +346,19 @@ class ProjectPlanner:
 
         self.weeks_margin_left = weeks_margin_left
         self.weeks_margin_right = weeks_margin_right
+
+        self.start_date = planning_start
+        self.end_date = planning_end
+
+        if periods is not None:
+            for period_key, period_value in period_info.items():
+                if period_key in periods:
+                    period_start = parse_date(period_value["planning_start"])
+                    period_end = parse_date(period_value["planning_end"])
+                    if period_start > self.start_date:
+                        self.start_date = period_start
+                    if period_end < self.end_date:
+                        self.end_date = period_end
 
         self.excel_info = excel_info
 
@@ -692,15 +706,17 @@ class ProjectPlanner:
             font=gantt.get_font_attributes(font_weight="bold", font_size="20"),
         )
 
+        added_projects = list()
+
         _logger.info(f"Add all projects of {subprojects_title}")
         for project_key, project_values in subprojects_info.items():
             project_name = project_values.get("title", project_key)
-            project_name_global = project_values.get("title_collapsed", project_name)
-            projects_employee_global = project_values.get("employees_collapsed")
-            if projects_employee_global is not None and isinstance(
-                projects_employee_global, str
+            project_name_collapsed = project_values.get("title_collapsed", project_name)
+            projects_employee_collapsed = project_values.get("employees_collapsed")
+            if projects_employee_collapsed is not None and isinstance(
+                projects_employee_collapsed, str
             ):
-                projects_employee_global = [projects_employee_global]
+                projects_employee_collapsed = [projects_employee_collapsed]
 
             _logger.info(f"Making project: {project_name}")
 
@@ -724,7 +740,6 @@ class ProjectPlanner:
                 raise ValueError(msg)
 
             self.subprojects[project_key] = project
-            added_projects = list()
 
             if tasks := project_values.get("tasks"):
                 if isinstance(tasks, list):
@@ -802,37 +817,51 @@ class ProjectPlanner:
                     if not self.details and is_detail:
                         _logger.debug(f"skipping task {task_key} as it is a detail")
                     else:
-                        # hier min en max data bijhouden
                         if not self.collaps_tasks or isinstance(task, gantt.Project):
                             added_projects.append(project_key)
                             project.add_task(task)
 
-                        if projects_employee_global is None:
+                        if projects_employee_collapsed is None:
                             main_contributors = get_contributors_task(
                                 task,
                                 main_contributors,
                             )
                         else:
                             main_contributors = get_contributors_from_resources(
-                                projects_employee_global,
+                                projects_employee_collapsed,
                                 main_contributors,
                                 self.employees,
                             )
 
                         # each project with task is stored as a main project with the project begin and end
-                        if main_start_date is None:
+                        if (
+                            main_start_date is None
+                            and self.start_date <= task.start_date() < self.end_date
+                        ):
                             main_start_date = task.start_date()
-                            main_end_date = task.end_date()
+                            main_end_date = min(self.end_date, task.end_date())
+                        if (
+                            main_start_date is not None
+                            and self.start_date < task.start_date() < main_start_date
+                        ):
+                            main_start_date = task.start_date()
 
-                        if task.end_date() > main_end_date:
+                        if (
+                            main_end_date is not None
+                            and main_end_date < task.end_date() <= self.end_date
+                        ):
                             main_end_date = task.end_date()
 
             # every project with tasks will be a course project plan as well
-            if self.collaps_tasks and project_key not in added_projects:
+            if (
+                self.collaps_tasks
+                and main_start_date is not None
+                and project_key not in added_projects
+            ):
                 if main_contributors is not None:
                     main_contributors = list(set(main_contributors))
                 main_task = gantt.Task(
-                    name=project_name_global,
+                    name=project_name_collapsed,
                     start=main_start_date,
                     stop=main_end_date,
                     resources=main_contributors,
