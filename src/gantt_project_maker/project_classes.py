@@ -615,6 +615,11 @@ class ProjectPlanner:
             )
         elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
+            if task_properties.get("end"):
+                raise ValueError(
+                    "You have specified a milestone, but also defined an end date. Milestones only"
+                    f"require a start data. Please fix task\n{task_properties}"
+                )
             task_or_milestone = Milestone(
                 label=task_properties.get("label"),
                 start=task_properties.get("start"),
