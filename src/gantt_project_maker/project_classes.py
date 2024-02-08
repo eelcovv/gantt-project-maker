@@ -844,7 +844,12 @@ class ProjectPlanner:
                             and self.start_date <= task.start_date() < self.end_date
                         ):
                             main_start_date = task.start_date()
-                            main_end_date = min(self.end_date, task.end_date())
+                        try:
+                            task_end_date = task.end_date()
+                        except AssertionError:
+                            main_end_date = None
+                        else:
+                            main_end_date = min(self.end_date, task_end_date)
                         if (
                             main_start_date is not None
                             and self.start_date < task.start_date() < main_start_date
@@ -865,12 +870,20 @@ class ProjectPlanner:
             ):
                 if main_contributors is not None:
                     main_contributors = list(set(main_contributors))
-                main_task = gantt.Task(
-                    name=project_name_collapsed,
-                    start=main_start_date,
-                    stop=main_end_date,
-                    resources=main_contributors,
-                )
+                if main_end_date is None:
+                    main_task = gantt.Task(
+                        name=project_name_collapsed,
+                        start=main_start_date,
+                        duration=1,
+                        resources=main_contributors,
+                    )
+                else:
+                    main_task = gantt.Task(
+                        name=project_name_collapsed,
+                        start=main_start_date,
+                        stop=main_end_date,
+                        resources=main_contributors,
+                    )
                 if project is not None:
                     project.add_task(main_task)
 
