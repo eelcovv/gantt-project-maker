@@ -435,19 +435,21 @@ def main(args):
 
     if args.output_filename is None:
         output_filename = Path(args.settings_filename).with_suffix(".svg")
+        # add employees from input arguments to output file name
+        if args.employee is not None:
+            output_filename = extend_suffix(
+                output_filename=output_filename, extensions=args.employee
+            )
+
+        # add filtered employees from input arguments to output file name
+        if args.filter_employees is not None:
+            extensions = ["contributors"] + sorted(args.filter_employees)
+            output_filename = extend_suffix(
+                output_filename=output_filename, extensions=extensions
+            )
     else:
+        # just use the output filename as defined on the command line
         output_filename = Path(args.output_filename).with_suffix(".svg")
-
-    if args.employee is not None:
-        output_filename = extend_suffix(
-            output_filename=output_filename, extensions=args.employee
-        )
-
-    if args.filter_employees is not None:
-        extensions = ["contributors"] + sorted(args.filter_employees)
-        output_filename = extend_suffix(
-            output_filename=output_filename, extensions=extensions
-        )
 
     today = None
     try:
