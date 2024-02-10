@@ -47,14 +47,14 @@ def get_nearest_saturday(date):
 
 
 def parse_date(
-    date_string: str, date_default: str = None, dayfirst=False
+    date_in: Union[str, datetime], date_default: str = None, dayfirst=False
 ) -> datetime.date:
     """
     Lees de date_string en parse de datum
 
     Parameters
     ----------
-    date_string: str
+    date_in: str
         Datum representatie
     date_default:
         Als de date_string None is deze default waarde genomen.
@@ -66,13 +66,17 @@ def parse_date(
     datetime.date():
         Datum
     """
-    if date_string is not None:
-        date = dparse.parse(date_string.strip(), dayfirst=dayfirst).date()
+    if date_in is not None:
+        try:
+            date_out = dparse.parse(date_in.strip(), dayfirst=dayfirst).date()
+        except AttributeError:
+            # assume the date string is given as a datetime already
+            date_out = date_in
     elif date_default is not None and isinstance(date_default, str):
-        date = dparse.parse(date_default.strip(), dayfirst=dayfirst).date()
+        date_out = dparse.parse(date_default.strip(), dayfirst=dayfirst).date()
     else:
-        date = date_default
-    return date
+        date_out = date_default
+    return date_out
 
 
 def add_vacation_employee(employee: gantt.Resource, vacations: dict) -> dict:
@@ -353,8 +357,8 @@ class ProjectPlanner:
         if periods is not None:
             for period_key, period_value in period_info.items():
                 if period_key in periods:
-                    period_start = parse_date(period_value["planning_start"])
-                    period_end = parse_date(period_value["planning_end"])
+                    period_start = parse_date(period_value.get("planning_start", self.planning_start))
+                    period_end = parse_date(period_value.get("planning_end", self.planning_end))
                     if period_start > self.start_date:
                         self.start_date = period_start
                     if period_end < self.end_date:
@@ -391,7 +395,7 @@ class ProjectPlanner:
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
         )
 
-    def exporteer_naar_excel(self, excel_output_directory):
+    def export_to_excel(self, excel_output_directory):
         """
         Write planning to an Excel file
 

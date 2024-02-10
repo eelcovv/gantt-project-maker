@@ -1,9 +1,11 @@
 import logging
 
 import pandas as pd
+import xlsxwriter
 from pandas.io.formats.excel import ExcelFormatter
 
 import gantt_project_maker.gantt as gantt
+import gantt_project_maker
 from gantt_project_maker.colors import color_to_hex
 
 _logger = logging.getLogger(__name__)
@@ -225,12 +227,12 @@ def write_planning_to_excel(excel_file, project, header_info, column_widths):
 
 
 def write_project_to_excel(
-    project,
-    writer,
-    sheet_name,
-    header_info=None,
-    column_widths=None,
-    character_width=1.0,
+    project: type(gantt.Project),
+    writer: type(pd.ExcelWriter),
+    sheet_name: str,
+    header_info: dict = None,
+    column_widths: dict = None,
+    character_width: float = 1.0,
 ):
     """
     Schrijf een multi index data frame naar Excel file met format
@@ -289,7 +291,14 @@ def write_project_to_excel(
 
 
 def write_project(
-    project, header_info, workbook, worksheet, character_width, wb, row_index, level
+    project: type(gantt.Project),
+    header_info: dict,
+    workbook: type(WorkBook),
+    worksheet,
+    character_width: float,
+    wb,
+    row_index: int,
+    level: int,
 ):
     _logger.debug("Writing project")
     col_index = 0
@@ -324,33 +333,8 @@ def write_project(
                         label = employee.name
                         resource_index += 1
                 elif column_key == "period":
-                    label = ""
-                    try:
-                        year_start = pd.Timestamp(project.start).year
-                    except AttributeError:
-                        year_start = ""
-                    else:
-                        year_start = str(year_start)[-2:]
-                    label += f"{year_start}"
-                    try:
-                        quarter_start = pd.Timestamp(project.start).quarter
-                    except AttributeError:
-                        quarter_start = ""
-                    else:
-                        label += f"Q{quarter_start}"
-                    try:
-                        year_end = pd.Timestamp(project.stop).year
-                    except AttributeError:
-                        year_end = ""
-                    else:
-                        year_end = str(year_end)[-2:]
-                    try:
-                        quarter_end = pd.Timestamp(project.stop).quarter
-                    except AttributeError:
-                        pass
-                    else:
-                        if quarter_end != quarter_start or year_start != year_end:
-                            label += f"/{year_end}Q{quarter_end}"
+                    label = project_to_period_label(project=project)
+
             if label is not None:
                 _logger.debug(f"Writing {column_key} with {label}")
                 try:
@@ -441,3 +425,49 @@ def write_header(header_info, workbook, worksheet, character_width, wb, column_w
                         column_width = col_width
             worksheet.set_column(col_index, col_index, column_width * character_width)
             col_index += 1
+
+
+def project_to_period_label(project: type(gantt.Project)) -> str:
+    """
+    Take the start and end dates of the project and convert to a period label, like 24Q1 (first quarter of 2024) or
+    24Q324Q4 (third and last quarter of 2024)
+
+
+    Parameters
+    ----------
+    project: type(gantt.Project)
+        Project class with start_date and  end_date methods
+
+    Returns
+    -------
+    str:
+        label of the period, such as 24Q3 or 24Q3/25Q1
+    """
+    label = ""
+    try:
+        year_start = pd.Timestamp(project.start).year
+    except AttributeError:
+        year_start = ""
+    else:
+        year_start = str(year_start)[-2:]
+    label += f"{year_start}"
+    try:
+        quarter_start = pd.Timestamp(project.start_date()).quarter
+    except AttributeError:
+        quarter_start = ""
+    else:
+        label += f"Q{quarter_start}"
+    try:
+        year_end = pd.Timestamp(project.end_date()).year
+    except AttributeError:
+        year_end = ""
+    else:
+        year_end = str(year_end)[-2:]
+    try:
+        quarter_end = pd.Timestamp(project.end_date()).quarter
+    except AttributeError:
+        pass
+    else:
+        if quarter_end != quarter_start or year_start != year_end:
+            label += f"/{year_end}Q{quarter_end}"
+    return label

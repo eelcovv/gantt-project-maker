@@ -191,7 +191,7 @@ tasks_and_milestones:
     levering_microdata_23:
       label: Levering microdata 2023 t.b.v. RA-omgeving
       start: 15-3-2024
-      end: 15-4-2024
+      duration: 1
       employees: *emp1_emp3
     levering_maatwerktabel_dtc_23:
       label: DTC Maatwerktabel maken en publiceren '23

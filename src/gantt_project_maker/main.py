@@ -544,7 +544,7 @@ def main(args):
     )
 
     if args.export_to_xlsx:
-        planning.exporteer_naar_excel(excel_output_directory=excel_directory)
+        planning.export_to_excel(excel_output_directory=excel_directory)
 
 
 def run():
