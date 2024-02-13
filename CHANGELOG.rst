@@ -2,13 +2,14 @@
 Changelog
 =========
 
-Version 0.3.6
+Version 0.3.7
 =============
 - Added option --vacations in order to export a gantt chart of the vacations per employer
 - Added option --collaps_tasks in order to collaps the tasks per project to one task in order to simplify the output
 - Improved some feedback at errors with missing employees
 - if --output_filename is given on the command line, do not add employees to the base
 - bug fix on quarter label in excel output
+- bug fix on pdf output of resources
 
 Version 0.2.4
 =============
