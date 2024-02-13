@@ -1045,7 +1045,7 @@ class ProjectPlanner:
                     )
                 else:
                     if self.save_svg_as_pdf and svg42pdf is not None:
-                        pdf_file_name_res = file_name_resources
+                        pdf_file_name_res = file_name_resources.with_suffix(".pdf")
                         svg42pdf.svg42pdf(
                             svg_fn=file_name_resources.as_posix(),
                             pdf_fn=pdf_file_name_res.as_posix(),
