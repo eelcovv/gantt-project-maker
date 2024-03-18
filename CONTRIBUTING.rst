@@ -123,6 +123,14 @@ Clone the repository
 
    to be able to import the package under development in the Python REPL.
 
+#. Install |pre-commit|_::
+
+    pip install pre-commit
+    pre-commit install
+
+   ``gantt-project-maker`` comes with a lot of hooks configured to automatically help the
+   developer to check the code being written.
+
 Implement your changes
 ----------------------
 
@@ -143,6 +151,11 @@ Implement your changes
     git commit
 
    to record your changes in git_.
+
+   Please make sure to see the validation messages from |pre-commit|_ and fix
+   any eventual issues.
+   This should automatically use flake8_/black_ to check/fix the code style
+   in a way that is compatible with the project.
 
    .. important:: Don't forget to add unit tests and documentation in case your
       contribution adds an additional feature and is not just a bugfix.

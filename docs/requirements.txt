@@ -2,4 +2,14 @@
 # To build the module reference correctly, make sure every external package
 # under `install_requires` in `setup.cfg` is also listed here!
 sphinx>=3.2.1
+    pandas
+    python_dateutil
+    PyYAML
+    sphinx
+    SVG42PDF
+    svgwrite
+    webcolors
+    xlsxWriter
+
+[options.packages.find]
 # sphinx_rtd_theme

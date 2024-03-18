@@ -1,8 +1,10 @@
+"""
+Class files for the gantt-project-maker project
+"""
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Union
-import copy
 
 import dateutil.parser as dparse
 from dateutil.parser import ParserError
@@ -357,8 +359,12 @@ class ProjectPlanner:
         if periods is not None:
             for period_key, period_value in period_info.items():
                 if period_key in periods:
-                    period_start = parse_date(period_value.get("planning_start", self.planning_start))
-                    period_end = parse_date(period_value.get("planning_end", self.planning_end))
+                    period_start = parse_date(
+                        period_value.get("planning_start", self.planning_start)
+                    )
+                    period_end = parse_date(
+                        period_value.get("planning_end", self.planning_end)
+                    )
                     if period_start > self.start_date:
                         self.start_date = period_start
                     if period_end < self.end_date:
@@ -1015,6 +1021,7 @@ class ProjectPlanner:
                     import svg42pdf
                 except ImportError as err:
                     _logger.warning(f"{err}\nFailed writing pdf because svg42pdf is")
+                    svg42pdf = None
                 else:
                     pdf_file_name = file_name.with_suffix(".pdf")
                     _logger.info(f"Saving as {pdf_file_name}")
