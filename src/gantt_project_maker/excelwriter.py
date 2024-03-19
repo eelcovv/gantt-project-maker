@@ -208,6 +208,18 @@ def indent(string, n_char=5):
 
 
 def write_planning_to_excel(excel_file, project, header_info, column_widths):
+    """
+    A writer for the project plan of all employees, one sheet per employee
+
+    Args:
+        excel_file (Path):  The filename of the Excel file
+        project (Project):  a reference to the project
+        header_info (dict):  Information about the header of the Excel file
+        column_widths (dict): Fix width of specified columns
+
+    Returns:
+
+    """
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
         try:
             projects_per_employee = project.tasks
@@ -235,21 +247,15 @@ def write_project_to_excel(
     character_width: float = 1.0,
 ):
     """
-    Schrijf een multi index data frame naar Excel file met format
+    Write a multi index data frame to Excel file with format
 
-    Parameters
-    ----------
-    column_widths: dict
-        Fix width of these columns.
-    header_info: dict
-        Information on the header
-    project:
-        Hoofdproject
-    writer: obj
-    sheet_name: str
-        De sheet name
-    character_width: float
-        Width of 1 character. Default = 0.7
+    Args:
+        column_widths (dict): Fix width of these columns.
+        header_info (dict): Information on the header
+        project (dict): Main project
+        writer (obj): Excel writer
+        sheet_name (str): Name of the sheet
+        character_width (float): Width of one character. Default = 0.7
 
     """
 
@@ -300,6 +306,22 @@ def write_project(
     row_index: int,
     level: int,
 ):
+    """
+    Write the project to a sheet
+
+    Args:
+        project (Project): The gantt chart project
+        header_info (dict): The header of the Excel file
+        workbook (WorkBook): The Excel workbook
+        worksheet (Worksheet): The Excel worksheet
+        character_width (float): The width of the fixed columns
+        wb (object): The workbook object to
+        row_index (int): The index of the current row
+        level (int): The level of the indent
+
+    Returns:
+
+    """
     _logger.debug("Writing project")
     col_index = 0
     resource_index = 0
@@ -379,6 +401,17 @@ def write_project(
 
 
 def write_header(header_info, workbook, worksheet, character_width, wb, column_widths):
+    """
+    Write the header of a Excel sheet
+
+    Args:
+        header_info (dict):  The header infor of this sheet
+        workbook (WorkBook): The Excel workbook
+        worksheet (str): The name of the sheet
+        character_width (float): The width of the characters
+        wb (workbook): The object to the workbook
+        column_widths (dict): The columns widths for this sheet
+    """
     row_index = 0
     col_index = 0
     # begin met tabel nummer op eerste regel en title op regel 2
@@ -433,15 +466,11 @@ def project_to_period_label(project: type(gantt.Project)) -> str:
     24Q324Q4 (third and last quarter of 2024)
 
 
-    Parameters
-    ----------
-    project: type(gantt.Project)
-        Project class with start_date and  end_date methods
+    Args:
+        project (Project): Project class with start_date and  end_date methods
 
-    Returns
-    -------
-    str:
-        label of the period, such as 24Q3 or 24Q3/25Q1
+    Returns:
+        str: label of the period, such as 24Q3 or 24Q3/25Q1
     """
     label = ""
     try:
