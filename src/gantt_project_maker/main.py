@@ -239,6 +239,7 @@ def parse_args(args):
         help="Shifts start of planning with this number of weeks right without adding projects. Default is read "
         "from the settings file. This value overrides the default.",
     )
+    parser.add_argument("--suffix", help="Add a suffix to the final output filename ")
     parser.add_argument("--pdf", help="Save the svg also as pdf ", action="store_true")
 
     return parser.parse_args(args)
@@ -584,6 +585,7 @@ def main(args):
         resource_output_directory=resources_directory,
         vacations_output_directory=vacations_directory,
         periods=args.period,
+        suffix=args.suffix,
     )
 
     if args.export_to_xlsx:

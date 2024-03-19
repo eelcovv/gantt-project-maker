@@ -967,24 +967,19 @@ class ProjectPlanner:
         write_resources=False,
         write_vacations=False,
         periods=None,
+        suffix=None,
     ):
         """
         Write the planning to the output definitions
 
-        Parameters
-        ----------
-        write_resources: bool
-            Write the resources file as well (next to the gantt charts which is always written)
-        write_vacations: bool
-            Write the vacations file as well
-        planning_output_directory: Path
-            Output directory of the svg files of the planning
-        resource_output_directory: Path
-            Output directory of the svg files of the resources
-        vacations_output_directory: Path
-            Output directory of the svg files of the vacations
-        periods: list
-           Periods we want to add. If None, add all periods
+        Args:
+        planning_output_directory (Path): Output directory of the svg files of the planning
+        resource_output_directory (Path): Output directory of the svg files of the resources
+        vacations_output_directory (Path): Output directory of the svg files of the vacations
+        write_resources (bool, optional): Write the resources file as well. Defaults to False
+        write_vacations (bool, optional): Write the vacations file as well. Default to False
+        periods (list, optional): Periods we want to add. If None, add all periods. Defaults to None (all periods)
+        suffix (str, optional): Add a suffix to the final filename. Defaults to None
         """
 
         directories = {
@@ -1057,6 +1052,8 @@ class ProjectPlanner:
 
             # the planning is a collection of all the projects
             file_name = file_names["tasks"]
+            if suffix is not None:
+                file_name = extend_suffix(file_name, extensions=suffix)
             _logger.info(
                 f"Writing project starting at {start} and ending at {end} with a scale {scale} to {file_name}"
             )
