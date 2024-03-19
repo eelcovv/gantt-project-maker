@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 0.3.8
+Version 0.3.9
 =============
 - Added option --project in order to filter on the main projects which are going to be included
 - Added option --project in order to filter on the main projects which are going to be included
