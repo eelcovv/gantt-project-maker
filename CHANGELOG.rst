@@ -2,9 +2,9 @@
 Changelog
 =========
 
-Version 0.3.9
+Version 0.4.0
 =============
-- Added option --project in order to filter on the main projects which are going to be included
+- Added option --suffix in order add a extra suffix to the filename
 - Added option --project in order to filter on the main projects which are going to be included
 - Added replacement variable for both titles and date/time. Now a variable 'my_variable'
   can be defined which replaces all occurrences of {{ my_variable }}
