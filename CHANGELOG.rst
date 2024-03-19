@@ -2,6 +2,13 @@
 Changelog
 =========
 
+Version 0.3.8
+=============
+- Added option --project in order to filter on the main projects which are going to be included
+- Added option --project in order to filter on the main projects which are going to be included
+- Added replacement variable for both titles and date/time. Now a variable 'my_variable'
+  can be defined which replaces all occurrences of {{ my_variable }}
+
 Version 0.3.7
 =============
 - Added option --vacations in order to export a gantt chart of the vacations per employer
