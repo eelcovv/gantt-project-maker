@@ -92,9 +92,9 @@ projects:
     tasks:
       long_task:
         label: A long task for {{ year_plus_one }}
-        start: 1-2-{{ year }}
-        end: 10-10-2023
+        start: 1-9-2023
+        end: 10-11-2023
         project_leader: emp3
         remark: Priority
         employees:
-          - emp1
+          emp3: 30

@@ -30,7 +30,9 @@ tasks_and_milestones:
       remark: T.b.v. Blaise bouwer(s)
       deadline: 21-10-2022
       department1: ja
-      employees: *emp1_emp3
+      employees:
+        emp1: 20
+        emp3: 30
       color: pink
     ontwerp_online_vragenlijst_23:
       label: Bouwen en testen online vragenlijst 2023

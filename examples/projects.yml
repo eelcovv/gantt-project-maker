@@ -58,7 +58,7 @@ project_settings_file_per_employee:
 periods:
   all:
     scale: weekly
-    export_vacations: true
+    export_vacations: false
   summer_holiday:
     planning_start: 1-6-2023
     planning_end: 10-9-2023

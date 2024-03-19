@@ -109,7 +109,7 @@ def add_vacation_employee(employee: gantt.Resource, vacations: dict) -> dict:
 
     Parameters
     ----------
-    employee: gannt.Resource
+    employee: Resource
         The employee for who you want to add the vacation
     vacations: dict
         A dictionary with items per vacation. Per vacation, you need a start and an end
@@ -173,8 +173,63 @@ class Vacation(StartEndBase):
         self.pool.add_vacations(self.start, self.end)
 
 
+class EmployeesContributingToTask:
+    """
+    Class holding all employees attached to a task with the number of hours
+
+    Attributes:
+        resources (dict): all the gannt.Resources object
+        hours (dict): All the hours per resource working on this taks
+    """
+
+    def __init__(self):
+        self.resources = dict()
+        self.hours = dict()
+
+    def add_resource(self, employee, resource, hours=None):
+        """
+        Add a resource to the list.
+
+        Args:
+            employee (str): Key of the employee to add
+            resource (Resource): resource to add
+            hours (float): number of hours to add
+
+        """
+        self.resources[employee] = resource
+        self.hours[employee] = hours
+
+    def get_resources(self):
+        """
+        Retrieve a list of all the resources working on this task
+
+        Returns:
+            list of resources
+        """
+        return list(self.resources.values())
+
+
 class Employee:
-    def __init__(self, label, full_name=None, vacations=None, color=None):
+    """
+    Class holding information about one employee
+
+    Args:
+        label (str): Label of the employee
+        full_name (str, optional): Full name of the employee
+        vacations (dict, optional) : Dictionary of the vacations. Defaults to None
+        color (str): Color of the employee
+    """
+
+    def __init__(
+        self,
+        label: str,
+        full_name: str = None,
+        vacations: dict = None,
+        color: str = None,
+    ):
+        """
+        Class constructor
+        """
         self.label = label
         self.full_name = full_name
         self.color = color
@@ -256,6 +311,12 @@ class Task(BasicElement):
         self.element = self.add_task()
 
     def add_task(self) -> gantt.Task:
+        """
+        Add a task to the gantt charts
+        Returns:
+            Task to add the task to the gantt charts
+
+        """
         if self.color is None:
             self.color = self.project_color
         task = gantt.Task(
@@ -501,32 +562,41 @@ class ProjectPlanner:
 
         return depends_of
 
-    def get_employees(self, employees: Union[str, list]) -> list:
+    def get_employees(
+        self, employees: Union[str, list, dict]
+    ) -> EmployeesContributingToTask:
         """
-        Turn a list of employees strings into a list of employees gannt.Resource objects
+        Turn a list of employees strings into a list of employees gantt.Resource objects
 
         Parameters
-        ----------
-        employees: list of str
-            List of employees or, in case just one employee is given, a string
-
+        ---------
+        employees: str, list, or dict
+            List of employees or, in case just one employee is given, a string. Now, also a dict can be defined
+            in order to add a number of hours for an employee to work on the task
 
         Returns
         -------
-        list:
-            List of employees resource objects
+        EmployeesContributingToTask: object holding all employees
         """
 
-        employees_elements = list()
+        contributing_employees = EmployeesContributingToTask()
         if employees is not None:
             if isinstance(employees, str):
                 _logger.debug(f"Adding employee: {employees}")
-                employees_elements.append(self.employees[employees].resource)
+                resource = self.employees[employees].resource
+                contributing_employees.add_resource(employees, resource=resource)
             else:
                 for employee in employees:
                     _logger.debug(f"Adding employee {employee}")
-                    employees_elements.append(self.employees[employee].resource)
-        return employees_elements
+                    resource = self.employees[employee].resource
+                    try:
+                        hours = employees.get(employee)
+                    except AttributeError:
+                        hours = None
+                    contributing_employees.add_resource(
+                        employee, resource=resource, hours=hours
+                    )
+        return contributing_employees
 
     def get_dependencies(self, dependencies: Union[str, dict]) -> list:
         """
@@ -645,7 +715,9 @@ class ProjectPlanner:
         dependencies = self.get_dependencies(task_properties.get("dependent_of"))
         element_type = task_properties.get("type", "task")
         if element_type == "task":
-            employees = self.get_employees(task_properties.get("employees"))
+            contributing_employees = self.get_employees(
+                task_properties.get("employees")
+            )
             _logger.debug(f"Voeg task {task_properties.get('label')} toe")
             task_or_milestone = Task(
                 label=insert_variables(task_properties.get("label"), variables_info),
@@ -655,7 +727,7 @@ class ProjectPlanner:
                 color=task_properties.get("color"),
                 project_color=project_color,
                 detail=task_properties.get("detail", False),
-                employees=employees,
+                employees=contributing_employees.get_resources(),
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
                 variables_info=variables_info,
