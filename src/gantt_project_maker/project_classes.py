@@ -1,7 +1,9 @@
 """
 Class files for the gantt-project-maker project
 """
+
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Union
@@ -21,6 +23,26 @@ SCALES = dict(
 )
 
 _logger = logging.getLogger(__name__)
+
+
+def insert_variables(line: dict, variables_info: dict = None):
+    """
+    Replace variables inserted as {{ variable_name }} in line by the variables defined in variable_ifo
+
+    Args:
+        line (str): Line to replace the variables with
+        variables_info (dict, optional): variables to replace. Defaults to None, which leaves the whole line intact
+
+    Returns:
+        str: Line with variables replaced
+    """
+
+    if variables_info is not None:
+        for variable_key, variable_value in variables_info.items():
+            search_pattern = "{{\s+" + variable_key + "\s+}}"
+            line = re.sub(search_pattern, str(variable_value), line)
+
+    return line
 
 
 def get_nearest_saturday(date):
@@ -114,21 +136,23 @@ class StartEndBase:
     Basis van alle classes met een begin- en einddatum.
     """
 
-    def __init__(self, start: str, end: str = None, dayfirst=False):
+    def __init__(
+        self, start: str, end: str = None, dayfirst=False, variables_info=None
+    ):
         """
-        Sla de datum stings op als datetime objecten
+        Store the dates as date/time objects
 
-        Parameters
-        ----------
-        start: str
-            Start date is mandatory
-        end: str or None
-            End date is optional.
-        dayfirst: bool
-            Use date with date first
+        Args:
+        start (str): Start date is mandatory
+        end (str or None): End date is optional
+        dayfirst (bool): Use date with date first
+        variables_info (dict, optional):  replace variables in date end and start
         """
-        self.start = parse_date(start, dayfirst=dayfirst)
-        self.end = parse_date(end, dayfirst=dayfirst)
+        self.variables_info = variables_info
+        self.start = parse_date(
+            insert_variables(start, variables_info), dayfirst=dayfirst
+        )
+        self.end = parse_date(insert_variables(end, variables_info), dayfirst=dayfirst)
 
 
 class Vacation(StartEndBase):
@@ -175,8 +199,9 @@ class BasicElement(StartEndBase):
         detail=False,
         display=True,
         dayfirst=False,
+        variables_info=None,
     ):
-        super().__init__(start, start, dayfirst)
+        super().__init__(start, start, dayfirst, variables_info)
         if label is None:
             raise ValueError("Every task should have a label!")
         self.label = label
@@ -201,6 +226,7 @@ class Task(BasicElement):
         detail=False,
         display=True,
         dayfirst=True,
+        variables_info=None,
     ):
         super().__init__(
             label=label,
@@ -211,6 +237,7 @@ class Task(BasicElement):
             detail=detail,
             display=display,
             dayfirst=dayfirst,
+            variables_info=variables_info,
         )
         self.end = parse_date(end, dayfirst=dayfirst)
         self.duration = duration
@@ -254,6 +281,7 @@ class Milestone(BasicElement):
         detail=False,
         display=True,
         dayfirst=True,
+        variables_info=None,
     ):
         super().__init__(
             label=label,
@@ -264,11 +292,19 @@ class Milestone(BasicElement):
             detail=detail,
             display=display,
             dayfirst=dayfirst,
+            variables_info=variables_info,
         )
 
         self.element = self.add_milestone()
 
     def add_milestone(self) -> gantt.Milestone:
+        """
+        Create a Milestone and add it to the planning
+
+        Returns:
+            Milestone: Milestone
+
+        """
         element = gantt.Milestone(
             name=self.label,
             start=self.start,
@@ -279,6 +315,30 @@ class Milestone(BasicElement):
 
 
 class ProjectPlanner:
+    """
+    ProjectPlanner is  class to handle the project planning and generate the output
+
+    Args:
+        programma_title (str, optional): Main titel of the whole project
+        vacations_title (str, optional): Title of the vacations project
+        programma_color (str, optional): First color of the bar
+        output_file_name (str, optional): Base name of the output files
+        planning_start (datetime, optional): Start of the program
+        planning_end (datetime, optional): End of the program
+        weeks_margin_left (int, optional): Shift the end of the planning so many weeks to the left without adding
+            projects
+        weeks_margin_right (int, optional): Shift the end of the planning so many weeks to the right without
+            adding projects
+        today (datetime, optional): Today's date
+        dayfirst (bool, optional): Parse date with the day first. Defaults to False
+        scale (str, optional): Which scale is used for the output
+        period_info (dict, optional): Information on the periods output
+        excel_info (dict, optional): Information on the Excel output
+        details (bool, optional): If true, include the details to the programs
+        filter_employees (list, optional): If not None, only add task to which  employees in this list contribute
+
+    """
+
     def __init__(
         self,
         programma_title: str = None,
@@ -302,38 +362,7 @@ class ProjectPlanner:
         periods: list = None,
     ):
         """
-
-        Args:
-            programma_title: str
-                Main titel of the whole project
-            vacations_title: str
-                Titel of the vacations project
-            programma_color: str
-                First color of the bar
-            output_file_name: str
-                Base name of the output files
-            planning_start: datetime
-                Start of the program
-            planning_end: datetime
-                End of the program
-            weeks_margin_left: int
-                Shift the end of the planning so many weeks to the left without adding projects
-            weeks_margin_right: int
-                Shift the end of the planning so many weeks to the right without adding projects
-            today: datetime
-                Today's date
-            dayfirst: bool
-                Parse date with the day first
-            scale: str
-                Which scale is used for the output
-            period_info: dict
-               Information on the periods output
-            excel_info: dict
-                Information on the Excel output
-            details: bool
-                If true, include the details to the programs
-            filter_employees: list
-                If not None, only add task to which  employees in this list contribute
+        Constructor of the class
         """
         self.period_info = period_info
         self.planning_start = planning_start
@@ -397,18 +426,25 @@ class ProjectPlanner:
     def add_global_information(
         fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     ):
+        """
+        Set global pen properties
+
+        Args:
+            fill (str, optional): The fill color. Defaults to 'black'.
+            stroke (str, optional):  The stroke color. Defaults to 'black'
+            stroke_width (int, optional): The stroke width. Defaults to 0
+            font_family (str, optional): The font type. Defaults to 'Verdana'
+        """
         gantt.define_font_attributes(
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
         )
 
-    def export_to_excel(self, excel_output_directory):
+    def export_to_excel(self, excel_output_directory: Path) -> None:
         """
         Write planning to an Excel file
 
-        Parameters
-        ----------
-        excel_output_directory: Path
-            Output directory of the Excel files
+        Args:
+            excel_output_directory(Path): Output directory of the Excel files
         """
 
         if self.excel_info is None:
@@ -496,15 +532,13 @@ class ProjectPlanner:
         """
         Retrieve all dependencies
 
-        Parameters
-        ----------
-        dependencies: str or dict
-            In case the dependency is a string, there is only one. This will be obtained from the dict.
-            The dependencies may also be stored in a dict. In that case, we retrieve them per item
+        Args:
+            dependencies (str or dict): In case the dependency is a string, there is only one.
+                This will be obtained from the dict. The dependencies may also be stored in a dict.
+                In that case, we retrieve them per item
 
         Returns
         -------
-        list:
             List of dependencies
         """
 
@@ -529,6 +563,9 @@ class ProjectPlanner:
     def add_vacations(self, vacations_info):
         """
         Add all the vacations
+
+        Args:
+            vacations_info (dict): information of the vacations
         """
         _logger.info("Adding general holidays")
         for v_key, v_prop in vacations_info.items():
@@ -542,7 +579,7 @@ class ProjectPlanner:
                 start=v_prop["start"], end=v_prop.get("end"), dayfirst=self.dayfirst
             )
 
-    def add_employees(self, employees_info):
+    def add_employees(self, employees_info: dict):
         """
         Add the employees with their vacations
         """
@@ -586,20 +623,19 @@ class ProjectPlanner:
                     employee_vacations.add_task(vacation_task.element)
             self.vacations_gantt.add_task(employee_vacations)
 
-    def make_task_of_milestone(
+    def make_task_or_milestone(
         self,
         task_properties: dict = None,
         project_color=None,
+        variables_info=None,
     ) -> Union[Task, Milestone]:
         """
         Add all the general tasks and milestones
 
-        Parameters
-        ----------
-        task_properties: dict
-            Dictionary with tasks or milestones
-        project_color: str
-            Color of the parent project
+        Args:
+            task_properties (dict): Dictionary with tasks or milestones
+            project_color (str): Color of the parent project
+            variables_info: (dict, optional): Dictionary with variable information to replace strings. Default to None
 
         Returns
         -------
@@ -612,7 +648,7 @@ class ProjectPlanner:
             employees = self.get_employees(task_properties.get("employees"))
             _logger.debug(f"Voeg task {task_properties.get('label')} toe")
             task_or_milestone = Task(
-                label=task_properties.get("label"),
+                label=insert_variables(task_properties.get("label"), variables_info),
                 start=task_properties.get("start"),
                 end=task_properties.get("end"),
                 duration=task_properties.get("duration"),
@@ -622,6 +658,7 @@ class ProjectPlanner:
                 employees=employees,
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
+                variables_info=variables_info,
             )
         elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
@@ -631,7 +668,7 @@ class ProjectPlanner:
                     f"require a start data. Please fix task\n{task_properties}"
                 )
             task_or_milestone = Milestone(
-                label=task_properties.get("label"),
+                label=insert_variables(task_properties.get("label"), variables_info),
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
                 project_color=project_color,
@@ -662,7 +699,10 @@ class ProjectPlanner:
         return task_or_milestone
 
     def add_tasks_and_milestones(
-        self, tasks_and_milestones=None, tasks_and_milestones_info=None
+        self,
+        tasks_and_milestones=None,
+        tasks_and_milestones_info=None,
+        variables_info=None,
     ):
         """
         Make all tasks en milestones
@@ -699,8 +739,8 @@ class ProjectPlanner:
 
         for task_key, task_val in tasks_en_mp.items():
             _logger.debug(f"Processing task {task_key}")
-            self.tasks_and_milestones[task_key] = self.make_task_of_milestone(
-                task_properties=task_val
+            self.tasks_and_milestones[task_key] = self.make_task_or_milestone(
+                task_properties=task_val, variables_info=variables_info
             )
 
     def make_projects(
@@ -709,9 +749,19 @@ class ProjectPlanner:
         subprojects_title,
         subprojects_selection,
         subprojects_color=None,
+        variables_info=None,
     ):
         """
-        Make all projects
+        Create all the projects given in subprojects_info
+
+        Args:
+            subprojects_info (dict):  information per subproject
+            subprojects_title (dict): Title of the subprojects
+            subprojects_selection (list): List of the subprojects to include at the main level
+            subprojects_color (str, optional): Color of the projects. Defaults to None
+            variables_info (dict, optional): variables which can be used as replacements over the subprojects. Defaults
+                to None
+
         """
         employee_color = color_to_hex(subprojects_color)
 
@@ -732,6 +782,8 @@ class ProjectPlanner:
                 projects_employee_collapsed, str
             ):
                 projects_employee_collapsed = [projects_employee_collapsed]
+
+            project_name = insert_variables(project_name, variables_info=variables_info)
 
             _logger.info(f"Making project: {project_name}")
 
@@ -796,8 +848,10 @@ class ProjectPlanner:
                                     _logger.debug(f"{err}")
                                     continue
                     else:
-                        task_obj = self.make_task_of_milestone(
-                            task_properties=task_val, project_color=project_color
+                        task_obj = self.make_task_or_milestone(
+                            task_properties=task_val,
+                            project_color=project_color,
+                            variables_info=variables_info,
                         )
                         task = task_obj.element
                         is_detail = task_obj.detail

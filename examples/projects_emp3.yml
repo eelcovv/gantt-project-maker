@@ -3,9 +3,13 @@ general:
   color: blue
   projects:
     - all_project
+    - side_project
+variables:
+  year: 2023
+  year_plus_one: 2024
 projects:
   project_1:
-    title: Project One 2022
+    title: Project One {{ year }}
     color: corporatelichtblauw
     project_leader: PL1
     department1: "Yes"
@@ -81,3 +85,16 @@ projects:
     tasks:
       - project_1
       - project_2
+  side_project:
+    title:  A long side project in {{ year }}
+    color: green
+    project_leader: PL4
+    tasks:
+      long_task:
+        label: A long task for {{ year_plus_one }}
+        start: 1-2-{{ year }}
+        end: 10-10-2023
+        project_leader: emp3
+        remark: Priority
+        employees:
+          - emp1

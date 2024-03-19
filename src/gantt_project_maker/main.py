@@ -204,6 +204,13 @@ def parse_args(args):
         action="append",
     )
     parser.add_argument(
+        "--projects",
+        help="Only include the main project given in this list. Argument can be given multiple times for multiple "
+        "projects to include. Alternatively, a comma-separated list of projects may be given. If not given, "
+        "all projects defined under 'projects' will be included.",
+        action="append",
+    )
+    parser.add_argument(
         "-p",
         "--period",
         help="On export this period from the list of periods as given in the settings file. If "
@@ -237,7 +244,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def setup_logging(loglevel):
+def setup_logging(loglevel: int):
     """Setup basic logging
 
     Args:
@@ -255,18 +262,16 @@ def setup_logging(loglevel):
     )
 
 
-def check_if_items_are_available(requested_items, available_items, label=""):
+def check_if_items_are_available(
+    requested_items: list, available_items: dict, label: str = ""
+):
     """
     Check is the passed items in the list are available in the keys of the dictionary
 
-    Parameters
-    ----------
-    requested_items: list
-        All requested items  in the list
-    available_items: dict
-        The dictionary with the keys
-    label: str
-        Used for information to the screen
+    Args:
+    requested_items (list): All requested items  in the list
+    available_items (dict): The dictionary with the keys
+    label (str, optional): Used for information to the screen
 
     """
     unique_available_items = set(list(available_items.keys()))
@@ -278,14 +283,31 @@ def check_if_items_are_available(requested_items, available_items, label=""):
     return True
 
 
+def get_projects_from_arguments(projects_args) -> list or None:
+    """
+    Get the projects from the command line arguments and return a list
+
+    Args:
+        projects_args (list or None): The list of projects, may contain comma-separated values
+
+    Returns:
+        list or None: The list of projects
+    """
+
+    projects = None
+    if projects_args is not None:
+        projects = list()
+        for project in projects_args:
+            all_projects = project.split(",")
+            projects.extend(all_projects)
+    return projects
+
+
 def make_banner(width=80) -> None:
     """
     Make a banner with the start time
     Args:
-        width:  int
-            With of the banner
-
-    Returns:
+        width (int, optional): Width of the banner
     """
     print("-" * 80)
     exe = Path(sys.argv[0]).stem
@@ -297,6 +319,16 @@ def make_banner(width=80) -> None:
 
 
 def main(args):
+    """Wrapper allowing :func:`postal_code2nuts` to be called with string arguments in a CLI fashion
+
+    Instead of returning the value from :func:`postal_code2nuts`, it prints the result to the
+    ``stdout`` in a nicely formatted message.
+
+    Args:
+      args (List[str]): command line parameters as list of strings
+          (for example  ``["--verbose", "42"]``).
+    """
+
     args = parse_args(args)
 
     if args.loglevel < logging.WARNING:
@@ -370,6 +402,8 @@ def main(args):
         )
         programma_title += f": {all_filter_employees}"
 
+    filter_projects = get_projects_from_arguments(args.projects)
+
     fill = "black"
     stroke = "black"
     stroke_width = 0
@@ -428,7 +462,7 @@ def main(args):
         _logger.info(
             f"Reading settings file {employee_settings_file} of  employee {project_leader_key}"
         )
-        with codecs.open(employee_settings_file, "r", encoding="UTF-8") as stream:
+        with codecs.open(employee_settings_file, encoding="UTF-8") as stream:
             settings_per_project_leader[project_leader_key] = yaml.load(
                 stream=stream, Loader=yaml.Loader
             )
@@ -507,8 +541,10 @@ def main(args):
             "tasks_and_milestones"
         ):
             _logger.info(f"Adding global tasks en milestones of {project_leader_key} ")
+            variables_info = project_leader_settings.get("variables")
             planning.add_tasks_and_milestones(
-                tasks_and_milestones_info=tasks_and_milestones_info
+                tasks_and_milestones_info=tasks_and_milestones_info,
+                variables_info=variables_info,
             )
 
     # Voeg nu de projecten per employee toe.
@@ -522,15 +558,22 @@ def main(args):
 
         project_employee_info = project_leader_settings["general"]
         subprojects_info = project_leader_settings["projects"]
+        variables_info = project_leader_settings.get("variables")
 
         subprojects_selection = project_employee_info["projects"]
         subprojects_title = project_employee_info["title"]
         subprojects_color = project_employee_info.get("color")
+        if filter_projects is not None:
+            # in case a project is given on the command line argument, only allow projects given on the filter.
+            subprojects_selection = list(
+                set(subprojects_selection).intersection(set(filter_projects))
+            )
         planning.make_projects(
             subprojects_info=subprojects_info,
             subprojects_selection=subprojects_selection,
             subprojects_title=subprojects_title,
             subprojects_color=subprojects_color,
+            variables_info=variables_info,
         )
 
     # Everything has been added to the planning. Write it to file
