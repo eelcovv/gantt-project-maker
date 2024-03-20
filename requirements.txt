@@ -2,7 +2,7 @@ importlib_metadata
 pandas
 python-dateutil
 PyYAML
-setuptools
+setuptools >= 69.2.0
 sphinx
 SVG42PDF
 svgwrite
