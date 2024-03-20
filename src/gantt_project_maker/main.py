@@ -170,7 +170,9 @@ def parse_args(args):
         "-e",
         "--export_to_xlsx",
         help="Export the project plan to Excel",
-        action="store_true",
+        action="store",
+        default="all",
+        nargs="?",
     )
     parser.add_argument(
         "-c",
@@ -589,7 +591,9 @@ def main(args):
     )
 
     if args.export_to_xlsx:
-        planning.export_to_excel(excel_output_directory=excel_directory)
+        planning.export_to_excel(
+            excel_output_directory=excel_directory, excel_setup_key=args.export_to_xlsx
+        )
 
 
 def run():

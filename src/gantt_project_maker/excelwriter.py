@@ -193,6 +193,16 @@ class WorkBook:
 
 
 def update_width(label: str, max_width):
+    """
+    Update the width of a label based on the current maximum width
+
+    Args:
+        label (str): Current label
+        max_width (int): Current maximum width of the labels
+
+    Returns:
+        int: New maximum width
+    """
     width = len(label)
     if width > max_width:
         max_width = width
@@ -200,16 +210,67 @@ def update_width(label: str, max_width):
 
 
 def spacing(n_char=5):
+    """
+    Create a spacing of n_char characters
+
+    Args:
+        n_char (int):  Number of white spaces
+
+    Returns:
+        str: string of n_char spaces
+
+    """
     return " " * n_char
 
 
-def indent(string, n_char=5):
-    return spacing(n_char=n_char) + string
+def indent(line, n_char=5):
+    """
+    Add an indent with whites spaces at the beginning of the line
+
+    Args:
+        line (str): line to add a spacing to
+        n_char (int):  Number of spaces to add
+
+    Returns:
+        str: line with added spacing at the start of the line
+    """
+    return spacing(n_char=n_char) + line
 
 
-def write_planning_to_excel(excel_file, project, header_info, column_widths):
+def write_excel_for_leaders(excel_file, project, header_info, column_widths):
     """
     A writer for the project plan of all employees, one sheet per employee
+
+    Args:
+        excel_file (Path):  The filename of the Excel file
+        project (Project):  a reference to the project
+        header_info (dict):  Information about the header of the Excel file
+        column_widths (dict): Fix width of specified columns
+
+    Returns:
+
+    """
+    with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
+        try:
+            projects_per_employee = project.tasks
+        except AttributeError as err:
+            raise AttributeError(
+                f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
+            )
+        else:
+            for projecten_employee in projects_per_employee:
+                write_project_to_excel(
+                    project=projecten_employee,
+                    writer=writer,
+                    sheet_name=projecten_employee.name,
+                    header_info=header_info,
+                    column_widths=column_widths,
+                )
+
+
+def write_excel_for_contributors(excel_file, project, header_info, column_widths):
+    """
+    A writer for the project plan of all contributors, one sheet per employee
 
     Args:
         excel_file (Path):  The filename of the Excel file

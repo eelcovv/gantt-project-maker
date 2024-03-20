@@ -13,7 +13,10 @@ from dateutil.parser import ParserError
 
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
-from gantt_project_maker.excelwriter import write_planning_to_excel
+from gantt_project_maker.excelwriter import (
+    write_excel_for_leaders,
+    write_excel_for_contributors,
+)
 
 SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
@@ -21,6 +24,8 @@ SCALES = dict(
     monthly=gantt.DRAW_WITH_MONTHLY_SCALE,
     quarterly=gantt.DRAW_WITH_QUARTERLY_SCALE,
 )
+
+EXCEL_TYPES = ["all", "leaders", "contributors"]
 
 _logger = logging.getLogger(__name__)
 
@@ -500,12 +505,15 @@ class ProjectPlanner:
             fill=fill, stroke=stroke, stroke_width=stroke_width, font_family=font_family
         )
 
-    def export_to_excel(self, excel_output_directory: Path) -> None:
+    def export_to_excel(
+        self, excel_output_directory: Path, excel_setup_key: None = "all"
+    ) -> None:
         """
         Write planning to an Excel file
 
         Args:
             excel_output_directory(Path): Output directory of the Excel files
+            excel_setup_key (str): which file to export. Defaults to "all". Choices are 'all', 'leaders' and 'contributors'
         """
 
         if self.excel_info is None:
@@ -517,13 +525,43 @@ class ProjectPlanner:
             excel_file = excel_output_directory / self.output_file_name.with_suffix(
                 ".xlsx"
             )
-            _logger.info(f"Exporting planning to {excel_file}")
-            write_planning_to_excel(
-                excel_file=excel_file,
-                project=self.programma,
-                header_info=self.excel_info["header"],
-                column_widths=self.excel_info.get("column_widths"),
-            )
+
+            for excel_key, excel_properties in self.excel_info.items():
+                if excel_setup_key == "all" or excel_key == excel_setup_key:
+                    excel_properties["do_it"] = True
+                else:
+                    excel_properties["do_it"] = False
+
+            for excel_key, excel_properties in self.excel_info.items():
+                if not excel_properties.get("do_it", True):
+                    continue
+
+                if excel_key != "all":
+                    file_name = extend_suffix(excel_file, excel_setup_key)
+
+                excel_type = excel_properties["type"]
+
+                if excel_type == "leaders":
+                    _logger.info(
+                        f"Exporting planning to {file_name} for project leaders"
+                    )
+                    write_excel_for_leaders(
+                        excel_file=file_name,
+                        project=self.programma,
+                        header_info=excel_properties["header"],
+                        column_widths=excel_properties.get("column_widths"),
+                    )
+                elif excel_type == "contributors":
+                    _logger.info(f"Exporting planning to {file_name} for contributors")
+                    write_excel_for_contributors(
+                        excel_file=file_name,
+                        project=self.programma,
+                        header_info=excel_properties["header"],
+                        column_widths=excel_properties.get("column_widths"),
+                    )
+                else:
+                    msg = f"Unrecognized value for type '{excel_type}'. Please pick from {EXCEL_TYPES}. Skipping"
+                    _logger.warning(msg)
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """

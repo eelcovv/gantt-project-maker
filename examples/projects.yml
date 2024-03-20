@@ -75,43 +75,89 @@ periods:
 vacations: vacations.yml
 employees: employees.yml
 excel:
-  column_widths:
-    name: 30
-    task: 50
-    period: 10
-    remark: 30
-  header:
-    what:
-      color: hemelblauw
-      title: What
-      columns:
-        name: Statistiek / project
-        vir: VIR-procescode
-        link: Link naar hoofdmap
-        casper_project: CASPER-project
-        casper_task: CASPER-task
-        task: Fasen / Activiteiten
-        focal_point: focal_point werkzaamheden
-    when:
-      color: zachtgroen
-      title: when
-      columns:
-        period: period
-        start: Begindatum
-        stop: Einddatum
-        deadline: Deadline
-    who:
-      color: terrarood
-      title: Who
-      columns:
-        project_leader: Project Leader
-        employee_1: Employee 1
-        employee_2: Employee 2
-        employee_3: Employee 3
-        department1: Departement 1
-        cci: CCI
-    other_business:
-      color: donkergrijs
-      title: other_business
-      columns:
-        remark: Remarks
+  per_project_leader:
+    do_it: false
+    type: leaders
+    column_widths:
+      name: 30
+      task: 50
+      period: 10
+      remark: 30
+    header:
+      what:
+        color: hemelblauw
+        title: What
+        columns:
+          name: Statistiek / project
+          vir: VIR-procescode
+          link: Link naar hoofdmap
+          casper_project: CASPER-project
+          casper_task: CASPER-task
+          task: Fasen / Activiteiten
+          focal_point: focal_point werkzaamheden
+      when:
+        color: zachtgroen
+        title: when
+        columns:
+          period: period
+          start: Begindatum
+          stop: Einddatum
+          deadline: Deadline
+      who:
+        color: terrarood
+        title: Who
+        columns:
+          project_leader: Project Leader
+          employee_1: Employee 1
+          employee_2: Employee 2
+          employee_3: Employee 3
+          department1: Departement 1
+          cci: CCI
+      other_business:
+        color: donkergrijs
+        title: other_business
+        columns:
+          remark: Remarks
+  per_employee:
+    do_it: false
+    type: contributors
+    column_widths:
+      name: 30
+      task: 50
+      period: 10
+      remark: 30
+    header:
+      what:
+        color: hemelblauw
+        title: What
+        columns:
+          name: Statistiek / project
+          vir: VIR-procescode
+          link: Link naar hoofdmap
+          casper_project: CASPER-project
+          casper_task: CASPER-task
+          task: Fasen / Activiteiten
+          focal_point: focal_point werkzaamheden
+      when:
+        color: zachtgroen
+        title: when
+        columns:
+          period: period
+          start: Begindatum
+          stop: Einddatum
+          deadline: Deadline
+      who:
+        color: terrarood
+        title: Who
+        columns:
+          project_leader: Project Leader
+          employee_1: Employee 1
+          employee_2: Employee 2
+          employee_3: Employee 3
+          department1: Departement 1
+          cci: CCI
+      other_business:
+        color: donkergrijs
+        title: other_business
+        columns:
+          remark: Remarks
