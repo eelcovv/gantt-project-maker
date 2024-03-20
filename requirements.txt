@@ -1,6 +1,6 @@
 importlib_metadata
 pandas
-python_dateutil
+python-dateutil
 PyYAML
 setuptools
 sphinx
