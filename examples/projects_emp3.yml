@@ -90,6 +90,13 @@ projects:
     color: green
     project_leader: PL4
     tasks:
+      short_task:
+        label: A short task for {{ year }}
+        start: 1-8-2023
+        end: 10-8-2023
+        remark: Priority
+        employees:
+          emp4: 30
       long_task:
         label: A long task for {{ year_plus_one }}
         start: 1-9-2023
@@ -98,3 +105,5 @@ projects:
         remark: Priority
         employees:
           emp3: 30
+          emp4: 100
+          emp5: 50

@@ -324,13 +324,17 @@ class Task(BasicElement):
         """
         if self.color is None:
             self.color = self.project_color
+        if self.employees is None:
+            resources = None
+        else:
+            resources = self.employees.get_resources()
         task = gantt.Task(
             name=self.label,
             start=self.start,
             stop=self.end,
             duration=self.duration,
             depends_of=self.dependent_of,
-            resources=self.employees,
+            resources=resources,
             color=self.color,
         )
         return task
@@ -765,7 +769,7 @@ class ProjectPlanner:
                 color=task_properties.get("color"),
                 project_color=project_color,
                 detail=task_properties.get("detail", False),
-                employees=contributing_employees.get_resources(),
+                employees=contributing_employees,
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
                 variables_info=variables_info,
@@ -818,7 +822,7 @@ class ProjectPlanner:
         Make all tasks en milestones
         """
 
-        _logger.info("Voeg alle algemene tasks en mijlpalen toe")
+        _logger.debug("Add all general tasks and milestones")
         if tasks_and_milestones_info is not None:
             # The tasks are organised in modules, to peel of the first level
             tasks_en_mp = dict()

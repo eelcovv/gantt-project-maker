@@ -514,6 +514,7 @@ class Resource:
         self.member_of_groups = []
 
         self.tasks = []
+        self.task_hours = []
         return
 
     def add_vacations(self, dfrom, dto=None):
@@ -546,7 +547,7 @@ class Resource:
     def is_available(self, date):
         """
         Returns True if the resource is available at given date, False if not.
-        Availibility is tasks from the global VACATIONS and resource's ones.
+        Availability is tasks from the global VACATIONS and resource's ones.
 
         Keyword arguments:
         date -- datetime.date day to look for
@@ -563,8 +564,8 @@ class Resource:
         # GroupOfResources vacation
         for g in self.member_of_groups:
             for h in g.vacations:
-                dfrom, dto = h
-                if date >= dfrom and date <= dto:
+                date_from, date_to = h
+                if date_from <= date <= date_to:
                     __LOG__.debug(
                         "** Resource::is_available {0} : False (Group {1})".format(
                             {"name": self.name, "date": date}, g.name
@@ -574,8 +575,8 @@ class Resource:
 
         # Resource vacation
         for h in self.vacations:
-            dfrom, dto = h
-            if date >= dfrom and date <= dto:
+            date_from, date_to = h
+            if date_from <= date <= date_to:
                 __LOG__.debug(
                     "** Resource::is_available {0} : False".format(
                         {"name": self.name, "date": date}
@@ -600,7 +601,7 @@ class Resource:
             self.member_of_groups.append(groupofresources)
         return
 
-    def add_task(self, task):
+    def add_task(self, task, hours_for_resource=None):
         """
         Tell the resource that we have assigned a task
 
@@ -609,6 +610,7 @@ class Resource:
         """
         if task not in self.tasks:
             self.tasks.append(task)
+            self.task_hours.append(hours_for_resource)
         return
 
     def search_for_task_conflicts(self, all_tasks=False):

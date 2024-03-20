@@ -91,7 +91,9 @@ tasks_and_milestones:
       end: 21-10-2023
       department1: ja
       deadline: 21-10-2023
-      employees: *emp1_emp3
+      employees:
+        emp1: 84
+        emp3: 27
     ontwerp_online_vragenlijst_24:
       label: Bouwen en testen online vragenlijst 2024
       start: 24-10-2023
