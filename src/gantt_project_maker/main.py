@@ -605,6 +605,8 @@ def main(args):
         suffix=args.suffix,
     )
 
+    planning.make_resource_dataframe()
+
     if args.export_to_xlsx:
         planning.export_to_excel(
             excel_output_directory=excel_directory, excel_setup_key=args.export_to_xlsx

@@ -1086,29 +1086,34 @@ class Task:
 
     def svg(
         self,
-        prev_y=0,
-        start=None,
-        end=None,
-        planning_start=None,
-        planning_end=None,
-        color=None,
-        level=None,
-        scale=DRAW_WITH_DAILY_SCALE,
-        title_align_on_left=False,
-        offset=0,
+        prev_y: int = 0,
+        start: date = None,
+        end: date = None,
+        planning_start: date = None,
+        planning_end: date = None,
+        color: str = None,
+        level: int = None,
+        scale: str = DRAW_WITH_DAILY_SCALE,
+        title_align_on_left: bool = False,
+        offset: float = 0,
     ):
         """
-        Return SVG for drawing this task.
+        Get the SVG for drawing this task.
 
-        Keyword arguments:
-        prev_y -- int, line to start to draw
-        start -- datetime.date of first day to draw
-        end -- datetime.date of last day to draw
-        color -- string of color for drawing the project
-        level -- int, indentation level of the project, not used here
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
-        title_align_on_left -- boolean, align task title on left
-        offset -- X offset from image border to start of drawing zone
+        Args:
+            prev_y (int): line to start to draw
+            start (date): First day to draw
+            end (date): Last day to draw
+            planning_start (date): Not used here
+            planning_end (date): Not used here
+            color (str): color for drawing the project
+            level (int): Indentation level of the project, not used here
+            scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
+            title_align_on_left (bool): align task title on left
+            offset (float): X offset from image border to start of drawing zone
+
+        Returns:
+            Container,  number of lines: the svg containter with the start line
         """
         __LOG__.debug(
             "** Task::svg ({0})".format(
@@ -1125,7 +1130,7 @@ class Task:
 
         if not self.display:
             __LOG__.debug("** Task::svg ({0}) display off".format({"name": self.name}))
-            return (None, 0)
+            return None, 0
 
         add_modified_begin_mark = False
         add_modified_end_mark = False
@@ -2070,19 +2075,24 @@ class Project:
 
     @staticmethod
     def _svg_calendar(
-        maxx, maxy, start_date, today=None, scale=DRAW_WITH_DAILY_SCALE, offset=0
+        maxx: int,
+        maxy: int,
+        start_date: date,
+        today: date = None,
+        scale: str = DRAW_WITH_DAILY_SCALE,
+        offset: float = 0,
     ):
         """
         Draw calendar in svg, beginning at start_date for maxx days, containing
         maxy lines. If today is given, draw a blue line at date
 
-        Keyword arguments:
-        maxx -- number of days, weeks, months or quarters (depending on scale) to draw
-        maxy -- number of lines to draw
-        start_date -- datetime.date of the first day to draw
-        today -- datetime.date of day as today reference
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
-        offset -- X offset from image border to start of drawing zone
+        Args:
+            maxx (int): Number of days, weeks, months or quarters (depending on scale) to draw
+            maxy (int): Number of lines to draw
+            start_date  (date): The first day to draw
+            today (date): Day as today reference
+            scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
+            offset (float): X offset from image border to start of drawing zone
         """
         dwg = svgwrite.container.Group()
 
@@ -2316,21 +2326,22 @@ class Project:
         offset=0,
     ):
         """
-        Draw gantt of tasks and output it to filename. If start or end are
-        given, use them as reference, otherwise use project first and last day
+        Draw gantt of tasks and output it to filename.
 
-        Keyword arguments:
-        filename -- string, filename to save to OR file object
-        today -- datetime.date of day marked as a reference
-        start -- datetime.date of first day to draw
-        end -- datetime.date of last day to draw
-        margin_left -- number of week to add to the grid before the project start
-        margin_right -- number of week to add to the grid after the project end
-        planning_start -- start of the planning
-        planning_end -- end of the planning
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
-        title_align_on_left -- boolean, align task title on left
-        offset -- X offset from image border to start of drawing zone
+
+        Args:
+            filename (str): Filename to save to OR file object
+            today (date):  Date of day marked as a reference
+            start (date): The first day to draw
+            end (date):  The last day to draw
+            margin_left (int): Number of week to add to the grid before the project start
+            margin_right (int): Number of week to add to the grid after the project end
+            scale (str): drawing scale (d: days, w: weeks, m: months, q: quarterly)
+            title_align_on_left (bool):  Align task title on left
+            offset (float): X offset from image border to start of drawing zone
+
+        Notes:
+            * If start or end are given, use them as reference, otherwise use project first and last day
         """
         if len(self.tasks) == 0:
             __LOG__.warning("** Empty project : {0}".format(self.name))
@@ -2360,7 +2371,7 @@ class Project:
             )
             sys.exit(1)
 
-        ldwg = svgwrite.container.Group()
+        svg_container_group = svgwrite.container.Group()
         psvg, pheight = self.svg(
             prev_y=2,
             start=start_date,
@@ -2373,18 +2384,18 @@ class Project:
             offset=offset,
         )
         if psvg is not None:
-            ldwg.add(psvg)
+            svg_container_group.add(psvg)
 
         dep = self.svg_dependencies(self)
         if dep is not None:
-            ldwg.add(dep)
+            svg_container_group.add(dep)
 
         if scale == DRAW_WITH_DAILY_SCALE:
             # how many days do we need to draw ?
-            maxx = (end_date - start_date).days
+            max_x_grid_lines = (end_date - start_date).days
         elif scale == DRAW_WITH_WEEKLY_SCALE:
             # how many weeks do we need to draw ?
-            maxx = 0
+            max_x_grid_lines = 0
 
             guess = start_date
             while guess.weekday() != 0:
@@ -2394,18 +2405,18 @@ class Project:
                 end_date = end_date + dateutil.relativedelta.relativedelta(days=+1)
 
             while guess <= end_date:
-                maxx += 1
+                max_x_grid_lines += 1
                 guess = guess + dateutil.relativedelta.relativedelta(weeks=+1)
         elif scale == DRAW_WITH_MONTHLY_SCALE:
             # how many months do we need to draw ?
             if dateutil.relativedelta.relativedelta(end_date, start_date).days == 0:
-                maxx = (
+                max_x_grid_lines = (
                     dateutil.relativedelta.relativedelta(end_date, start_date).months
                     + dateutil.relativedelta.relativedelta(end_date, start_date).years
                     * 12
                 )
             else:
-                maxx = (
+                max_x_grid_lines = (
                     dateutil.relativedelta.relativedelta(end_date, start_date).months
                     + dateutil.relativedelta.relativedelta(end_date, start_date).years
                     * 12
@@ -2420,7 +2431,7 @@ class Project:
         dwg.add(
             svgwrite.shapes.Rect(
                 insert=(0 * cm, 0 * cm),
-                size=((maxx + 1 + offset / 10) * cm, (pheight + 3) * cm),
+                size=((max_x_grid_lines + 1 + offset / 10) * cm, (pheight + 3) * cm),
                 fill="white",
                 stroke_width=0,
                 opacity=1,
@@ -2428,11 +2439,14 @@ class Project:
         )
 
         dwg.add(
-            self._svg_calendar(maxx, pheight, start_date, today, scale, offset=offset)
+            self._svg_calendar(
+                max_x_grid_lines, pheight, start_date, today, scale, offset=offset
+            )
         )
-        dwg.add(ldwg)
-        dwg.save(width=(maxx + 1 + offset / 10) * cm, height=(pheight + 3) * cm)
-        return
+        dwg.add(svg_container_group)
+        dwg.save(
+            width=(max_x_grid_lines + 1 + offset / 10) * cm, height=(pheight + 3) * cm
+        )
 
     def make_svg_for_resources(
         self,
@@ -2502,18 +2516,18 @@ class Project:
         if resources is None:
             resources = self.get_resources()
 
-        maxx = (end_date - start_date).days
-        maxy = len(resources) * 2
+        number_of_x_grid_lines = (end_date - start_date).days
+        number_of_y_grid_lines = len(resources) * 2
 
-        if maxy == 0:
+        if number_of_y_grid_lines == 0:
             # No resources
             return {}
 
         # detect conflicts between resources and holidays
         conflicts_vacations = []
-        for t in self.get_tasks():
+        for task in self.get_tasks():
             conflicts_vacations.append(
-                t.check_conflicts_between_task_and_resources_vacations()
+                task.check_conflicts_between_task_and_resources_vacations()
             )
 
         conflicts_vacations = _flatten(conflicts_vacations)
@@ -2524,12 +2538,12 @@ class Project:
             ldwg.add(
                 svgwrite.shapes.Line(
                     start=((0) * cm, (2) * cm),
-                    end=((maxx + 1 + offset / 10) * cm, (2) * cm),
+                    end=((number_of_x_grid_lines + 1 + offset / 10) * cm, (2) * cm),
                     stroke="black",
                 )
             )
 
-        nline = 2
+        line_number = 2
         conflicts_tasks = []
         conflict_display_line = 1
         for r in resources:
@@ -2541,7 +2555,7 @@ class Project:
             try:
                 res_text = svgwrite.text.Text(
                     "{0}".format(r.fullname),
-                    insert=(3 * mm, (nline * 10 + 7) * mm),
+                    insert=(3 * mm, (line_number * 10 + 7) * mm),
                     fill=_font_attributes()["fill"],
                     stroke=_font_attributes()["stroke"],
                     stroke_width=_font_attributes()["stroke_width"],
@@ -2555,8 +2569,8 @@ class Project:
 
             overcharged_days = r.search_for_task_conflicts()
 
-            conflict_display_line = nline
-            nline += 1
+            conflict_display_line = line_number
+            line_number += 1
 
             vac = svgwrite.container.Group()
             conflicts = svgwrite.container.Group()
@@ -2605,18 +2619,18 @@ class Project:
                 cday += datetime.timedelta(days=1)
 
             nb_tasks = 0
-            for t in self.get_tasks():
-                if t.get_resources() is not None and r in t.get_resources():
+            for task in self.get_tasks():
+                if task.get_resources() is not None and r in task.get_resources():
                     if color_per_taks:
-                        color = t.color
+                        color = task.color
                     else:
                         color = r.color
 
                     if color is None:
                         color = COLOR_RESOURCE_DEFAULT
 
-                    psvg, void = t.svg(
-                        prev_y=nline,
+                    psvg, void = task.svg(
+                        prev_y=line_number,
                         start=start_date,
                         end=end_date,
                         color=color,
@@ -2628,10 +2642,10 @@ class Project:
                         ldwg.add(psvg)
                         nb_tasks += 1
                         if not one_line_for_tasks:
-                            nline += 1
+                            line_number += 1
 
             if nb_tasks == 0:
-                nline -= 1
+                line_number -= 1
             elif nb_tasks > 0:
                 __LOG__.info(r.fullname, nb_tasks)
                 ldwg.add(ress)
@@ -2641,19 +2655,22 @@ class Project:
                 if not one_line_for_tasks:
                     ldwg.add(
                         svgwrite.shapes.Line(
-                            start=(0 * cm, nline * cm),
-                            end=((maxx + 1 + offset / 10) * cm, nline * cm),
+                            start=(0 * cm, line_number * cm),
+                            end=(
+                                (number_of_x_grid_lines + 1 + offset / 10) * cm,
+                                line_number * cm,
+                            ),
                             stroke="black",
                         )
                     )
 
                 # nline += 1
                 if one_line_for_tasks:
-                    nline += 1
+                    line_number += 1
                     ldwg.add(
                         svgwrite.shapes.Line(
-                            start=(0 * cm, nline * cm),
-                            end=((maxx + 1) * cm, nline * cm),
+                            start=(0 * cm, line_number * cm),
+                            end=((number_of_x_grid_lines + 1) * cm, line_number * cm),
                             stroke="black",
                         )
                     )
@@ -2662,17 +2679,30 @@ class Project:
         dwg.add(
             svgwrite.shapes.Rect(
                 insert=(0 * cm, 0 * cm),
-                size=((maxx + 1 + offset / 10) * cm, (nline + 1) * cm),
+                size=(
+                    (number_of_x_grid_lines + 1 + offset / 10) * cm,
+                    (line_number + 1) * cm,
+                ),
                 fill="white",
                 stroke_width=0,
                 opacity=1,
             )
         )
         dwg.add(
-            self._svg_calendar(maxx, nline - 2, start_date, today, scale, offset=offset)
+            self._svg_calendar(
+                number_of_x_grid_lines,
+                line_number - 2,
+                start_date,
+                today,
+                scale,
+                offset=offset,
+            )
         )
         dwg.add(ldwg)
-        dwg.save(width=(maxx + 1 + offset / 10) * cm, height=(nline + 1) * cm)
+        dwg.save(
+            width=(number_of_x_grid_lines + 1 + offset / 10) * cm,
+            height=(line_number + 1) * cm,
+        )
         return {
             "conflicts_vacations": conflicts_vacations,
             "conflicts_tasks": conflicts_tasks,
@@ -2720,18 +2750,22 @@ class Project:
         offset=0,
     ):
         """
-        Return (SVG code, number of lines drawn) for the project. Draws all
-        tasks and add project name with a purple bar on the left side.
+        Draw all tasks and add project name with a purple bar on the left side.
 
-        Keyword arguments:
-        prev_y -- int, line to start to draw
-        start -- datetime.date of first day to draw
-        end -- datetime.date of last day to draw
-        color -- string of color for drawing the project
-        level -- int, indentation level of the project
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
-        title_align_on_left -- boolean, align task title on left
-        offset -- X offset from image border to start of drawing zone
+        Args:
+            prev_y (int): Line to start to draw
+            start (date): First day to draw
+            end (date): Last day to draw
+            planning_start (date): not used here
+            planning_end (date): not used here
+            color (str): Color for drawing the project
+            level (int): Indentation level of the project
+            scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
+            title_align_on_left (bool): Align task title on left
+            offset (float): X offset from image border to start of drawing zone
+
+        Returns:
+            svg, int: SVG code and number of lines drawn for the project.
         """
         if start is None:
             start = self.start_date()
@@ -2742,14 +2776,14 @@ class Project:
 
         cy = prev_y + 1 * (self.name != "")
 
-        prj = svgwrite.container.Group()
+        container_project = svgwrite.container.Group()
 
-        for t in self.tasks:
-            if isinstance(t, Task):
-                if not task_within_range(t, planning_start, planning_end):
+        for task in self.tasks:
+            if isinstance(task, Task):
+                if not task_within_range(task, planning_start, planning_end):
                     continue
 
-            trepr, theight = t.svg(
+            trepr, theight = task.svg(
                 cy,
                 start=start,
                 end=end,
@@ -2762,7 +2796,7 @@ class Project:
                 offset=offset,
             )
             if trepr is not None:
-                prj.add(trepr)
+                container_project.add(trepr)
                 cy += theight
 
         fprj = svgwrite.container.Group()
@@ -2821,7 +2855,7 @@ class Project:
         if (cy - prev_y) == 0 or ((cy - prev_y) == 1 and prj_bar):
             return None, 0
 
-        fprj.add(prj)
+        fprj.add(container_project)
 
         return fprj, cy - prev_y
 

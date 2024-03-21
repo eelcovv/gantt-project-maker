@@ -250,6 +250,7 @@ def write_excel_for_leaders(excel_file, project, header_info, column_widths):
     Returns:
 
     """
+    _logger.debug(f"Writing to {excel_file} for leaders")
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
         try:
             projects_per_employee = project.tasks
@@ -281,22 +282,82 @@ def write_excel_for_contributors(excel_file, project, header_info, column_widths
     Returns:
 
     """
+    _logger.debug(f"Writing to {excel_file} for contributors")
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
         try:
-            projects_per_employee = project.tasks
+            task_per_resource = project.get_resources()
         except AttributeError as err:
             raise AttributeError(
                 f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
             )
         else:
-            for projecten_employee in projects_per_employee:
-                write_project_to_excel(
-                    project=projecten_employee,
-                    writer=writer,
-                    sheet_name=projecten_employee.name,
-                    header_info=header_info,
-                    column_widths=column_widths,
-                )
+            for resource_tasks in task_per_resource:
+                _logger.debug("to be developed")
+                # write_task_per_resource_to_excel(
+                #     project=project,
+                #     resource_tasks=resource_tasks,
+                #     writer=writer,
+                #     sheet_name="Default",
+                #     header_info=header_info,
+                #     column_widths=column_widths,
+                # )
+
+
+def write_task_per_resource_to_excel(
+    project: type(gantt.Project),
+    resource_tasks: list,
+    writer: type(pd.ExcelWriter),
+    sheet_name: str,
+    header_info: dict = None,
+    column_widths: dict = None,
+    character_width: float = 1.0,
+):
+    """
+    Write a multi index data frame to Excel file with format
+
+    Args:
+        column_widths (dict): Fix width of these columns.
+        header_info (dict): Information on the header
+        project (dict): Main project
+        writer (obj): Excel writer
+        sheet_name (str): Name of the sheet
+        character_width (float): Width of one character. Default = 0.7
+
+    """
+
+    ExcelFormatter.header_style = None
+
+    table_df = pd.DataFrame(data=[sheet_name])
+    table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
+
+    worksheet = writer.sheets[sheet_name]
+    # worksheet.screen_gridlines = False
+    workbook = writer.book
+
+    wb = WorkBook(workbook=workbook)
+
+    write_header(
+        header_info=header_info,
+        workbook=workbook,
+        worksheet=worksheet,
+        character_width=character_width,
+        wb=wb,
+        column_widths=column_widths,
+    )
+
+    row_index = 2
+    level = 0
+
+    _, level = write_project(
+        project,
+        header_info=header_info,
+        workbook=workbook,
+        worksheet=worksheet,
+        character_width=character_width,
+        wb=wb,
+        row_index=row_index,
+        level=level,
+    )
 
 
 def write_project_to_excel(

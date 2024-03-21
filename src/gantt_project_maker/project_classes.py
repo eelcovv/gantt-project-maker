@@ -540,8 +540,7 @@ class ProjectPlanner:
                 if not excel_properties.get("do_it", True):
                     continue
 
-                if excel_key != "all":
-                    file_name = extend_suffix(excel_file, excel_setup_key)
+                file_name = extend_suffix(excel_file, excel_key)
 
                 excel_type = excel_properties["type"]
 
@@ -1072,6 +1071,12 @@ class ProjectPlanner:
 
         # add now all projects of the employee to the program
         self.programma.add_task(projects_employee)
+
+    def make_resource_dataframe(self):
+        """turn all the resources into a data frame"""
+
+        for resource in self.programma.get_resources():
+            _logger.debug(f"Adding resource {resource}")
 
     def write_planning(
         self,
