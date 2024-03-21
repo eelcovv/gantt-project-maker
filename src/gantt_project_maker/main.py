@@ -1,8 +1,9 @@
 """
-This is the main start up file of the project planner
+This is the main start-up file of the project planner
 """
 
 import argparse
+from argparse import ArgumentTypeError
 import codecs
 import locale
 import logging
@@ -87,12 +88,25 @@ def get_employee_name(employees_info, employee):
     return request_name
 
 
-def check_if_date(value):
-    """check if an argument is a valid date. Return the original string value"""
+def check_if_date(value: str):
+    """
+    Check if an argument is a valid date
+    Args:
+        value (str): date/time string
+
+    Returns:
+        str: Date/time string
+
+    Raises:
+        ArgumentTypeError: raised in case the value string is not a valid date/time string
+    """
+
     try:
         date = dparse.parse(value).date()
     except ValueError:
-        raise argparse.ArgumentTypeError(f"Date {value} is not a valid date")
+        raise ArgumentTypeError(f"Date {value} is not a valid date")
+    else:
+        _logger.debug(f"Date {date} is a valid date")
     return value
 
 
@@ -100,11 +114,11 @@ def parse_args(args):
     """Parse command line parameters
 
     Args:
-      args (List[str]): command line parameters as list of strings
-          (for example  ``["--help"]``).
+      args (List[str]): command line parameters as a list of strings
+          (for example, ``["--help"]``).
 
     Returns:
-      :obj:`argparse.Namespace`: command line parameters namespace
+      obj:`argparse.Namespace`: command line parameters namespace
     """
 
     parser = argparse.ArgumentParser(
@@ -272,8 +286,8 @@ def check_if_items_are_available(
     Check is the passed items in the list are available in the keys of the dictionary
 
     Args:
-    requested_items (list): All requested items  in the list
-    available_items (dict): The dictionary with the keys
+    requested_items (list): All requested items in the list
+    available_items (dict): The dictionary with the keys for which the check is performed
     label (str, optional): Used for information to the screen
 
     """
@@ -291,7 +305,7 @@ def get_projects_from_arguments(projects_args) -> list or None:
     Get the projects from the command line arguments and return a list
 
     Args:
-        projects_args (list or None): The list of projects, may contain comma-separated values
+        projects_args (list or None): The list of projects may contain comma-separated values
 
     Returns:
         list or None: The list of projects
@@ -310,26 +324,27 @@ def make_banner(width=80) -> None:
     """
     Make a banner with the start time
     Args:
-        width (int, optional): Width of the banner
+        width (int, optional): Width of the banner.
+        Defaults to 80
     """
-    print("-" * 80)
+    print("-" * width)
     exe = Path(sys.argv[0]).stem
     now = datetime.now()
     print(
         f"Start '{exe} {' '.join(sys.argv[1:])}'\nat {now.date()} {now.time().strftime('%H:%M')} "
     )
-    print("-" * 80)
+    print("-" * width)
 
 
 def main(args):
-    """Wrapper allowing :func:`postal_code2nuts` to be called with string arguments in a CLI fashion
+    """Wrapper allowing: func:`postal_code2nuts` to be called with string arguments in a CLI fashion
 
-    Instead of returning the value from :func:`postal_code2nuts`, it prints the result to the
+    Instead of returning the value from: func:`postal_code2nuts`, it prints the result to the
     ``stdout`` in a nicely formatted message.
 
     Args:
-      args (List[str]): command line parameters as list of strings
-          (for example  ``["--verbose", "42"]``).
+      args (List[str]): command line parameters as a list of strings
+          (for example, ``["--verbose", "42"]``).
     """
 
     args = parse_args(args)
@@ -485,7 +500,7 @@ def main(args):
                 output_filename=output_filename, extensions=extensions
             )
     else:
-        # just use the output filename as defined on the command line
+        # Treat the output filename as defined on the command line
         output_filename = Path(args.output_filename).with_suffix(".svg")
 
     today = None
@@ -597,15 +612,15 @@ def main(args):
 
 
 def run():
-    """Calls :func:`main` passing the CLI arguments extracted from :obj:`sys.argv`
+    """Calls: func:`main` passing the CLI arguments extracted from: obj:`sys.argv`
 
-    This function can be used as entry point to create console scripts with setuptools.
+    This function can be used as an entry point to create console scripts with setuptools.
     """
     main(sys.argv[1:])
 
 
 if __name__ == "__main__":
-    # ^  This is a guard statement that will prevent the following code from
+    # ^ This is a guard statement that will prevent the following code from
     #    being executed in the case someone imports this file instead of
     #    executing it as a script.
     #    https://docs.python.org/3/library/__main__.html
