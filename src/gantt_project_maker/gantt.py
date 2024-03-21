@@ -590,23 +590,24 @@ class Resource:
         )
         return True
 
-    def add_group(self, groupofresources):
+    def add_group(self, group_of_resources):
         """
         Tell the resource it belongs to a GroupOfResources
 
-        Keyword arguments:
-        groupofresources -- GroupOfResources
+        Args:
+            group_of_resources (GroupOfResources): The GroupOfResources to which a resources belongs to
         """
-        if groupofresources not in self.member_of_groups:
-            self.member_of_groups.append(groupofresources)
+        if group_of_resources not in self.member_of_groups:
+            self.member_of_groups.append(group_of_resources)
         return
 
     def add_task(self, task, hours_for_resource=None):
         """
         Tell the resource that we have assigned a task
 
-        Keyword arguments:
-        task -- Task object
+        Args:
+            task(Task): The task object to add
+            hours_for_resource(int): The number of hours to assign to the task for this resource
         """
         if task not in self.tasks:
             self.tasks.append(task)
