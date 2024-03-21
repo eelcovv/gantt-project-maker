@@ -1,35 +1,17 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
-gantt.py - version and date, see below
-
 This is a python class to create gantt chart using SVG
 
-
-Author : Alexandre Norman - norman at xael.org
+Author: Alexandre Norman - norman at xael.org
 
 Contributors:
 
 * Sébastien NOBILI - pipoprods at free.fr
 
+Modified by:
 
-Licence : GPL v3 or any later version
-
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+* Eelco van Vliet
 """
 
 
@@ -43,6 +25,8 @@ import sys
 import dateutil.relativedelta
 import svgwrite
 
+from datetime import date
+
 # original author: Alexandre Norman (norman at xael.org)
 # modified by Eelco van Vliet
 
@@ -52,20 +36,39 @@ import svgwrite
 mm = 3.543307
 cm = 35.43307
 
+__LOG__: logging.Logger = None
+
 COLOR_OVERCHARGE_DEFAULT = "#AA0000"
 COLOR_VACATION_DEFAULT = "#008000"
 COLOR_RESOURCE_DEFAULT = "#c5f0eb"
 
+DRAW_WITH_DAILY_SCALE = "d"
+DRAW_WITH_WEEKLY_SCALE = "w"
+DRAW_WITH_MONTHLY_SCALE = "m"
+DRAW_WITH_QUARTERLY_SCALE = "q"
 
-class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
+
+# Unworked days (0: Monday ... 6: Sunday)
+NOT_WORKED_DAYS = [5, 6]
+
+FONT_ATTR = {
+    "fill": "black",
+    "stroke": "black",
+    "stroke_width": 0,
+    "font_family": "Verdana",
+    "font_size": 15,
+    "font_weight": "normal",
+}
+VACATIONS = []
+
+
+class MySVGWriteDrawingWrapper(svgwrite.Drawing):
     """
-    Hack for beeing able to use a file descriptor as filename
+    Hack to allow to use a file descriptor as filename
     """
 
     def save(self, width="100%", height="100%"):
         """Write the XML string to **filename**."""
-        test = False
-        import io
 
         # Fix height and width
         self["height"] = height
@@ -80,24 +83,6 @@ class _my_svgwrite_drawing_wrapper(svgwrite.Drawing):
         else:
             with io.open(str(self.filename), mode="w", encoding="utf-8") as stream:
                 self.write(stream)
-
-
-############################################################################
-
-# noinspection PyTypeChecker
-__LOG__: logging.Logger = None
-
-############################################################################
-
-DRAW_WITH_DAILY_SCALE = "d"
-DRAW_WITH_WEEKLY_SCALE = "w"
-DRAW_WITH_MONTHLY_SCALE = "m"
-DRAW_WITH_QUARTERLY_SCALE = "q"
-
-############################################################################
-
-# Unworked days (0: Monday ... 6: Sunday)
-NOT_WORKED_DAYS = [5, 6]
 
 
 def define_not_worked_days(list_of_days):
@@ -120,34 +105,24 @@ def _not_worked_days():
     return NOT_WORKED_DAYS
 
 
-############################################################################
-
-FONT_ATTR = {
-    "fill": "black",
-    "stroke": "black",
-    "stroke_width": 0,
-    "font_family": "Verdana",
-    "font_size": 15,
-    "font_weight": "normal",
-}
-
-
 def define_font_attributes(
-    fill="black",
-    stroke="black",
-    stroke_width=0,
-    font_family="Verdana",
-    font_weight="normal",
-    font_size=15,
+    fill: str = "black",
+    stroke: str = "black",
+    stroke_width: float = 0,
+    font_family: str = "Verdana",
+    font_weight: str = "normal",
+    font_size: int = 15,
 ):
     """
     Define font attributes
 
-    Keyword arguments:
-    fill -- fill - default 'black'
-    stroke -- stroke - default 'black'
-    stroke_width -- stroke width - default 0
-    font_family -- font family - default 'Verdana'
+    Args:
+        fill (str): Fill color. Defaults to 'black'
+        stroke (str): Stroke color. Defaults to 'black'
+        stroke_width (float): stroke width.  Defaults to 0
+        font_family (str): Font family.  Defaults 'Verdana'
+        font_weight (str): Font weight. Defaults to 'normal'
+        font_size (int): Font size. Defaults to '15'
     """
     global FONT_ATTR
 
@@ -160,19 +135,21 @@ def define_font_attributes(
         "font_size": font_size,
     }
 
-    return
-
 
 def _font_attributes():
     """
     Return dictionary of font attributes
-    Example :
-    FONT_ATTR = {
-      'fill': 'black',
-      'stroke': 'black',
-      'stroke_width': 0,
-      'font_family': 'Verdana',
-    }
+
+    Returns:
+        dict with font attributes
+
+    Example:
+        FONT_ATTR = {
+          'fill': 'black',
+          'stroke': 'black',
+          'stroke_width': 0,
+          'font_family': 'Verdana',
+        }
     """
     global FONT_ATTR
     return FONT_ATTR
@@ -208,25 +185,15 @@ def get_font_attributes(
     return font_attributes
 
 
-############################################################################
-
-
-# list of vacations as datetime (non-worked days)
-VACATIONS = []
-
-
-############################################################################
-
-
-def add_vacations(start_date, end_date=None):
+def add_vacations(start_date: date, end_date: date = None):
     """
-    Add vacations to a resource beginning at [start_date] to [end_date]
-    (included). If [end_date] is not defined, vacation will be for [start_date]
+    Add vacations to a resource beginning at *start_date* to *end_date*
+    (included). If *end_date* is not defined, vacation will be for *start_date*
     day only
 
-    Keyword arguments:
-    start_date -- datetime.date beginning of vacation
-    end_date -- datetime.date end of vacation
+    Args:
+        start_date (date): Beginning of a vacation
+        end_date: (date): End of a vacation
     """
     __LOG__.debug(
         "** add_vacations {0}".format({"start_date": start_date, "end_date": end_date})
@@ -249,11 +216,6 @@ def add_vacations(start_date, end_date=None):
             {"start_date": start_date, "end_date": end_date, "vac": VACATIONS}
         )
     )
-
-    return
-
-
-############################################################################
 
 
 def init_log_to_sysout(level=logging.INFO):
@@ -468,21 +430,21 @@ class GroupOfResources:
 
         return overcharged_days
 
-    def is_vacant(self, from_date, to_date):
+    def is_vacant(self, from_date: date, to_date: date):
         """
         Check if any resource from the group is unallocated between for a given timeframe.
         Returns a list of available ressource name.
 
-        Keyword arguments:
-        from_date -- first day
-        to_date --  last day
+        Args:
+            from_date(date): First day
+            to_date (date): Last day
         """
-        availables = []
+        available = []
         for r in self.resources:
             if len(r.is_vacant(from_date, to_date)) > 0:
-                availables.append(r.name)
+                available.append(r.name)
 
-        return availables
+        return available
 
 
 ############################################################################
@@ -491,16 +453,16 @@ class GroupOfResources:
 class Resource:
     """
     Class for handling resources assigned to tasks
+
+    Args:
+        name (str): Name given to the resource (id)
+        fullname (str): Long name given to the resource
+        color (str): Color used to represent the resource in the resources overview
     """
 
     def __init__(self, name, fullname=None, color=None):
         """
         Init a resource
-
-        Keyword arguments:
-        name -- name given to the resource (id)
-        fullname -- long name given to the resource
-        color -- color used to represent the resource in the resources overview
         """
         __LOG__.debug("** Resource::__init__ {0}".format({"name": name}))
         self.name = name
@@ -515,27 +477,25 @@ class Resource:
 
         self.tasks = []
         self.task_hours = []
-        return
 
-    def add_vacations(self, dfrom, dto=None):
+    def add_vacations(self, from_date: date, to_date: date = None):
         """
-        Add vacations to a resource beginning at [dfrom] to [dto] (included). If
-        [dto] is not defined, vacation will be for [dfrom] day only
+        Add vacations to a resource beginning at *from_date* to *to_date* (included). If
+        *to_date* is not defined, vacation will be for *from_data* day only
 
-        Keyword arguments:
-        dfrom -- datetime.date beginning of vacation
-        dto -- datetime.date end of vacation
+        Args:
+            from_date (date): Beginning of vacation
+            to_date (date): End of vacation
         """
         __LOG__.debug(
             "** Resource::add_vacations {0}".format(
-                {"name": self.name, "dfrom": dfrom, "dto": dto}
+                {"name": self.name, "from_date": from_date, "to_date": to_date}
             )
         )
-        if dto is None:
-            self.vacations.append((dfrom, dfrom))
+        if to_date is None:
+            self.vacations.append((from_date, from_date))
         else:
-            self.vacations.append((dfrom, dto))
-        return
+            self.vacations.append((from_date, to_date))
 
     def nb_elements(self):
         """
@@ -544,19 +504,19 @@ class Resource:
         __LOG__.debug("** Resource::nb_elements ({0})".format({"name": self.name}))
         return 1
 
-    def is_available(self, date):
+    def is_available(self, date_of_this_day):
         """
         Returns True if the resource is available at given date, False if not.
         Availability is tasks from the global VACATIONS and resource's ones.
 
-        Keyword arguments:
-        date -- datetime.date day to look for
+        Args:
+            date_of_this_day (date): Day to look for
         """
         # global VACATIONS
-        if date in VACATIONS:
+        if date_of_this_day in VACATIONS:
             __LOG__.debug(
                 "** Resource::is_available {0} : False (global vacation)".format(
-                    {"name": self.name, "date": date}
+                    {"name": self.name, "date": date_of_this_day}
                 )
             )
             return False
@@ -680,30 +640,30 @@ class Resource:
         Check if the resource is unallocated between for a given timeframe.
         Returns True if the resource is free, False otherwise
 
-        Keyword arguments:
-        from_date -- first day
-        to_date --  last day
+        Args:
+            from_date (date): First day
+            to_date  (date): Last day
         """
         non_vacant_days = self.search_for_task_conflicts(all_tasks=True)
-        cday = from_date
-        while cday <= to_date:
-            if cday.weekday() not in _not_worked_days():
-                if not self.is_available(cday):
+        current_day = from_date
+        while current_day <= to_date:
+            if current_day.weekday() not in _not_worked_days():
+                if not self.is_available(current_day):
                     __LOG__.debug(
                         '** Ressource "{0}" is not available on day {1} (vacation)'.format(
-                            self.name, cday
+                            self.name, current_day
                         )
                     )
                     return []
-                if cday in non_vacant_days:
+                if current_day in non_vacant_days:
                     __LOG__.debug(
                         '** Ressource "{0}" is not available on day {1} (other task : {2})'.format(
-                            self.name, cday, non_vacant_days[cday]
+                            self.name, current_day, non_vacant_days[current_day]
                         )
                     )
                     return []
 
-            cday += datetime.timedelta(days=1)
+            current_day += datetime.timedelta(days=1)
         return [self.name]
 
 
@@ -713,40 +673,43 @@ class Resource:
 class Task:
     """
     Class for manipulating Tasks
-    """
 
-    def __init__(
-        self,
-        name,
-        start=None,
-        stop=None,
-        duration: int = None,
-        depends_of=None,
-        resources=None,
-        percent_done=0,
-        color=None,
-        fullname=None,
-        display=True,
-        state="",
-    ):
-        """
+    Notes:
         Initialize task object. Two of start, stop or duration may be given.
         This task can rely on other task and will be completed with resources.
         If percent done is given, a progress bar will be included on the task.
         If color is specified, it will be used for the task.
 
-        Keyword arguments:
-        name -- name of the task (id)
-        fullname -- long name given to the resource
-        start -- datetime.date, first day of the task, default None
-        stop -- datetime.date, last day of the task, default None
-        duration -- int, duration of the task, default None
-        depends_of -- list of Task which are parents of this one, default None
-        resources -- list of Resources assigned to the task, default None
-        percent_done -- int, percent of achievement, default 0
-        color -- string, html color, default None
-        display -- boolean, display this task, default True
-        state -- string, state of the task
+    Args:
+        name (str): name of the task (id)
+        fullname (str): Long name given to the resource
+        start (date): First day of the task, default None
+        stop (date): Last day of the task, default None
+        duration (int): Duration of the task, default None
+        depends_of (list): Tasks which are parents of this one, default None
+        resources (list): Resources assigned to the task, default None
+        percent_done (int): Percent of achievement, default 0
+        color (str, html color): default None
+        display (bool): Display this task, default True
+        state (str): State of the task
+    """
+
+    def __init__(
+        self,
+        name: str,
+        start: date = None,
+        stop: date = None,
+        duration: int = None,
+        depends_of: list = None,
+        resources: list = None,
+        percent_done: int = 0,
+        color: str = None,
+        fullname: str = None,
+        display: bool = True,
+        state: str = "",
+    ):
+        """
+        Constructor for the class Task
         """
         __LOG__.debug(
             "** Task::__init__ {0}".format(
@@ -775,13 +738,13 @@ class Task:
         self.state = state
 
         ends = (self.start, self.stop, self.duration)
-        nonecount = 0
+        none_count = 0
         for e in ends:
             if e is None:
-                nonecount += 1
+                none_count += 1
 
         # check limits (2 must be set on 4) or scheduling is defined by duration and dependencies
-        if nonecount != 1 and (self.duration is None or depends_of is None):
+        if none_count != 1 and (self.duration is None or depends_of is None):
             __LOG__.error(
                 '** Task "{1}" must be defined by two of three limits ({0})'.format(
                     {"start": self.start, "stop": self.stop, "duration": self.duration},
@@ -816,8 +779,8 @@ class Task:
         """
         Adds dependency to a task
 
-        Keyword arguments:
-        depends_of -- list of Task which are parents of this one
+        Args:
+            depends_of (list): Task which are parents of this one
         """
         if type(depends_of) is type([]):
             if self.depends_of is None:
@@ -2453,7 +2416,7 @@ class Project:
         else:
             raise AssertionError(f"scale {scale} not recognised")
 
-        dwg = _my_svgwrite_drawing_wrapper(filename, debug=True)
+        dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
             svgwrite.shapes.Rect(
                 insert=(0 * cm, 0 * cm),
@@ -2695,7 +2658,7 @@ class Project:
                         )
                     )
 
-        dwg = _my_svgwrite_drawing_wrapper(filename, debug=True)
+        dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
             svgwrite.shapes.Rect(
                 insert=(0 * cm, 0 * cm),
