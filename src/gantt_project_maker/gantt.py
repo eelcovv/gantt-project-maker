@@ -2450,17 +2450,17 @@ class Project:
 
     def make_svg_for_resources(
         self,
-        filename,
-        today=None,
-        start=None,
-        end=None,
-        resources=None,
-        one_line_for_tasks=False,
-        tag_filter="",
-        scale=DRAW_WITH_DAILY_SCALE,
-        title_align_on_left=False,
-        offset=0,
-        color_per_taks=False,
+        filename: str,
+        today: date = None,
+        start: date = None,
+        end: date = None,
+        resources: list = None,
+        one_line_for_tasks: bool = False,
+        tag_filter: str = "",
+        scale: str = DRAW_WITH_DAILY_SCALE,
+        title_align_on_left: bool = False,
+        offset: float = 0,
+        color_per_taks: bool = False,
     ):
         """
         Draw resources affectation and output it to filename. If start or end are
@@ -2469,18 +2469,18 @@ class Project:
         And returns to a dictionary of dictionaries for vacation and task
         conflicts for resources
 
-        Keyword arguments:
-        filename -- string, filename to save to OR file object
-        today -- datetime.date of day marked as a reference
-        start -- datetime.date of first day to draw
-        end -- datetime.date of last day to draw
-        resources -- list of Resource to check, default all
-        one_line_for_tasks -- use only one line to display all tasks ?
-        tag_filter -- display only those tags
-        scale -- drawing scale (d: days, w: weeks, m: months, q: quarterly)
-        title_align_on_left -- boolean, align task title on left
-        offset -- X offset from image border to start of drawing zone
-        color_per_task -- give a color per task
+        Args:
+            filename (str): filename to save to OR file object
+            today (date): Day marked as a reference
+            start (date): First day to draw
+            end (date): Last day to draw
+            resources (list) Resources to check, default all
+            one_line_for_tasks (bool): Use only one line to display all tasks ?
+            tag_filter (bool): Display only those tags
+            scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
+            title_align_on_left (bool): Align task title on left
+            offset (float): X offset from image border to start of drawing zone
+            color_per_task (bool): Give a color per task
         """
 
         if scale != DRAW_WITH_DAILY_SCALE:
