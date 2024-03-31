@@ -555,7 +555,7 @@ class Resource:
         Tell the resource it belongs to a GroupOfResources
 
         Args:
-            group_of_resources (GroupOfResources): The GroupOfResources to which a resources belongs to
+            group_of_resources (GroupOfResources): The GroupOfResources to which a resource belongs to
         """
         if group_of_resources not in self.member_of_groups:
             self.member_of_groups.append(group_of_resources)
@@ -692,6 +692,7 @@ class Task:
         color (str, html color): default None
         display (bool): Display this task, default True
         state (str): State of the task
+        owner (str): Owner of the task
     """
 
     def __init__(
@@ -707,6 +708,7 @@ class Task:
         fullname: str = None,
         display: bool = True,
         state: str = "",
+        owner: str = "",
     ):
         """
         Constructor for the class Task
@@ -721,6 +723,7 @@ class Task:
                     "depends_of": depends_of,
                     "resources": resources,
                     "percent_done": percent_done,
+                    "owner": owner,
                 }
             )
         )
@@ -736,6 +739,7 @@ class Task:
         self.color = color
         self.display = display
         self.state = state
+        self.owner = owner
 
         ends = (self.start, self.stop, self.duration)
         none_count = 0
@@ -772,8 +776,6 @@ class Task:
         if resources is not None:
             for r in resources:
                 r.add_task(self)
-
-        return
 
     def add_depends(self, depends_of):
         """

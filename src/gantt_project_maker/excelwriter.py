@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+from pandas import DataFrame
 import xlsxwriter
 from pandas.io.formats.excel import ExcelFormatter
 
@@ -269,13 +270,15 @@ def write_excel_for_leaders(excel_file, project, header_info, column_widths):
                 )
 
 
-def write_excel_for_contributors(excel_file, project, header_info, column_widths):
+def write_excel_for_contributors(
+    excel_file, task_per_resource, header_info, column_widths
+):
     """
     A writer for the project plan of all contributors, one sheet per employee
 
     Args:
         excel_file (Path):  The filename of the Excel file
-        project (Project):  a reference to the project
+        task_per_resource (DataFrame):  a reference to the main project
         header_info (dict):  Information about the header of the Excel file
         column_widths (dict): Fix width of specified columns
 
@@ -284,29 +287,19 @@ def write_excel_for_contributors(excel_file, project, header_info, column_widths
     """
     _logger.debug(f"Writing to {excel_file} for contributors")
     with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-        try:
-            task_per_resource = project.get_resources()
-        except AttributeError as err:
-            raise AttributeError(
-                f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
+        for employee, resource_tasks_df in task_per_resource.groupby(level=0):
+            write_task_per_resource_to_excel(
+                writer=writer,
+                resource_tasks=resource_tasks_df,
+                sheet_name=employee,
+                header_info=header_info,
+                column_widths=column_widths,
             )
-        else:
-            for resource_tasks in task_per_resource:
-                _logger.debug("to be developed")
-                # write_task_per_resource_to_excel(
-                #     project=project,
-                #     resource_tasks=resource_tasks,
-                #     writer=writer,
-                #     sheet_name="Default",
-                #     header_info=header_info,
-                #     column_widths=column_widths,
-                # )
 
 
 def write_task_per_resource_to_excel(
-    project: type(gantt.Project),
-    resource_tasks: list,
     writer: type(pd.ExcelWriter),
+    resource_tasks: DataFrame,
     sheet_name: str,
     header_info: dict = None,
     column_widths: dict = None,
@@ -316,13 +309,12 @@ def write_task_per_resource_to_excel(
     Write a multi index data frame to Excel file with format
 
     Args:
+        writer (obj): Excel writer
+        resource_tasks (DataFrame): The tasks belong to the resource
         column_widths (dict): Fix width of these columns.
         header_info (dict): Information on the header
-        project (dict): Main project
-        writer (obj): Excel writer
         sheet_name (str): Name of the sheet
         character_width (float): Width of one character. Default = 0.7
-
     """
 
     ExcelFormatter.header_style = None
@@ -347,17 +339,7 @@ def write_task_per_resource_to_excel(
 
     row_index = 2
     level = 0
-
-    _, level = write_project(
-        project,
-        header_info=header_info,
-        workbook=workbook,
-        worksheet=worksheet,
-        character_width=character_width,
-        wb=wb,
-        row_index=row_index,
-        level=level,
-    )
+    resource_tasks.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
 
 
 def write_project_to_excel(

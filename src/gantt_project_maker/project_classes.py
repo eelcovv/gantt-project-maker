@@ -8,6 +8,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
+import pandas as pd
+from pandas import DataFrame
+
+
 import dateutil.parser as dparse
 from dateutil.parser import ParserError
 
@@ -30,7 +34,7 @@ EXCEL_TYPES = ["all", "leaders", "contributors"]
 _logger = logging.getLogger(__name__)
 
 
-def insert_variables(line: dict, variables_info: dict = None):
+def insert_variables(line: str, variables_info: dict = None):
     """
     Replace variables inserted as {{ variable_name }} in line by the variables defined in variable_ifo
 
@@ -183,7 +187,7 @@ class EmployeesContributingToTask:
     Class holding all employees attached to a task with the number of hours
 
     Attributes:
-        resources (dict): all the gannt.Resources object
+        resources (dict): all the gantt.Resources object
         hours (dict): All the hours per resource working on this taks
     """
 
@@ -252,6 +256,7 @@ class BasicElement(StartEndBase):
     def __init__(
         self,
         label,
+        project_leader_key=None,
         start=None,
         dependent_of=None,
         color=None,
@@ -265,6 +270,7 @@ class BasicElement(StartEndBase):
         if label is None:
             raise ValueError("Every task should have a label!")
         self.label = label
+        self.project_leader_key = project_leader_key
         self.detail = detail
         self.dependent_of = dependent_of
         self.color = color_to_hex(color)
@@ -272,10 +278,11 @@ class BasicElement(StartEndBase):
         self.display = display
 
 
-class Task(BasicElement):
+class ProjectTask(BasicElement):
     def __init__(
         self,
         label,
+        project_leader_key=None,
         start=None,
         end=None,
         duration=None,
@@ -290,6 +297,7 @@ class Task(BasicElement):
     ):
         super().__init__(
             label=label,
+            project_leader_key=project_leader_key,
             start=start,
             dependent_of=dependent_of,
             color=color,
@@ -336,14 +344,16 @@ class Task(BasicElement):
             depends_of=self.dependent_of,
             resources=resources,
             color=self.color,
+            owner=self.project_leader_key,
         )
         return task
 
 
-class Milestone(BasicElement):
+class ProjectMileStone(BasicElement):
     def __init__(
         self,
         label,
+        project_leader_key=None,
         start=None,
         dependent_of=None,
         color=None,
@@ -355,6 +365,7 @@ class Milestone(BasicElement):
     ):
         super().__init__(
             label=label,
+            project_leader_key=project_leader_key,
             start=start,
             dependent_of=dependent_of,
             color=color,
@@ -372,7 +383,7 @@ class Milestone(BasicElement):
         Create a Milestone and add it to the planning
 
         Returns:
-            Milestone: Milestone
+            ProjectMileStone: Milestone of this project
 
         """
         element = gantt.Milestone(
@@ -406,6 +417,9 @@ class ProjectPlanner:
         excel_info (dict, optional): Information on the Excel output
         details (bool, optional): If true, include the details to the programs
         filter_employees (list, optional): If not None, only add task to which  employees in this list contribute
+
+    Attributes:
+        tasks_per_resource (DataFrame): Dataframe with tasks per resource
 
     """
 
@@ -477,7 +491,7 @@ class ProjectPlanner:
             self.output_file_name = Path(output_file_name)
 
         # Make the main project
-        self.programma = gantt.Project(
+        self.program = gantt.Project(
             name=programma_title, color=color_to_hex(programma_color)
         )
 
@@ -491,6 +505,8 @@ class ProjectPlanner:
         self.employees = dict()
         self.tasks_and_milestones = dict()
         self.subprojects = dict()
+
+        self.tasks_per_resource: Union[DataFrame, None] = None
 
     @staticmethod
     def add_global_information(
@@ -517,7 +533,8 @@ class ProjectPlanner:
 
         Args:
             excel_output_directory(Path): Output directory of the Excel files
-            excel_setup_key (str): which file to export. Defaults to "all". Choices are 'all', 'leaders' and 'contributors'
+            excel_setup_key (str): which file to export. Defaults to "all". Choices are 'all', 'leaders' and
+                'contributors'
         """
 
         if self.excel_info is None:
@@ -550,7 +567,7 @@ class ProjectPlanner:
                     )
                     write_excel_for_leaders(
                         excel_file=file_name,
-                        project=self.programma,
+                        project=self.program,
                         header_info=excel_properties["header"],
                         column_widths=excel_properties.get("column_widths"),
                     )
@@ -558,7 +575,7 @@ class ProjectPlanner:
                     _logger.info(f"Exporting planning to {file_name} for contributors")
                     write_excel_for_contributors(
                         excel_file=file_name,
-                        project=self.programma,
+                        task_per_resource=self.tasks_per_resource,
                         header_info=excel_properties["header"],
                         column_widths=excel_properties.get("column_widths"),
                     )
@@ -723,7 +740,7 @@ class ProjectPlanner:
                         vacation_duration = 1
                     else:
                         vacation_duration = None
-                    vacation_task = Task(
+                    vacation_task = ProjectTask(
                         label=vacation_name,
                         color=v_prop.get("color"),
                         start=vacation_start,
@@ -736,14 +753,16 @@ class ProjectPlanner:
 
     def make_task_or_milestone(
         self,
+        project_leader_key: str = None,
         task_properties: dict = None,
         project_color=None,
         variables_info=None,
-    ) -> Union[Task, Milestone]:
+    ) -> Union[ProjectTask, ProjectMileStone]:
         """
         Add all the general tasks and milestones
 
         Args:
+            project_leader_key (str): The key of the project leader
             task_properties (dict): Dictionary with tasks or milestones
             project_color (str): Color of the parent project
             variables_info: (dict, optional): Dictionary with variable information to replace strings. Default to None
@@ -760,8 +779,9 @@ class ProjectPlanner:
                 task_properties.get("employees")
             )
             _logger.debug(f"Voeg task {task_properties.get('label')} toe")
-            task_or_milestone = Task(
+            task_or_milestone = ProjectTask(
                 label=insert_variables(task_properties.get("label"), variables_info),
+                project_leader_key=project_leader_key,
                 start=task_properties.get("start"),
                 end=task_properties.get("end"),
                 duration=task_properties.get("duration"),
@@ -780,8 +800,9 @@ class ProjectPlanner:
                     "You have specified a milestone, but also defined an end date. Milestones only"
                     f"require a start data. Please fix task\n{task_properties}"
                 )
-            task_or_milestone = Milestone(
+            task_or_milestone = ProjectMileStone(
                 label=insert_variables(task_properties.get("label"), variables_info),
+                project_leader_key=project_leader_key,
                 start=task_properties.get("start"),
                 color=task_properties.get("color"),
                 project_color=project_color,
@@ -858,6 +879,7 @@ class ProjectPlanner:
 
     def make_projects(
         self,
+        project_leader_key,
         subprojects_info,
         subprojects_title,
         subprojects_selection,
@@ -868,6 +890,7 @@ class ProjectPlanner:
         Create all the projects given in subprojects_info
 
         Args:
+            project_leader_key (str): The key of the project leader
             subprojects_info (dict):  information per subproject
             subprojects_title (dict): Title of the subprojects
             subprojects_selection (list): List of the subprojects to include at the main level
@@ -962,6 +985,7 @@ class ProjectPlanner:
                                     continue
                     else:
                         task_obj = self.make_task_or_milestone(
+                            project_leader_key=project_leader_key,
                             task_properties=task_val,
                             project_color=project_color,
                             variables_info=variables_info,
@@ -1070,13 +1094,45 @@ class ProjectPlanner:
                 projects_employee.add_task(project)
 
         # add now all projects of the employee to the program
-        self.programma.add_task(projects_employee)
+        self.program.add_task(projects_employee)
 
-    def make_resource_dataframe(self):
+    def make_resource_dataframe(
+        self, task_id="Tasks", employee_id="Employees", owner_id="owner"
+    ):
         """turn all the resources into a data frame"""
 
-        for resource in self.programma.get_resources():
-            _logger.debug(f"Adding resource {resource}")
+        resources = dict()
+        for resource in self.program.get_resources():
+            _logger.debug(f"Adding resource {resource.fullname}")
+            task_for_resource = dict()
+            for task, hours in zip(resource.tasks, resource.task_hours):
+                task_for_resource[task.name] = get_task_contribution(
+                    resource.name, task
+                )
+            all_task_for_resource = pd.DataFrame(task_for_resource).T
+            all_task_for_resource.index = all_task_for_resource.index.rename(task_id)
+            all_task_for_resource = all_task_for_resource.reset_index()
+
+            all_task_with_full_owner_name = dict()
+
+            # replace owner keu with full name of the owner
+            for owner_key, owner_df in all_task_for_resource.groupby("owner"):
+                try:
+                    owner_resource = self.employees[owner_key]
+                except KeyError as e:
+                    _logger.warning(f"No owner found for {owner_key}: {e}")
+                else:
+                    all_task_with_full_owner_name[owner_resource.full_name] = owner_df
+
+            df = pd.concat(all_task_with_full_owner_name)
+            df = df.drop(owner_id, axis=1)
+            df = df.reset_index().set_index("level_0")
+            df.index = df.index.rename(owner_id)
+            df = df.drop("level_1", axis=1)
+            resources[resource.fullname] = df
+
+        self.tasks_per_resource = pd.concat(resources)
+        _logger.debug("Successfully make task per resources")
 
     def write_planning(
         self,
@@ -1176,7 +1232,7 @@ class ProjectPlanner:
             _logger.info(
                 f"Writing project starting at {start} and ending at {end} with a scale {scale} to {file_name}"
             )
-            self.programma.make_svg_for_tasks(
+            self.program.make_svg_for_tasks(
                 filename=file_name,
                 start=start,
                 end=end,
@@ -1207,7 +1263,7 @@ class ProjectPlanner:
                     f"Write resources of {start} to {end} with scale {scale} to {file_name_resources}"
                 )
                 try:
-                    self.programma.make_svg_for_resources(
+                    self.program.make_svg_for_resources(
                         filename=file_name_resources.as_posix(),
                         start=start,
                         end=end,
@@ -1342,7 +1398,7 @@ def get_contributors_from_resources(
     ----------
     projects_employee_global
     contributors
-    all_resources: list
+    all_resources: dict
 
     Returns
     -------
@@ -1357,3 +1413,30 @@ def get_contributors_from_resources(
             else:
                 contributors.append(emp_val.resource)
     return contributors
+
+
+def get_task_contribution(name, task) -> dict:
+    """
+    Taks contribution
+
+    Args:
+        name (str): Name of the task to process.
+        task (Task): Task instance
+
+    Returns:
+        dict: task contribution of the resource
+
+    """
+
+    task_contribution = dict()
+    for resource_for_task in task.resources:
+        if resource_for_task.name == name:
+            task_contribution["start"] = task.start
+            task_contribution["end"] = task.end
+            task_contribution["owner"] = task.owner
+            if isinstance(task.employees, dict):
+                task_contribution["hours"] = task.employees[name]
+            else:
+                task_contribution["hours"] = None
+
+    return task_contribution

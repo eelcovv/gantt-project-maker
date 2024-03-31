@@ -477,6 +477,12 @@ def main(args):
         project_leader_key,
         employee_settings_file,
     ) in project_settings_per_project_leader.items():
+        if args.employee is not None and project_leader_key not in args.employee:
+            _logger.debug(
+                f"Skip reading settings file for employee {project_leader_key}"
+            )
+            continue
+
         _logger.info(
             f"Reading settings file {employee_settings_file} of  employee {project_leader_key}"
         )
@@ -586,13 +592,15 @@ def main(args):
             subprojects_selection = list(
                 set(subprojects_selection).intersection(set(filter_projects))
             )
-        planning.make_projects(
-            subprojects_info=subprojects_info,
-            subprojects_selection=subprojects_selection,
-            subprojects_title=subprojects_title,
-            subprojects_color=subprojects_color,
-            variables_info=variables_info,
-        )
+        if subprojects_selection:
+            planning.make_projects(
+                project_leader_key=project_leader_key,
+                subprojects_info=subprojects_info,
+                subprojects_selection=subprojects_selection,
+                subprojects_title=subprojects_title,
+                subprojects_color=subprojects_color,
+                variables_info=variables_info,
+            )
 
     # Everything has been added to the planning. Write it to file
     planning.write_planning(
