@@ -250,6 +250,7 @@ def write_task_per_resource_to_excel(
     Write a multi index data frame to Excel file with format
 
     Args:
+        header_info:
         writer (obj): Excel writer
         resource_tasks (DataFrame): The tasks belong to the resource
         column_widths (dict): Fix width of these columns.

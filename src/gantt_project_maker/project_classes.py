@@ -576,7 +576,6 @@ class ProjectPlanner:
                     )
                     self.write_excel_for_leaders(
                         excel_file=file_name,
-                        project=self.program,
                         header_info=excel_properties["header"],
                         column_widths=excel_properties.get("column_widths"),
                     )
@@ -584,7 +583,6 @@ class ProjectPlanner:
                     _logger.info(f"Exporting planning to {file_name} for contributors")
                     self.write_excel_for_contributors(
                         excel_file=file_name,
-                        task_per_resource=self.tasks_per_resource,
                         header_info=excel_properties["header"],
                         column_widths=excel_properties.get("column_widths"),
                     )
@@ -623,15 +621,14 @@ class ProjectPlanner:
                     )
 
     def write_excel_for_contributors(
-        self, excel_file, task_per_resource, header_info, column_widths
+        self, excel_file, header_info, column_widths
     ):
         """
         A writer for the project plan of all contributors, one sheet per employee
 
         Args:
-            excel_file (Path):  The filename of the Excel file
-            task_per_resource (DataFrame):  a reference to the main project
-            header_info (dict):  Information about the header of the Excel file
+            excel_file (Path): The filename of the Excel file
+            header_info (dict): info for the header
             column_widths (dict): Fix width of specified columns
 
         Returns:
@@ -642,12 +639,10 @@ class ProjectPlanner:
             for (
                 employee_full_name,
                 resource_tasks_df,
-            ) in task_per_resource.reset_index().groupby(
-                by=self.employee_id, as_index=False
-            ):
+            ) in self.tasks_per_resource.groupby(by=self.employee_id):
                 write_task_per_resource_to_excel(
                     writer=writer,
-                    resource_tasks=resource_tasks_df,
+                    resource_tasks=resource_tasks_df.loc[employee_full_name],
                     sheet_name=employee_full_name,
                     header_info=header_info,
                     column_widths=column_widths,
@@ -1185,7 +1180,7 @@ class ProjectPlanner:
 
             all_task_with_full_owner_name = dict()
 
-            # replace owner keu with full name of the owner
+            # replace the owner key with the full name of the owner
             for owner_key, owner_df in all_task_for_resource.groupby(self.owner_id):
                 try:
                     owner_resource = self.employees[owner_key]
