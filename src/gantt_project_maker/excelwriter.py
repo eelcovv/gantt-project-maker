@@ -238,65 +238,6 @@ def indent(line, n_char=5):
     return spacing(n_char=n_char) + line
 
 
-def write_excel_for_leaders(excel_file, project, header_info, column_widths):
-    """
-    A writer for the project plan of all employees, one sheet per employee
-
-    Args:
-        excel_file (Path):  The filename of the Excel file
-        project (Project):  a reference to the project
-        header_info (dict):  Information about the header of the Excel file
-        column_widths (dict): Fix width of specified columns
-
-    Returns:
-
-    """
-    _logger.debug(f"Writing to {excel_file} for leaders")
-    with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-        try:
-            projects_per_employee = project.tasks
-        except AttributeError as err:
-            raise AttributeError(
-                f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
-            )
-        else:
-            for projecten_employee in projects_per_employee:
-                write_project_to_excel(
-                    project=projecten_employee,
-                    writer=writer,
-                    sheet_name=projecten_employee.name,
-                    header_info=header_info,
-                    column_widths=column_widths,
-                )
-
-
-def write_excel_for_contributors(
-    excel_file, task_per_resource, header_info, column_widths
-):
-    """
-    A writer for the project plan of all contributors, one sheet per employee
-
-    Args:
-        excel_file (Path):  The filename of the Excel file
-        task_per_resource (DataFrame):  a reference to the main project
-        header_info (dict):  Information about the header of the Excel file
-        column_widths (dict): Fix width of specified columns
-
-    Returns:
-
-    """
-    _logger.debug(f"Writing to {excel_file} for contributors")
-    with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-        for employee, resource_tasks_df in task_per_resource.groupby(level=0):
-            write_task_per_resource_to_excel(
-                writer=writer,
-                resource_tasks=resource_tasks_df,
-                sheet_name=employee,
-                header_info=header_info,
-                column_widths=column_widths,
-            )
-
-
 def write_task_per_resource_to_excel(
     writer: type(pd.ExcelWriter),
     resource_tasks: DataFrame,

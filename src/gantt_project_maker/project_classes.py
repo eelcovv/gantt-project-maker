@@ -18,8 +18,8 @@ from dateutil.parser import ParserError
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import (
-    write_excel_for_leaders,
-    write_excel_for_contributors,
+    write_project_to_excel,
+    write_task_per_resource_to_excel,
 )
 
 SCALES = dict(
@@ -444,10 +444,19 @@ class ProjectPlanner:
         save_svg_as_pdf: bool = False,
         collaps_tasks: bool = False,
         periods: list = None,
+        tasks_id: str = "Tasks",
+        employee_id: str = "employee",
+        owner_id: str = "owner",
+        contributor_id: str = "contributor",
     ):
         """
         Constructor of the class
         """
+        self.tasks_id = tasks_id
+        self.employee_id = employee_id
+        self.owner_id = owner_id
+        self.contributor_id = contributor_id
+
         self.period_info = period_info
         self.planning_start = planning_start
         self.planning_end = planning_end
@@ -565,7 +574,7 @@ class ProjectPlanner:
                     _logger.info(
                         f"Exporting planning to {file_name} for project leaders"
                     )
-                    write_excel_for_leaders(
+                    self.write_excel_for_leaders(
                         excel_file=file_name,
                         project=self.program,
                         header_info=excel_properties["header"],
@@ -573,7 +582,7 @@ class ProjectPlanner:
                     )
                 elif excel_type == "contributors":
                     _logger.info(f"Exporting planning to {file_name} for contributors")
-                    write_excel_for_contributors(
+                    self.write_excel_for_contributors(
                         excel_file=file_name,
                         task_per_resource=self.tasks_per_resource,
                         header_info=excel_properties["header"],
@@ -582,6 +591,67 @@ class ProjectPlanner:
                 else:
                     msg = f"Unrecognized value for type '{excel_type}'. Please pick from {EXCEL_TYPES}. Skipping"
                     _logger.warning(msg)
+
+    def write_excel_for_leaders(self, excel_file, header_info, column_widths):
+        """
+        A writer for the project plan of all employees, one sheet per employee
+
+        Args:
+            excel_file (Path):  The filename of the Excel file
+            header_info (dict):  Information about the header of the Excel file
+            column_widths (dict): Fix width of specified columns
+
+        Returns:
+
+        """
+        _logger.debug(f"Writing to {excel_file} for leaders")
+        with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
+            try:
+                projects_per_employee = self.program.tasks
+            except AttributeError as err:
+                raise AttributeError(
+                    f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
+                )
+            else:
+                for projecten_employee in projects_per_employee:
+                    write_project_to_excel(
+                        project=projecten_employee,
+                        writer=writer,
+                        sheet_name=projecten_employee.name,
+                        header_info=header_info,
+                        column_widths=column_widths,
+                    )
+
+    def write_excel_for_contributors(
+        self, excel_file, task_per_resource, header_info, column_widths
+    ):
+        """
+        A writer for the project plan of all contributors, one sheet per employee
+
+        Args:
+            excel_file (Path):  The filename of the Excel file
+            task_per_resource (DataFrame):  a reference to the main project
+            header_info (dict):  Information about the header of the Excel file
+            column_widths (dict): Fix width of specified columns
+
+        Returns:
+
+        """
+        _logger.debug(f"Writing to {excel_file} for contributors")
+        with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
+            for (
+                employee_full_name,
+                resource_tasks_df,
+            ) in task_per_resource.reset_index().groupby(
+                by=self.employee_id, as_index=False
+            ):
+                write_task_per_resource_to_excel(
+                    writer=writer,
+                    resource_tasks=resource_tasks_df,
+                    sheet_name=employee_full_name,
+                    header_info=header_info,
+                    column_widths=column_widths,
+                )
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """
@@ -1096,9 +1166,7 @@ class ProjectPlanner:
         # add now all projects of the employee to the program
         self.program.add_task(projects_employee)
 
-    def make_resource_dataframe(
-        self, task_id="Tasks", employee_id="Employees", owner_id="owner"
-    ):
+    def make_resource_dataframe(self):
         """turn all the resources into a data frame"""
 
         resources = dict()
@@ -1110,13 +1178,15 @@ class ProjectPlanner:
                     resource.name, task
                 )
             all_task_for_resource = pd.DataFrame(task_for_resource).T
-            all_task_for_resource.index = all_task_for_resource.index.rename(task_id)
+            all_task_for_resource.index = all_task_for_resource.index.rename(
+                self.tasks_id
+            )
             all_task_for_resource = all_task_for_resource.reset_index()
 
             all_task_with_full_owner_name = dict()
 
             # replace owner keu with full name of the owner
-            for owner_key, owner_df in all_task_for_resource.groupby("owner"):
+            for owner_key, owner_df in all_task_for_resource.groupby(self.owner_id):
                 try:
                     owner_resource = self.employees[owner_key]
                 except KeyError as e:
@@ -1125,13 +1195,16 @@ class ProjectPlanner:
                     all_task_with_full_owner_name[owner_resource.full_name] = owner_df
 
             df = pd.concat(all_task_with_full_owner_name)
-            df = df.drop(owner_id, axis=1)
+            df = df.drop(self.owner_id, axis=1)
             df = df.reset_index().set_index("level_0")
-            df.index = df.index.rename(owner_id)
+            df.index = df.index.rename(self.owner_id)
             df = df.drop("level_1", axis=1)
             resources[resource.fullname] = df
 
         self.tasks_per_resource = pd.concat(resources)
+        self.tasks_per_resource.index = self.tasks_per_resource.index.rename(
+            [self.employee_id, self.owner_id]
+        )
         _logger.debug("Successfully make task per resources")
 
     def write_planning(
