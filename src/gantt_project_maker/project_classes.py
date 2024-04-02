@@ -444,7 +444,7 @@ class ProjectPlanner:
         save_svg_as_pdf: bool = False,
         collaps_tasks: bool = False,
         periods: list = None,
-        tasks_id: str = "Tasks",
+        tasks_id: str = "task",
         employee_id: str = "employee",
         owner_id: str = "owner",
         contributor_id: str = "contributor",
@@ -620,9 +620,7 @@ class ProjectPlanner:
                         column_widths=column_widths,
                     )
 
-    def write_excel_for_contributors(
-        self, excel_file, header_info, column_widths
-    ):
+    def write_excel_for_contributors(self, excel_file, header_info, column_widths):
         """
         A writer for the project plan of all contributors, one sheet per employee
 
@@ -1500,7 +1498,10 @@ def get_task_contribution(name, task) -> dict:
     for resource_for_task in task.resources:
         if resource_for_task.name == name:
             task_contribution["start"] = task.start
-            task_contribution["end"] = task.end
+            try:
+                task_contribution["end"] = task.end
+            except AttributeError:
+                task_contribution["end"] = None
             task_contribution["owner"] = task.owner
             if isinstance(task.employees, dict):
                 task_contribution["hours"] = task.employees[name]

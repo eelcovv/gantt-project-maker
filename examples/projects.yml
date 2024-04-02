@@ -88,26 +88,30 @@ excel:
         color: hemelblauw
         title: What
         columns:
-          name: Statistiek / project
+          name: Statistics / Project
           vir: VIR-procescode
-          link: Link naar hoofdmap
+          link: Link to main folder
           casper_project: CASPER-project
           casper_task: CASPER-task
-          task: Fasen / Activiteiten
-          focal_point: focal_point werkzaamheden
+          task: Phase / Activity
+          focal_point: Focal point activities
       when:
         color: zachtgroen
-        title: when
+        title: When
         columns:
-          period: period
-          start: Begindatum
-          stop: Einddatum
+          period: Period
+          start: Start date
+          stop: End date
           deadline: Deadline
       who:
         color: terrarood
         title: Who
         columns:
-          project_leader: Project Leader
+          # The keys defined her correspond to the keys given in the tasks.
+          # E.g. the key 'cci' corresponds in the file 'project_emp3.yml'  to the task 'request_documents': cci: 'No'
+          # Here we create a column cci with the column title 'CCI' which will get the value 'No' for this task.
+          # You can define you own columns which you can use in your task attributes
+          project_leader.: Project Leader
           employee_1: Employee 1
           employee_2: Employee 2
           employee_3: Employee 3
@@ -131,31 +135,16 @@ excel:
         color: hemelblauw
         title: What
         columns:
-          name: Statistiek / project
-          vir: VIR-procescode
-          link: Link naar hoofdmap
-          casper_project: CASPER-project
-          casper_task: CASPER-task
-          task: Fasen / Activiteiten
-          focal_point: focal_point werkzaamheden
+          name: Statistics / Project
+          task: Phase / Activity
       when:
         color: zachtgroen
-        title: when
+        title: When
         columns:
           period: period
-          start: Begindatum
-          stop: Einddatum
-          deadline: Deadline
-      who:
-        color: terrarood
-        title: Who
-        columns:
-          project_leader: Project Leader
-          employee_1: Employee 1
-          employee_2: Employee 2
-          employee_3: Employee 3
-          department1: Departement 1
-          cci: CCI
+          start: Start date
+          stop: End date
+          hours: Hours
       other_business:
         color: donkergrijs
         title: other_business

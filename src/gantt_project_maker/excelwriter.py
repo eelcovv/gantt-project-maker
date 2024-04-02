@@ -280,8 +280,34 @@ def write_task_per_resource_to_excel(
     )
 
     row_index = 2
-    level = 0
-    resource_tasks.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
+    for project_leader_name, project_tasks_df in resource_tasks.groupby(level=0):
+        level = 0
+        col_index = 0
+        worksheet.write(row_index, col_index, project_leader_name, wb.left_align_bold)
+
+        row_index += 1
+
+        for row_key, row_values in project_tasks_df.iterrows():
+
+            for info_key, info_val in header_info.items():
+                _logger.debug(f"Adding data of header for {info_key}")
+                columns_names = info_val["columns"]
+
+                for column_name in columns_names:
+
+                    try:
+                        column_value = row_values[column_name]
+                    except KeyError:
+                        _logger.debug(f"Cannot find {column_name}. Skipping")
+                    else:
+                        worksheet.write(
+                            row_index, col_index, column_value, wb.left_align
+                        )
+
+                    col_index += 1
+
+            col_index = 0
+            row_index += 1
 
 
 def write_project_to_excel(
@@ -308,9 +334,7 @@ def write_project_to_excel(
     ExcelFormatter.header_style = None
 
     table_df = pd.DataFrame(data=[sheet_name])
-    table_df.to_excel(
-        writer, sheet_name=sheet_name, startrow=0, header=False, index=False
-    )
+    table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
 
     worksheet = writer.sheets[sheet_name]
     # worksheet.screen_gridlines = False
@@ -460,7 +484,7 @@ def write_header(header_info, workbook, worksheet, character_width, wb, column_w
     """
     row_index = 0
     col_index = 0
-    # begin met tabel nummer op eerste regel en title op regel 2
+    # Start with the table number on first line and title on the second line
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding header for {info_key}")
         columns_names = info_val["columns"]
