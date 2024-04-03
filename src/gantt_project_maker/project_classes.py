@@ -8,19 +8,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union
 
-import pandas as pd
-from pandas import DataFrame
-
-
 import dateutil.parser as dparse
+import pandas as pd
 from dateutil.parser import ParserError
+from pandas import DataFrame
 
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import (
     write_project_to_excel,
-    write_task_per_resource_to_excel,
 )
+from gantt_project_maker.utils import get_task_contribution
 
 SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
@@ -265,6 +263,7 @@ class BasicElement(StartEndBase):
         display=True,
         dayfirst=False,
         variables_info=None,
+        parent=None,
     ):
         super().__init__(start, start, dayfirst, variables_info)
         if label is None:
@@ -276,6 +275,7 @@ class BasicElement(StartEndBase):
         self.color = color_to_hex(color)
         self.project_color = color_to_hex(project_color)
         self.display = display
+        self.parent = parent
 
 
 class ProjectTask(BasicElement):
@@ -294,6 +294,7 @@ class ProjectTask(BasicElement):
         display=True,
         dayfirst=True,
         variables_info=None,
+        parent=None,
     ):
         super().__init__(
             label=label,
@@ -306,6 +307,7 @@ class ProjectTask(BasicElement):
             display=display,
             dayfirst=dayfirst,
             variables_info=variables_info,
+            parent=parent,
         )
         self.end = parse_date(end, dayfirst=dayfirst)
         self.duration = duration
@@ -345,6 +347,7 @@ class ProjectTask(BasicElement):
             resources=resources,
             color=self.color,
             owner=self.project_leader_key,
+            parent=self.parent,
         )
         return task
 
@@ -362,6 +365,7 @@ class ProjectMileStone(BasicElement):
         display=True,
         dayfirst=True,
         variables_info=None,
+        parent=None,
     ):
         super().__init__(
             label=label,
@@ -374,6 +378,7 @@ class ProjectMileStone(BasicElement):
             display=display,
             dayfirst=dayfirst,
             variables_info=variables_info,
+            parent=parent,
         )
 
         self.element = self.add_milestone()
@@ -391,6 +396,7 @@ class ProjectMileStone(BasicElement):
             start=self.start,
             depends_of=self.dependent_of,
             color=self.color,
+            parent=self.parent,
         )
         return element
 
@@ -633,18 +639,75 @@ class ProjectPlanner:
 
         """
         _logger.debug(f"Writing to {excel_file} for contributors")
+        try:
+            projects_per_employee = self.program.tasks
+        except AttributeError as err:
+            raise AttributeError(
+                f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
+            )
+
         with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-            for (
-                employee_full_name,
-                resource_tasks_df,
-            ) in self.tasks_per_resource.groupby(by=self.employee_id):
-                write_task_per_resource_to_excel(
-                    writer=writer,
-                    resource_tasks=resource_tasks_df.loc[employee_full_name],
-                    sheet_name=employee_full_name,
-                    header_info=header_info,
-                    column_widths=column_widths,
-                )
+            # for (
+            #     employee_full_name,
+            #     resource_tasks_df,
+            # ) in self.tasks_per_resource.groupby(by=self.employee_id):
+            #     write_task_per_resource_to_excel(
+            #         writer=writer,
+            #         resource_tasks=resource_tasks_df.loc[employee_full_name],
+            #         sheet_name=employee_full_name,
+            #         header_info=header_info,
+            #         column_widths=column_widths,
+            #     )
+            resources = dict()
+            for resource in self.program.get_resources():
+                _logger.debug(f"Processing resource {resource}")
+                row_index = 0
+                for projecten_employee in projects_per_employee:
+                    if row_index == 0:
+                        header = True
+                    else:
+                        header = False
+                    row_index, level = write_project_to_excel(
+                        project=projecten_employee,
+                        writer=writer,
+                        sheet_name=resource.fullname,
+                        header_info=header_info,
+                        column_widths=column_widths,
+                        resource=resource,
+                        row_index=row_index,
+                        header=header,
+                    )
+        #         _logger.debug(f"Adding resource {resource.fullname}")
+        #         task_for_resource = dict()
+        #         for task, hours in zip(resource.tasks, resource.task_hours):
+        #             task_for_resource[task.name] = get_task_contribution(
+        #                 resource.name, task, owner_id=self.owner_id
+        #             )
+        #         all_task_for_resource = pd.DataFrame(task_for_resource).T
+        #         all_task_for_resource.index = all_task_for_resource.index.rename(
+        #             self.tasks_id
+        #         )
+        #         all_task_for_resource = all_task_for_resource.reset_index()
+        #
+        #         all_task_with_full_owner_name = dict()
+        #
+        #     # replace the owner key with the full name of the owner
+        #     for owner_key, owner_df in all_task_for_resource.groupby(self.owner_id):
+        #         try:
+        #             owner_resource = self.employees[owner_key]
+        #         except KeyError as e:
+        #             _logger.warning(f"No owner found for {owner_key}: {e}")
+        #         else:
+        #             all_task_with_full_owner_name[owner_resource.full_name] = owner_df
+        #
+        #     df = pd.concat(all_task_with_full_owner_name)
+        #     df = df.drop(self.owner_id, axis=1)
+        #     df = df.reset_index().set_index("level_0")
+        #     df.index = df.index.rename(self.owner_id)
+        #     df = df.drop("level_1", axis=1)
+        #     resources[resource.fullname] = df
+        #
+        # self.tasks_per_resource = pd.concat(resources)
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """
@@ -820,6 +883,7 @@ class ProjectPlanner:
         task_properties: dict = None,
         project_color=None,
         variables_info=None,
+        parent=None,
     ) -> Union[ProjectTask, ProjectMileStone]:
         """
         Add all the general tasks and milestones
@@ -855,6 +919,7 @@ class ProjectPlanner:
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
                 variables_info=variables_info,
+                parent=parent,
             )
         elif element_type == "milestone":
             _logger.debug(f"Adding milestone {task_properties.get('label')} toe")
@@ -871,6 +936,7 @@ class ProjectPlanner:
                 project_color=project_color,
                 dependent_of=dependencies,
                 dayfirst=self.dayfirst,
+                parent=parent,
             )
         else:
             raise AssertionError("Type should be 'task' or 'milestone'")
@@ -1052,6 +1118,7 @@ class ProjectPlanner:
                             task_properties=task_val,
                             project_color=project_color,
                             variables_info=variables_info,
+                            parent=project_key,
                         )
                         task = task_obj.element
                         is_detail = task_obj.detail
@@ -1168,7 +1235,7 @@ class ProjectPlanner:
             task_for_resource = dict()
             for task, hours in zip(resource.tasks, resource.task_hours):
                 task_for_resource[task.name] = get_task_contribution(
-                    resource.name, task
+                    resource.name, task, owner_id=self.owner_id
                 )
             all_task_for_resource = pd.DataFrame(task_for_resource).T
             all_task_for_resource.index = all_task_for_resource.index.rename(
@@ -1479,33 +1546,3 @@ def get_contributors_from_resources(
             else:
                 contributors.append(emp_val.resource)
     return contributors
-
-
-def get_task_contribution(name, task) -> dict:
-    """
-    Taks contribution
-
-    Args:
-        name (str): Name of the task to process.
-        task (Task): Task instance
-
-    Returns:
-        dict: task contribution of the resource
-
-    """
-
-    task_contribution = dict()
-    for resource_for_task in task.resources:
-        if resource_for_task.name == name:
-            task_contribution["start"] = task.start
-            try:
-                task_contribution["end"] = task.end
-            except AttributeError:
-                task_contribution["end"] = None
-            task_contribution["owner"] = task.owner
-            if isinstance(task.employees, dict):
-                task_contribution["hours"] = task.employees[name]
-            else:
-                task_contribution["hours"] = None
-
-    return task_contribution

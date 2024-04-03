@@ -572,7 +572,6 @@ class Resource:
         if task not in self.tasks:
             self.tasks.append(task)
             self.task_hours.append(hours_for_resource)
-        return
 
     def search_for_task_conflicts(self, all_tasks=False):
         """
@@ -693,6 +692,7 @@ class Task:
         display (bool): Display this task, default True
         state (str): State of the task
         owner (str): Owner of the task
+        parent (str): Parent of the task
     """
 
     def __init__(
@@ -709,6 +709,7 @@ class Task:
         display: bool = True,
         state: str = "",
         owner: str = "",
+        parent: str = "",
     ):
         """
         Constructor for the class Task
@@ -724,6 +725,7 @@ class Task:
                     "resources": resources,
                     "percent_done": percent_done,
                     "owner": owner,
+                    "parent": parent,
                 }
             )
         )
@@ -740,6 +742,7 @@ class Task:
         self.display = display
         self.state = state
         self.owner = owner
+        self.parent = parent
 
         ends = (self.start, self.stop, self.duration)
         none_count = 0
@@ -1647,7 +1650,14 @@ class Milestone(Task):
     """
 
     def __init__(
-        self, name, start=None, depends_of=None, color=None, fullname=None, display=True
+        self,
+        name,
+        start=None,
+        depends_of=None,
+        color=None,
+        fullname=None,
+        display=True,
+        parent=None,
     ):
         """
         Initialize milestone object. Two of start, stop or duration may be given.
@@ -1683,6 +1693,7 @@ class Milestone(Task):
             self.color = "#FF3030"
 
         self.display = display
+        self.parent = parent
         self.state = "Milestone"
 
         if type(depends_of) is type([]):
