@@ -271,94 +271,6 @@ def indent(line, n_char=5):
     return spacing(n_char=n_char) + line
 
 
-def write_task_per_resource_to_excel(
-    writer: type(pd.ExcelWriter),
-    resource: object,
-    header_info: dict = None,
-    column_widths: dict = None,
-    character_width: float = 1.0,
-    owner_id: str = None,
-):
-    """
-    Write a multi index data frame to Excel file with format
-
-    Args:
-        header_info:
-        writer (obj): Excel writer
-        resource (object): The tasks belong to the resource
-        column_widths (dict): Fix width of these columns.
-        header_info (dict): Information on the header
-        character_width (float): Width of one character. Default = 0.7
-        owner_id (str):
-    """
-
-    ExcelFormatter.header_style = None
-
-    sheet_name = resource.fullname
-    resource_tasks = resource.tasks
-    task_for_resource = dict()
-    for task, hours in zip(resource.tasks, resource.task_hours):
-        task_for_resource[task.name] = get_task_contribution(
-            resource.name, task, owner_id=owner_id
-        )
-
-    table_df = pd.DataFrame(data=[sheet_name])
-    table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
-
-    worksheet = writer.sheets[sheet_name]
-    # worksheet.screen_gridlines = False
-    workbook = writer.book
-
-    wb = WorkBook(workbook=workbook)
-
-    write_header(
-        header_info=header_info,
-        workbook=workbook,
-        worksheet=worksheet,
-        character_width=character_width,
-        wb=wb,
-        column_widths=column_widths,
-    )
-
-    row_index = 2
-    level = 0
-
-    for task in resource_tasks:
-        pass
-
-    _, level = write_resource(
-        resource,
-        header_info=header_info,
-        workbook=workbook,
-        worksheet=worksheet,
-        character_width=character_width,
-        wb=wb,
-        row_index=row_index,
-        level=level,
-    )
-
-    # row_index = 2
-    # for task in resource_tasks:
-    #
-    #     _logger.debug(f"Adding resource {resource.fullname}")
-    #     level = 0
-    #     col_index = 0
-    #     project_leader_name = task.owner
-    #     worksheet.write(row_index, col_index, project_leader_name, wb.left_align_bold)
-    #
-    #     row_index += 1
-    #
-    #     for info_key, info_val in header_info.items():
-    #         _logger.debug(f"Adding data of header for {info_key}")
-    #         columns_names = info_val["columns"]
-    #
-    #         for column_name in columns_names:
-    #             col_index += 1
-    #
-    #         col_index = 0
-    #         row_index += 1
-
-
 def write_project_to_excel(
     project: type(gantt.Project),
     writer: type(pd.ExcelWriter),
@@ -388,10 +300,13 @@ def write_project_to_excel(
 
     ExcelFormatter.header_style = None
 
-    table_df = pd.DataFrame(data=[sheet_name])
-    table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
+    try:
+        worksheet = writer.sheets[sheet_name]
+    except KeyError:
+        table_df = pd.DataFrame()
+        table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
+        worksheet = writer.sheets[sheet_name]
 
-    worksheet = writer.sheets[sheet_name]
     # worksheet.screen_gridlines = False
     workbook = writer.book
 
@@ -461,6 +376,7 @@ def write_project(
         row_index += 1
 
     task_label = None
+    write_task = False
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding project {info_key}")
         columns_names = info_val["columns"]
@@ -505,16 +421,24 @@ def write_project(
                     formaat = wb.left_align
 
                 if resource is not None:
-                    _logger.debug("Skipping writing task as it is not for resource ")
                     write_the_task = is_contributor(project=project, resource=resource)
                 else:
                     write_the_task = True
 
                 if write_the_task:
+                    _logger.debug(
+                        f"Writing task as {resource.name} is he is contributing to {info_key}/{label}"
+                    )
                     worksheet.write(row_index, col_index, label, formaat)
+                    write_task = True
+                else:
+                    _logger.debug(
+                        f"Skipping writing task as {resource.name} is not contributing to  {info_key}/{label}"
+                    )
             col_index += 1
 
-    row_index += 1
+    if write_task:
+        row_index += 1
 
     try:
         tasks = project.tasks
@@ -553,13 +477,18 @@ def is_contributor(project, resource, is_contributing=False):
         return is_contributing
 
     try:
-        resources_contributing_to_this_project = project.resources
+        employees = project.employees
     except AttributeError:
         pass
     else:
-        for project_resource in resources_contributing_to_this_project:
-            if project_resource.name == resource.name:
-                return True
+        if isinstance(employees, str):
+            is_contributing = resource.name == employees
+        elif isinstance(employees, dict):
+            is_contributing = resource.name in employees.keys()
+        else:
+            is_contributing = resource.name in employees
+        if is_contributing:
+            return is_contributing
 
     try:
         tasks = project.tasks
@@ -636,6 +565,7 @@ def write_header(
             worksheet.set_column(col_index, col_index, column_width * character_width)
             col_index += 1
 
+        row_index += 1
         return row_index
 
 

@@ -647,18 +647,6 @@ class ProjectPlanner:
             )
 
         with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
-            # for (
-            #     employee_full_name,
-            #     resource_tasks_df,
-            # ) in self.tasks_per_resource.groupby(by=self.employee_id):
-            #     write_task_per_resource_to_excel(
-            #         writer=writer,
-            #         resource_tasks=resource_tasks_df.loc[employee_full_name],
-            #         sheet_name=employee_full_name,
-            #         header_info=header_info,
-            #         column_widths=column_widths,
-            #     )
-            resources = dict()
             for resource in self.program.get_resources():
                 _logger.debug(f"Processing resource {resource}")
                 row_index = 0
@@ -677,37 +665,6 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
-        #         _logger.debug(f"Adding resource {resource.fullname}")
-        #         task_for_resource = dict()
-        #         for task, hours in zip(resource.tasks, resource.task_hours):
-        #             task_for_resource[task.name] = get_task_contribution(
-        #                 resource.name, task, owner_id=self.owner_id
-        #             )
-        #         all_task_for_resource = pd.DataFrame(task_for_resource).T
-        #         all_task_for_resource.index = all_task_for_resource.index.rename(
-        #             self.tasks_id
-        #         )
-        #         all_task_for_resource = all_task_for_resource.reset_index()
-        #
-        #         all_task_with_full_owner_name = dict()
-        #
-        #     # replace the owner key with the full name of the owner
-        #     for owner_key, owner_df in all_task_for_resource.groupby(self.owner_id):
-        #         try:
-        #             owner_resource = self.employees[owner_key]
-        #         except KeyError as e:
-        #             _logger.warning(f"No owner found for {owner_key}: {e}")
-        #         else:
-        #             all_task_with_full_owner_name[owner_resource.full_name] = owner_df
-        #
-        #     df = pd.concat(all_task_with_full_owner_name)
-        #     df = df.drop(self.owner_id, axis=1)
-        #     df = df.reset_index().set_index("level_0")
-        #     df.index = df.index.rename(self.owner_id)
-        #     df = df.drop("level_1", axis=1)
-        #     resources[resource.fullname] = df
-        #
-        # self.tasks_per_resource = pd.concat(resources)
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """
