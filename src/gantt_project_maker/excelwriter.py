@@ -5,7 +5,7 @@ from pandas.io.formats.excel import ExcelFormatter
 
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
-from gantt_project_maker.utils import get_task_contribution
+from gantt_project_maker.utils import is_valid_date, is_valid_number
 
 _logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class WorkBook:
         footer_format:  None
         merge_format:  None
         date_format:  None
+        number_format:  None
 
     Methods:
         add_styles: function to add the styles
@@ -68,6 +69,7 @@ class WorkBook:
         self.footer_format = None
         self.merge_format = None
         self.date_format = None
+        self.number_format = None
         self.add_styles()
 
     def add_styles(self):
@@ -220,6 +222,16 @@ class WorkBook:
                 "num_format": "dd-mm-yyyy",
                 "font": "arial",
                 "align": "left",
+                "font_size": 8,
+                "border": 0,
+            }
+        )
+
+        self.number_format = self.workbook.add_format(
+            {
+                "num_format": "General",
+                "font": "arial",
+                "align": "right",
                 "font_size": 8,
                 "border": 0,
             }
@@ -393,6 +405,19 @@ def write_project(
                     label = None
                 elif column_key == "task":
                     label = task_label
+                elif column_key == "hours":
+                    try:
+                        # store number of hours for current employee
+                        label = project.employees[resource.name]
+                    except AttributeError:
+                        _logger.debug(
+                            "project does not have employees or is not a dict"
+                        )
+                    except KeyError:
+                        _logger.debug(
+                            f"project has employees but not for {project.name}"
+                        )
+
                 elif column_key.startswith("employee"):
                     try:
                         employee = project.get_resources()[resource_index]
@@ -406,16 +431,11 @@ def write_project(
 
             if label is not None:
                 _logger.debug(f"Writing {column_key} with {label}")
-                try:
-                    dummy = label.strftime("%d-%m-%Y")
-                except AttributeError:
-                    is_date = False
-                else:
-                    is_date = True
-                    _logger.debug(f"Label is a date with format {dummy}")
                 if col_index == 0 and level < 2:
                     formaat = wb.left_align_bold
-                elif is_date:
+                elif column_key == "hours":
+                    formaat = wb.number_format
+                elif is_valid_date(label):
                     formaat = wb.date_format
                 else:
                     formaat = wb.left_align
@@ -426,15 +446,9 @@ def write_project(
                     write_the_task = True
 
                 if write_the_task:
-                    _logger.debug(
-                        f"Writing task as {resource.name} is he is contributing to {info_key}/{label}"
-                    )
                     worksheet.write(row_index, col_index, label, formaat)
                     write_task = True
-                else:
-                    _logger.debug(
-                        f"Skipping writing task as {resource.name} is not contributing to  {info_key}/{label}"
-                    )
+
             col_index += 1
 
     if write_task:
@@ -552,10 +566,9 @@ def write_header(
             _logger.debug(f"Writing cell {col_index}  at ro {row_index}: {title}")
             worksheet.write(row_index, col_index, title, merge_format)
 
-        row_index += 1
         for column_key, column_name in columns_names.items():
             _logger.debug(f"Adding column {column_key}")
-            worksheet.write(row_index, col_index, column_name, wb.left_align_bold)
+            worksheet.write(row_index + 1, col_index, column_name, wb.left_align_bold)
 
             column_width = len(column_name)
             if column_widths is not None:
@@ -565,8 +578,9 @@ def write_header(
             worksheet.set_column(col_index, col_index, column_width * character_width)
             col_index += 1
 
-        row_index += 1
-        return row_index
+    # we have written 2 rows, so skip two
+    row_index += 2
+    return row_index
 
 
 def project_to_period_label(project: type(gantt.Project)) -> str:

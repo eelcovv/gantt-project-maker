@@ -3,7 +3,6 @@ This is the main start-up file of the project planner
 """
 
 import argparse
-from argparse import ArgumentTypeError
 import codecs
 import locale
 import logging
@@ -11,7 +10,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import dateutil.parser as dparse
 import yaml
 
 from gantt_project_maker import __version__
@@ -22,6 +20,7 @@ from gantt_project_maker.project_classes import (
     parse_date,
     extend_suffix,
 )
+from gantt_project_maker.utils import check_if_date
 
 __author__ = "Eelco van Vliet"
 __copyright__ = "Eelco van Vliet"
@@ -86,28 +85,6 @@ def get_employee_name(employees_info, employee):
             raise KeyError("'name' not given for employee {request_employee} ")
 
     return request_name
-
-
-def check_if_date(value: str):
-    """
-    Check if an argument is a valid date
-    Args:
-        value (str): date/time string
-
-    Returns:
-        str: Date/time string
-
-    Raises:
-        ArgumentTypeError: raised in case the value string is not a valid date/time string
-    """
-
-    try:
-        date = dparse.parse(value).date()
-    except ValueError:
-        raise ArgumentTypeError(f"Date {value} is not a valid date")
-    else:
-        _logger.debug(f"Date {date} is a valid date")
-    return value
 
 
 def parse_args(args):
