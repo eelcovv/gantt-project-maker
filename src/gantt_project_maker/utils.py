@@ -60,6 +60,26 @@ def is_valid_number(label: str):
     return is_number
 
 
+def is_valid_int(label: str):
+    """
+    Check is label is a valid integer
+
+    Args:
+        label (str): label to validate
+
+    Returns:
+        bool: True if a valid number
+    """
+
+    is_int = True
+    try:
+        number = int(label)
+    except ValueError:
+        is_int = False
+
+    return is_int
+
+
 def is_valid_date(label: str):
     """
     Check is a label is a valid date

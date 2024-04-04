@@ -618,12 +618,15 @@ class ProjectPlanner:
                 )
             else:
                 for projecten_employee in projects_per_employee:
-                    write_project_to_excel(
+                    row_index, level, total_hours = write_project_to_excel(
                         project=projecten_employee,
                         writer=writer,
                         sheet_name=projecten_employee.name,
                         header_info=header_info,
                         column_widths=column_widths,
+                    )
+                    _logger.debug(
+                        f"Wrote project with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
 
     def write_excel_for_contributors(self, excel_file, header_info, column_widths):
@@ -655,7 +658,7 @@ class ProjectPlanner:
                         header = True
                     else:
                         header = False
-                    row_index, level = write_project_to_excel(
+                    row_index, level, total_hours = write_project_to_excel(
                         project=projecten_employee,
                         writer=writer,
                         sheet_name=resource.fullname,
@@ -664,6 +667,9 @@ class ProjectPlanner:
                         resource=resource,
                         row_index=row_index,
                         header=header,
+                    )
+                    _logger.info(
+                        f"Wrote project with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
 
     def get_dependency(self, key: str) -> gantt.Resource:

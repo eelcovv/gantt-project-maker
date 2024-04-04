@@ -1,11 +1,17 @@
+"""
+Functions and classes for writing the Excel fiels
+"""
+
 import logging
+
+from typing import Union
 
 import pandas as pd
 from pandas.io.formats.excel import ExcelFormatter
 
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
-from gantt_project_maker.utils import is_valid_date, is_valid_number
+from gantt_project_maker.utils import is_valid_date, is_valid_number, is_valid_int
 
 _logger = logging.getLogger(__name__)
 
@@ -336,8 +342,9 @@ def write_project_to_excel(
         )
 
     level = 0
+    total_hours = None
 
-    row_index, level = write_project(
+    row_index, level, total_hours = write_project(
         project,
         header_info=header_info,
         workbook=workbook,
@@ -347,9 +354,10 @@ def write_project_to_excel(
         row_index=row_index,
         level=level,
         resource=resource,
+        total_hours=total_hours,
     )
 
-    return row_index, level
+    return row_index, level, total_hours
 
 
 def write_project(
@@ -362,6 +370,7 @@ def write_project(
     wb,
     row_index: int,
     level: int,
+    total_hours: int,
 ):
     """
     Write the project to a sheet
@@ -376,6 +385,7 @@ def write_project(
         wb (object): The workbook object to
         row_index (int): The index of the current row
         level (int): The level of the indent
+        total_hours (int)
 
     Returns:
 
@@ -389,6 +399,7 @@ def write_project(
 
     task_label = None
     write_task = False
+    hours = None
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding project {info_key}")
         columns_names = info_val["columns"]
@@ -417,7 +428,22 @@ def write_project(
                         _logger.debug(
                             f"project has employees but not for {project.name}"
                         )
-
+                    except TypeError:
+                        _logger.debug(
+                            f"project has employees are stored as a list, so no hours are available for {project.name}"
+                        )
+                    else:
+                        if label is not None:
+                            if not is_valid_number(label):
+                                _logger.warning(
+                                    f"Number of hours '{label}' given in {project.name} is not valid!"
+                                )
+                            else:
+                                if not is_valid_int(label):
+                                    _logger.warning(
+                                        f"Number of hours '{label}' given in {project.name} is not an integer. Casting "
+                                    )
+                                hours = int(label)
                 elif column_key.startswith("employee"):
                     try:
                         employee = project.get_resources()[resource_index]
@@ -453,6 +479,10 @@ def write_project(
 
     if write_task:
         row_index += 1
+        if hours is not None:
+            if total_hours is None:
+                total_hours = 0
+            total_hours += hours
 
     try:
         tasks = project.tasks
@@ -461,7 +491,7 @@ def write_project(
     else:
         for task in tasks:
             level += 1
-            row_index, level = write_project(
+            row_index, level, total_hours = write_project(
                 task,
                 header_info=header_info,
                 workbook=workbook,
@@ -471,10 +501,11 @@ def write_project(
                 row_index=row_index,
                 level=level,
                 resource=resource,
+                total_hours=total_hours,
             )
 
     level -= 1
-    return row_index, level
+    return row_index, level, total_hours
 
 
 def is_contributor(project, resource, is_contributing=False):
