@@ -668,8 +668,8 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
-                    _logger.info(
-                        f"Wrote project with row: {row_index} level: {level} and total hours: {total_hours} "
+                    _logger.debug(
+                        f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
 
     def get_dependency(self, key: str) -> gantt.Resource:
