@@ -289,6 +289,65 @@ def indent(line, n_char=5):
     return spacing(n_char=n_char) + line
 
 
+def write_hours_to_excel(
+    project: type(gantt.Project),
+    writer: type(pd.ExcelWriter),
+    sheet_name: str,
+    resource: type(gantt.Resource) = None,
+    header_info: dict = None,
+    column_widths: dict = None,
+    character_width: float = 1.0,
+    row_index: int = 0,
+    header: bool = True,
+):
+    """
+    Write a multi index data frame to Excel file with format
+
+    Args:
+        project (dict): Main project
+        writer (obj): Excel writer
+        sheet_name (str): Name of the sheet
+        resource (obj): Resource to filter on. If none, do not filter
+        column_widths (dict): Fix width of these columns.
+        header_info (dict): Information on the header
+        character_width (float): Width of one character. Default = 0.7
+        row_index (int): start writing at this row
+        header (bool): write the header,
+
+    """
+
+    ExcelFormatter.header_style = None
+    try:
+        worksheet = writer.sheets[sheet_name]
+    except KeyError:
+        table_df = pd.DataFrame()
+        table_df.to_excel(writer, sheet_name=sheet_name, header=False, index=False)
+        worksheet = writer.sheets[sheet_name]
+
+    # worksheet.screen_gridlines = False
+    workbook = writer.book
+
+    wb = WorkBook(workbook=workbook)
+
+    level = 0
+    total_hours = None
+
+    row_index, level, total_hours = write_project(
+        project,
+        header_info=header_info,
+        workbook=workbook,
+        worksheet=worksheet,
+        character_width=character_width,
+        wb=wb,
+        row_index=row_index,
+        level=level,
+        resource=resource,
+        total_hours=total_hours,
+    )
+
+    return row_index, level, total_hours
+
+
 def write_project_to_excel(
     project: type(gantt.Project),
     writer: type(pd.ExcelWriter),

@@ -668,6 +668,16 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
+                    row_index, level, total_hours = write_hours_to_excel(
+                        project=projecten_employee,
+                        writer=writer,
+                        sheet_name=resource.fullname,
+                        header_info=header_info,
+                        column_widths=column_widths,
+                        resource=resource,
+                        row_index=row_index,
+                        header=header,
+                    )
                     _logger.debug(
                         f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
