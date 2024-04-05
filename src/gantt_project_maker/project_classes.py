@@ -16,7 +16,7 @@ from pandas import DataFrame
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import (
-    write_project_to_excel,
+    write_project_to_excel, write_value_to_named_cell
 )
 from gantt_project_maker.utils import get_task_contribution
 
@@ -653,6 +653,7 @@ class ProjectPlanner:
             for resource in self.program.get_resources():
                 _logger.debug(f"Processing resource {resource}")
                 row_index = 0
+                total_hours_for_all_projects = None
                 for projecten_employee in projects_per_employee:
                     if row_index == 0:
                         header = True
@@ -668,19 +669,22 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
-                    row_index, level, total_hours = write_hours_to_excel(
-                        project=projecten_employee,
+                    row_index = write_value_to_named_cell(
                         writer=writer,
-                        sheet_name=resource.fullname,
-                        header_info=header_info,
-                        column_widths=column_widths,
-                        resource=resource,
+                        sheet_name=projecten_employee.name,
                         row_index=row_index,
-                        header=header,
+                        column_key="hours",
+                        column_format="number",
+                        header_info=header_info,
+                        value=str(total_hours),
                     )
                     _logger.debug(
                         f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
+                    if total_hours is not None:
+                        if total_hours_for_all_projects is None:
+                            total_hours_for_all_projects = 0
+                        total_hours_for_all_projects += total_hours
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """

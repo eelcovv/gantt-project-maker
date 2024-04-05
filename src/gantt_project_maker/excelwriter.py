@@ -289,30 +289,29 @@ def indent(line, n_char=5):
     return spacing(n_char=n_char) + line
 
 
-def write_hours_to_excel(
-    project: type(gantt.Project),
+def write_value_to_named_cell(
     writer: type(pd.ExcelWriter),
     sheet_name: str,
-    resource: type(gantt.Resource) = None,
-    header_info: dict = None,
-    column_widths: dict = None,
-    character_width: float = 1.0,
-    row_index: int = 0,
-    header: bool = True,
-):
+    header_info: dict,
+    row_index: int,
+    value: int,
+    column_key: str,
+    column_format: str = None
+) -> int:
     """
-    Write a multi index data frame to Excel file with format
+    Write a line with the number of hours to the Excel file
 
     Args:
-        project (dict): Main project
         writer (obj): Excel writer
         sheet_name (str): Name of the sheet
-        resource (obj): Resource to filter on. If none, do not filter
-        column_widths (dict): Fix width of these columns.
         header_info (dict): Information on the header
-        character_width (float): Width of one character. Default = 0.7
         row_index (int): start writing at this row
-        header (bool): write the header,
+        value (str): Number of hours to write to the 'hours' column
+        column_key (str): write to this column
+        column_format (str): format of the column
+
+    Returns:
+        int: new row index
 
     """
 
@@ -329,23 +328,23 @@ def write_hours_to_excel(
 
     wb = WorkBook(workbook=workbook)
 
-    level = 0
-    total_hours = None
+    if column_format == "number":
+        column_format: str = wb.number_format
+    else:
+        column_format: str = wb.left_align
 
-    row_index, level, total_hours = write_project(
-        project,
-        header_info=header_info,
-        workbook=workbook,
-        worksheet=worksheet,
-        character_width=character_width,
-        wb=wb,
-        row_index=row_index,
-        level=level,
-        resource=resource,
-        total_hours=total_hours,
-    )
+    col_index = 0
+    for info_key, info_val in header_info.items():
+        columns_names = info_val["columns"]
+        for column_key, column_name in columns_names.items():
+            col_index += 1
+            if column_name == column_key:
+                _logger.debug(f"Writing hours {column_key}")
+                worksheet.write(row_index, col_index, value, column_format)
 
-    return row_index, level, total_hours
+    row_index += 1
+
+    return row_index
 
 
 def write_project_to_excel(
