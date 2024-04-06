@@ -53,7 +53,6 @@ class WorkBook:
     """
 
     def __init__(self, workbook):
-
         self.workbook = workbook
         self.left_align_italic = None
         self.left_align_italic_large = None
@@ -76,6 +75,7 @@ class WorkBook:
         self.merge_format = None
         self.date_format = None
         self.number_format = None
+        self.number_format_bold = None
         self.add_styles()
 
     def add_styles(self):
@@ -243,6 +243,17 @@ class WorkBook:
             }
         )
 
+        self.number_format_bold = self.workbook.add_format(
+            {
+                "num_format": "General",
+                "bold": True,
+                "font": "arial",
+                "align": "right",
+                "font_size": 8,
+                "border": 0,
+            }
+        )
+
 
 def update_width(label: str, max_width):
     """
@@ -266,7 +277,7 @@ def spacing(n_char=5):
     Create a spacing of n_char characters
 
     Args:
-        n_char (int):  Number of white spaces
+        n_char (int): Number of white spaces
 
     Returns:
         str: string of n_char spaces
@@ -277,7 +288,7 @@ def spacing(n_char=5):
 
 def indent(line, n_char=5):
     """
-    Add an indent with whites spaces at the beginning of the line
+    Add an indent with white spaces at the beginning of the line
 
     Args:
         line (str): line to add a spacing to
@@ -296,8 +307,8 @@ def write_value_to_named_cell(
     row_index: int,
     value: int,
     column_key: str,
-    column_format: str = None
-) -> int:
+    cell_format: str = None,
+):
     """
     Write a line with the number of hours to the Excel file
 
@@ -308,11 +319,7 @@ def write_value_to_named_cell(
         row_index (int): start writing at this row
         value (str): Number of hours to write to the 'hours' column
         column_key (str): write to this column
-        column_format (str): format of the column
-
-    Returns:
-        int: new row index
-
+        cell_format (str): format of the column
     """
 
     ExcelFormatter.header_style = None
@@ -328,23 +335,19 @@ def write_value_to_named_cell(
 
     wb = WorkBook(workbook=workbook)
 
-    if column_format == "number":
-        column_format: str = wb.number_format
+    if cell_format is not None:
+        cell_format: str = getattr(wb, cell_format)
     else:
-        column_format: str = wb.left_align
+        cell_format: str = wb.left_align
 
     col_index = 0
     for info_key, info_val in header_info.items():
         columns_names = info_val["columns"]
-        for column_key, column_name in columns_names.items():
-            col_index += 1
-            if column_name == column_key:
+        for current_key, column_name in columns_names.items():
+            if column_key == current_key:
                 _logger.debug(f"Writing hours {column_key}")
-                worksheet.write(row_index, col_index, value, column_format)
-
-    row_index += 1
-
-    return row_index
+                worksheet.write(row_index, col_index, value, cell_format)
+            col_index += 1
 
 
 def write_project_to_excel(
@@ -371,7 +374,6 @@ def write_project_to_excel(
         character_width (float): Width of one character. Default = 0.7
         row_index (int): start writing at this row
         header (bool): write the header,
-
     """
 
     ExcelFormatter.header_style = None
@@ -428,7 +430,7 @@ def write_project(
     wb,
     row_index: int,
     level: int,
-    total_hours: int,
+    total_hours: Union[int, None] = None,
 ):
     """
     Write the project to a sheet
@@ -443,9 +445,10 @@ def write_project(
         wb (object): The workbook object to
         row_index (int): The index of the current row
         level (int): The level of the indent
-        total_hours (int)
+        total_hours (int, optional): Total of hours written on this project so ware
 
     Returns:
+        row_index, level, total_hours: current row index, current project level, current total hours so fare
 
     """
     _logger.debug("Writing project")
@@ -466,7 +469,7 @@ def write_project(
             try:
                 label = getattr(project, column_key)
             except AttributeError:
-                # als de kolom geen attribute heeft dan gewoon naar de volgende
+                # If the column has no attribute, then just go to the next one
                 label = None
             if type(project) in (gantt.Task, gantt.Milestone):
                 if column_key == "name":

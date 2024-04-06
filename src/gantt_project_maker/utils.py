@@ -120,3 +120,26 @@ def check_if_date(value: str):
     else:
         _logger.debug(f"Date {date} is a valid date")
     return value
+
+
+def deep_copy_dict(properties: dict) -> dict:
+    """
+    Create a deep copy of a nested dictionary
+
+    Args:
+        properties (dict): The dictionary to copy
+
+    Returns:
+        dict: New dictionary with the new values
+
+    """
+
+    new_values = {}
+
+    for key, value in properties.items():
+        if isinstance(value, dict):
+            new_values[key] = deep_copy_dict(value)
+        else:
+            new_values[key] = value
+
+    return new_values

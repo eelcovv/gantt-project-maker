@@ -19,7 +19,7 @@ from gantt_project_maker.excelwriter import (
     write_project_to_excel,
     write_value_to_named_cell,
 )
-from gantt_project_maker.utils import get_task_contribution
+from gantt_project_maker.utils import get_task_contribution, deep_copy_dict
 
 SCALES = dict(
     daily=gantt.DRAW_WITH_DAILY_SCALE,
@@ -591,6 +591,7 @@ class ProjectPlanner:
                     self.write_excel_for_contributors(
                         excel_file=file_name,
                         header_info=excel_properties["header"],
+                        summation_info=excel_properties.get("summations"),
                         column_widths=excel_properties.get("column_widths"),
                     )
                 else:
@@ -630,14 +631,17 @@ class ProjectPlanner:
                         f"Wrote project with row: {row_index} level: {level} and total hours: {total_hours} "
                     )
 
-    def write_excel_for_contributors(self, excel_file, header_info, column_widths):
+    def write_excel_for_contributors(
+        self, excel_file, header_info, summation_info=None, column_widths=None
+    ):
         """
         A writer for the project plan of all contributors, one sheet per employee
 
         Args:
             excel_file (Path): The filename of the Excel file
             header_info (dict): info for the header
-            column_widths (dict): Fix width of specified columns
+            summation_info (dict, optional): info for the summation. Defaults to None
+            column_widths (dict, optional): Fix width of specified columns
 
         Returns:
 
@@ -650,18 +654,29 @@ class ProjectPlanner:
                 f"{err}\nproject heeft helemaal geen tasks. Hier gaat what fout"
             )
 
+        if summation_info is not None:
+            # Summation info is given. This is done for the key 'total_hours' and 'total_hours_global'
+            # Each entry has cell definitions which can contain variables which we are replacing with internal variables
+            for summation_var_key, summation_var_info in summation_info.items():
+
+                summation_var_info["hours"] = {
+                    "value": summation_var_key,
+                    "column_key": "hours",
+                    "column_format": "number_format_bold",
+                }
+
         with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
             for resource in self.program.get_resources():
                 _logger.debug(f"Processing resource {resource}")
                 row_index = 0
-                total_hours_for_all_projects = None
-                for projecten_employee in projects_per_employee:
+                total_hours_global = None
+                for projects_employee in projects_per_employee:
                     if row_index == 0:
                         header = True
                     else:
                         header = False
-                    row_index, level, total_hours = write_project_to_excel(
-                        project=projecten_employee,
+                    row_index, level, total_hours_project = write_project_to_excel(
+                        project=projects_employee,
                         writer=writer,
                         sheet_name=resource.fullname,
                         header_info=header_info,
@@ -670,55 +685,107 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
-                    if total_hours is not None:
-                        row_index += 1
-                        write_value_to_named_cell(
-                            writer=writer,
-                            sheet_name=resource.fullname,
-                            row_index=row_index,
-                            column_key="hours",
-                            cell_format="number_format_bold",
-                            header_info=header_info,
-                            value=str(total_hours),
-                        )
-                        write_value_to_named_cell(
-                            writer=writer,
-                            sheet_name=resource.fullname,
-                            row_index=row_index,
-                            column_key="task",
-                            cell_format="left_align_bold",
-                            header_info=header_info,
-                            value=f"Totaal hours for {projecten_employee.name}",
+                    if (
+                        "total_hours_project" in summation_info.keys()
+                        and total_hours_project is not None
+                    ):
+                        summation_project_info = deep_copy_dict(
+                            summation_info["total_hours_project"]
                         )
                         row_index += 1
-                        _logger.debug(
-                            f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
-                        )
-                        # Update the total hours for this project
-                        if total_hours_for_all_projects is None:
-                            total_hours_for_all_projects = 0
-                        total_hours_for_all_projects += total_hours
+                        added_value = False
+                        for (
+                            sum_project_key,
+                            sum_project_properties,
+                        ) in summation_project_info.items():
+                            value = sum_project_properties["value"]
+                            variables = sum_project_properties.get("variables")
+                            if variables is not None:
+                                for var_key, var_val in variables.items():
+                                    try:
+                                        variables[var_key] = eval(var_val)
+                                    except NameError as name_err:
+                                        _logger.warning(name_err)
+                                    except (
+                                        SyntaxError,
+                                        TypeError,
+                                    ) as syntax_or_type_error:
+                                        _logger.debug(syntax_or_type_error)
+                            sum_project_properties["value"] = insert_variables(
+                                value, variables_info=variables
+                            )
+                            try:
+                                sum_project_properties["value"] = eval(
+                                    sum_project_properties["value"]
+                                )
+                            except (SyntaxError, TypeError) as syntax_or_type_error:
+                                _logger.debug(syntax_or_type_error)
 
-                if total_hours_for_all_projects is not None:
+                            write_value_to_named_cell(
+                                writer=writer,
+                                sheet_name=resource.fullname,
+                                row_index=row_index,
+                                column_key=sum_project_properties.get(
+                                    "column_key", "task"
+                                ),
+                                cell_format=sum_project_properties.get(
+                                    "column_format", "left_align_bold"
+                                ),
+                                header_info=header_info,
+                                value=sum_project_properties["value"],
+                            )
+                            added_value = True
+
+                        if added_value:
+                            row_index += 1
+
+                        # Update the total hours for this project
+                        if total_hours_global is None:
+                            total_hours_global = 0
+                        total_hours_global += total_hours_project
+
+                if (
+                    "total_hours_global" in summation_info.keys()
+                    and total_hours_global is not None
+                ):
+                    summation_project_info = deep_copy_dict(
+                        summation_info["total_hours_global"]
+                    )
                     row_index += 1
-                    write_value_to_named_cell(
-                        writer=writer,
-                        sheet_name=resource.fullname,
-                        row_index=row_index,
-                        column_key="hours",
-                        cell_format="number_format_bold",
-                        header_info=header_info,
-                        value=str(total_hours_for_all_projects),
-                    )
-                    write_value_to_named_cell(
-                        writer=writer,
-                        sheet_name=resource.fullname,
-                        row_index=row_index,
-                        column_key="task",
-                        cell_format="left_align_bold",
-                        header_info=header_info,
-                        value=f"Totaal hours all tasks for {resource.fullname}",
-                    )
+                    for (
+                        sum_project_key,
+                        sum_project_properties,
+                    ) in summation_project_info.items():
+                        value = sum_project_properties["value"]
+                        variables = sum_project_properties.get("variables")
+                        if variables is not None:
+                            for var_key, var_val in variables.items():
+                                try:
+                                    variables[var_key] = eval(var_val)
+                                except NameError as name_err:
+                                    _logger.warning(name_err)
+                                except SyntaxError as syntax_or_type_error:
+                                    _logger.debug(syntax_or_type_error)
+                        sum_project_properties["value"] = insert_variables(
+                            value, variables_info=variables
+                        )
+                        try:
+                            sum_project_properties["value"] = eval(
+                                sum_project_properties["value"]
+                            )
+                        except (SyntaxError, TypeError) as syntax_or_type_error:
+                            _logger.debug(syntax_or_type_error)
+                        write_value_to_named_cell(
+                            writer=writer,
+                            sheet_name=resource.fullname,
+                            row_index=row_index,
+                            column_key=sum_project_properties.get("column_key", "task"),
+                            cell_format=sum_project_properties.get(
+                                "column_format", "left_align_bold"
+                            ),
+                            header_info=header_info,
+                            value=sum_project_properties["value"],
+                        )
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """
@@ -1031,7 +1098,7 @@ class ProjectPlanner:
 
         Args:
             project_leader_key (str): The key of the project leader
-            subprojects_info (dict):  information per subproject
+            subprojects_info (dict): information per subproject
             subprojects_title (dict): Title of the subprojects
             subprojects_selection (list): List of the subprojects to include at the main level
             subprojects_color (str, optional): Color of the projects. Defaults to None
