@@ -16,7 +16,8 @@ from pandas import DataFrame
 import gantt_project_maker.gantt as gantt
 from gantt_project_maker.colors import color_to_hex
 from gantt_project_maker.excelwriter import (
-    write_project_to_excel, write_value_to_named_cell
+    write_project_to_excel,
+    write_value_to_named_cell,
 )
 from gantt_project_maker.utils import get_task_contribution
 
@@ -669,22 +670,55 @@ class ProjectPlanner:
                         row_index=row_index,
                         header=header,
                     )
-                    row_index = write_value_to_named_cell(
-                        writer=writer,
-                        sheet_name=projecten_employee.name,
-                        row_index=row_index,
-                        column_key="hours",
-                        column_format="number",
-                        header_info=header_info,
-                        value=str(total_hours),
-                    )
-                    _logger.debug(
-                        f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
-                    )
                     if total_hours is not None:
+                        row_index += 1
+                        write_value_to_named_cell(
+                            writer=writer,
+                            sheet_name=resource.fullname,
+                            row_index=row_index,
+                            column_key="hours",
+                            cell_format="number_format_bold",
+                            header_info=header_info,
+                            value=str(total_hours),
+                        )
+                        write_value_to_named_cell(
+                            writer=writer,
+                            sheet_name=resource.fullname,
+                            row_index=row_index,
+                            column_key="task",
+                            cell_format="left_align_bold",
+                            header_info=header_info,
+                            value=f"Totaal hours for {projecten_employee.name}",
+                        )
+                        row_index += 1
+                        _logger.debug(
+                            f"Wrote employee with row: {row_index} level: {level} and total hours: {total_hours} "
+                        )
+                        # Update the total hours for this project
                         if total_hours_for_all_projects is None:
                             total_hours_for_all_projects = 0
                         total_hours_for_all_projects += total_hours
+
+                if total_hours_for_all_projects is not None:
+                    row_index += 1
+                    write_value_to_named_cell(
+                        writer=writer,
+                        sheet_name=resource.fullname,
+                        row_index=row_index,
+                        column_key="hours",
+                        cell_format="number_format_bold",
+                        header_info=header_info,
+                        value=str(total_hours_for_all_projects),
+                    )
+                    write_value_to_named_cell(
+                        writer=writer,
+                        sheet_name=resource.fullname,
+                        row_index=row_index,
+                        column_key="task",
+                        cell_format="left_align_bold",
+                        header_info=header_info,
+                        value=f"Totaal hours all tasks for {resource.fullname}",
+                    )
 
     def get_dependency(self, key: str) -> gantt.Resource:
         """
