@@ -152,8 +152,8 @@ excel:
           remark: Remarks
     summations:
       total_hours_project:
-        # If this is given, by default the total hours are added to the column 'hours'
-        # next to that, extra column values can be given as below
+        # If this is given, by default, the total hours are added to the column 'hours'
+        # next to that; extra column values can be given as below
         project_leader_name:
           variables:
             # The internal variabele is used for the value, which are replaced with the string
@@ -163,12 +163,9 @@ excel:
           column_format: left_align_bold
       total_hours_global:
         # Defines the total sums per employee. Is based on internal variabele total_hours_global
-        # not that column_key and column_format default to task and align_left_bodl
+        # not that column_key and column_format default to task and align_left_bold
         employee_name:
           variables:
             # The internal variabele is used for the value, which are replaced with the string
             name: resource.fullname
           value: "Total hours all tasks for {{ name }}"
-
-
-
