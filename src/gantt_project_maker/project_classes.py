@@ -542,15 +542,14 @@ class ProjectPlanner:
         )
 
     def export_to_excel(
-        self, excel_output_directory: Path, excel_setup_key: None = "all"
+        self, excel_output_directory: Path, excel_output_formats: Union[list, None] = None
     ) -> None:
         """
         Write planning to an Excel file
 
         Args:
             excel_output_directory(Path): Output directory of the Excel files
-            excel_setup_key (str): which file to export. Defaults to "all". Choices are 'all', 'leaders' and
-                'contributors'
+            excel_output_formats (list): List of Excel files to export as defined in the settings file.
         """
 
         if self.excel_info is None:
@@ -564,7 +563,7 @@ class ProjectPlanner:
             )
 
             for excel_key, excel_properties in self.excel_info.items():
-                if excel_setup_key in ("all", excel_key):
+                if excel_key in excel_output_formats or "all" in excel_output_formats:
                     excel_properties["do_it"] = True
                 else:
                     excel_properties["do_it"] = False
@@ -664,6 +663,8 @@ class ProjectPlanner:
                     "column_key": "hours",
                     "column_format": "number_format_bold",
                 }
+        else:
+            summation_info = {}
 
         with pd.ExcelWriter(excel_file, engine="xlsxwriter") as writer:
             for resource in self.program.get_resources():

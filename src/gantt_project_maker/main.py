@@ -161,9 +161,8 @@ def parse_args(args):
         "-e",
         "--export_to_xlsx",
         help="Export the project plan to Excel",
-        action="store",
-        default="all",
-        nargs="?",
+        action="append",
+        nargs="*",
     )
     parser.add_argument(
         "-c",
@@ -592,9 +591,14 @@ def main(args):
 
     planning.make_resource_dataframe()
 
-    if args.export_to_xlsx:
+    if args.export_to_xlsx is not None:
+        if args.export_to_xlsx[0]:
+            excel_output_formats = [out for out in args.export_to_xlsx[0]]
+        else:
+            excel_output_formats = ["all"]
         planning.export_to_excel(
-            excel_output_directory=excel_directory, excel_setup_key=args.export_to_xlsx
+            excel_output_directory=excel_directory,
+            excel_output_formats=excel_output_formats,
         )
 
 
