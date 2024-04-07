@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 0.4.2
+=============
+- Added new Excel format output to collect all the projects per contributor
+- Added possibility to assign number of hours to each contributor's task
+- Added summations of hours per contributor
+
 Version 0.4.0
 =============
 - Added option --suffix in order add a extra suffix to the filename
