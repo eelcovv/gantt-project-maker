@@ -564,7 +564,7 @@ class ProjectPlanner:
             )
 
             for excel_key, excel_properties in self.excel_info.items():
-                if excel_setup_key == "all" or excel_key == excel_setup_key:
+                if excel_setup_key in ("all", excel_key):
                     excel_properties["do_it"] = True
                 else:
                     excel_properties["do_it"] = False
