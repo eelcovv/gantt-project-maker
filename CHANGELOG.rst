@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 0.4.2
+Version 0.4.3
 =============
 - Added new Excel format output to collect all the projects per contributor
 - Added possibility to assign number of hours to each contributor's task
