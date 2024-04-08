@@ -59,7 +59,7 @@ def color_to_hex(color: str):
                 _logger.debug(
                     f"color {color} met webcolors omgezet naar {color_hex_code}"
                 )
-            except (AttributeError, ValueError) as err:
+            except (AttributeError, ValueError):
                 color_hex_code = hex_number_to_hex_hash(color)
 
     return color_hex_code

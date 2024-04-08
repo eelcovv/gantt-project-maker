@@ -1,5 +1,5 @@
 """
-Functions and classes for writing the Excel fiels
+Functions and classes for writing the Excel fields
 """
 
 import logging
@@ -292,7 +292,7 @@ def indent(line, n_char=5):
 
     Args:
         line (str): line to add a spacing to
-        n_char (int):  Number of spaces to add
+        n_char (int): Number of spaces to add
 
     Returns:
         str: line with added spacing at the start of the line
@@ -322,6 +322,7 @@ def write_value_to_named_cell(
         cell_format (str): format of the column
     """
 
+    # noinspection PyPropertyAccess
     ExcelFormatter.header_style = None
     try:
         worksheet = writer.sheets[sheet_name]
@@ -376,6 +377,7 @@ def write_project_to_excel(
         header (bool): write the header,
     """
 
+    # noinspection PyPropertyAccess
     ExcelFormatter.header_style = None
 
     try:
@@ -420,6 +422,7 @@ def write_project_to_excel(
     return row_index, level, total_hours
 
 
+# noinspection PyUnresolvedReferences
 def write_project(
     project: type(gantt.Project),
     header_info: dict,
@@ -609,11 +612,12 @@ def is_contributor(project, resource, is_contributing=False):
     return is_contributing
 
 
+# noinspection PyUnresolvedReferences
 def write_header(
     header_info, workbook, worksheet, character_width, wb, column_widths, row_index
 ):
     """
-    Write the header of a Excel sheet
+    Write the header of an Excel sheet
 
     Args:
         header_info (dict):  The header infor of this sheet
@@ -625,7 +629,7 @@ def write_header(
         row_index (int): start writing at this row
     """
     col_index = 0
-    # Start with the table number on first line and title on the second line
+    # Start with the table number on the first line and title on the second line
     for info_key, info_val in header_info.items():
         _logger.debug(f"Adding header for {info_key}")
         columns_names = info_val["columns"]
@@ -675,48 +679,7 @@ def write_header(
     return row_index
 
 
-def project_to_period_label(project: type(gantt.Project)) -> str:
-    """
-    Take the start and end dates of the project and convert to a period label, like 24Q1 (first quarter of 2024) or
-    24Q324Q4 (third and last quarter of 2024)
-
-
-    Args:
-        project (Project): Project class with start_date and  end_date methods
-
-    Returns:
-        str: label of the period, such as 24Q3 or 24Q3/25Q1
-    """
-    label = ""
-    try:
-        year_start = pd.Timestamp(project.start).year
-    except AttributeError:
-        year_start = ""
-    else:
-        year_start = str(year_start)[-2:]
-    label += f"{year_start}"
-    try:
-        quarter_start = pd.Timestamp(project.start_date()).quarter
-    except AttributeError:
-        quarter_start = ""
-    else:
-        label += f"Q{quarter_start}"
-    try:
-        year_end = pd.Timestamp(project.end_date()).year
-    except AttributeError:
-        year_end = ""
-    else:
-        year_end = str(year_end)[-2:]
-    try:
-        quarter_end = pd.Timestamp(project.end_date()).quarter
-    except AttributeError:
-        pass
-    else:
-        if quarter_end != quarter_start or year_start != year_end:
-            label += f"/{year_end}Q{quarter_end}"
-    return label
-
-
+# noinspection PyUnresolvedReferences
 def write_resource(
     project: type(gantt.Project),
     header_info: dict,
@@ -829,7 +792,7 @@ def project_to_period_label(project: type(gantt.Project)) -> str:
 
 
     Args:
-        project (Project): Project class with start_date and  end_date methods
+        project (Project): Project class with start_date and end_date methods
 
     Returns:
         str: label of the period, such as 24Q3 or 24Q3/25Q1
