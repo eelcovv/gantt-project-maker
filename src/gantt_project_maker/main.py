@@ -589,8 +589,6 @@ def main(args):
         suffix=args.suffix,
     )
 
-    planning.make_resource_dataframe()
-
     if args.export_to_xlsx is not None:
         if args.export_to_xlsx[0]:
             excel_output_formats = [out for out in args.export_to_xlsx[0]]
