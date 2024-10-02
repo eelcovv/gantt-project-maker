@@ -50,6 +50,8 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
+.direnv/
+.envrc
 .conda*/
 .python-version
 *.svg
