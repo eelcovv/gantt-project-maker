@@ -14,28 +14,30 @@ Modified by:
 * Eelco van Vliet
 """
 
-
 import codecs
 import datetime
 import io
 import logging
 import re
 import sys
+from datetime import date
 
 import dateutil.relativedelta
 import svgwrite
-
-from datetime import date
+from svgwrite.container import Group
+from svgwrite.shapes import Rect
+from svgwrite.text import Text
 
 # original author: Alexandre Norman (norman at xael.org)
 # modified by Eelco van Vliet
 
-# conversion from mm/cm to pixel is done by ourselves as firefox seems
+# we do conversion from mm/cm to pixel ourselves as firefox seems
 # to have a bug for big numbers...
-# 3.543307 is for conversion from mm to pt units !
+# 3.543307 is for conversion from mm to pt units!
 mm = 3.543307
 cm = 35.43307
 
+# noinspection PyTypeChecker
 __LOG__: logging.Logger = None
 
 COLOR_OVERCHARGE_DEFAULT = "#AA0000"
@@ -46,7 +48,6 @@ DRAW_WITH_DAILY_SCALE = "d"
 DRAW_WITH_WEEKLY_SCALE = "w"
 DRAW_WITH_MONTHLY_SCALE = "m"
 DRAW_WITH_QUARTERLY_SCALE = "q"
-
 
 # Unworked days (0: Monday ... 6: Sunday)
 NOT_WORKED_DAYS = [5, 6]
@@ -64,7 +65,7 @@ VACATIONS = []
 
 class MySVGWriteDrawingWrapper(svgwrite.Drawing):
     """
-    Hack to allow to use a file descriptor as filename
+    Hack to allow using a file descriptor as filename
     """
 
     def save(self, width="100%", height="100%"):
@@ -120,7 +121,7 @@ def define_font_attributes(
         fill (str): Fill color. Defaults to 'black'
         stroke (str): Stroke color. Defaults to 'black'
         stroke_width (float): stroke width.  Defaults to 0
-        font_family (str): Font family.  Defaults 'Verdana'
+        font_family (str): Font family.  Defaults to 'Verdana'
         font_weight (str): Font weight. Defaults to 'normal'
         font_size (int): Font size. Defaults to '15'
     """
@@ -238,7 +239,7 @@ def init_log_to_sysout(level=logging.INFO):
 
 def _flatten(nested_list, list_types=(list, tuple)):
     """
-    Return a flatten list from a list like [1,2,[4,5,1]]
+    Return a flattened list from a list like [1,2,[4,5,1]]
     """
     list_type = type(nested_list)
     nested_list = list(nested_list)
@@ -323,47 +324,47 @@ class GroupOfResources:
         )
         return len(self.resources)
 
-    def is_available(self, date):
+    def is_available(self, date_to_check):
         """
-        Returns True if any resource is available at given date, False if not.
-        Availibility is tasks from the global VACATIONS and resource's ones.
+        Returns True if any resource is available at a given date, False if not.
+        Availability is tasks from the global VACATIONS and resource's ones.
 
-        Keyword arguments:
-        date -- datetime.date day to look for
+        Args:
+            date_to_check (object):  date day to look for
         """
         # Global VACATIONS
-        if date in VACATIONS:
+        if date_to_check in VACATIONS:
             __LOG__.debug(
                 "** GroupOfResources::is_available {0} : False (global vacation)".format(
-                    {"name": self.name, "date": date}
+                    {"name": self.name, "date": date_to_check}
                 )
             )
             return False
 
         # Group vacations
         for h in self.vacations:
-            dfrom, dto = h
-            if dfrom <= date <= dto:
+            data_from, data_to = h
+            if data_from <= date_to_check <= data_to:
                 __LOG__.debug(
                     "** GroupOfResources::is_available {0} : False (group vacation)".format(
-                        {"name": self.name, "date": date}
+                        {"name": self.name, "date": date_to_check}
                     )
                 )
                 return False
 
         # Test if at least one resource is available
         for r in self.resources:
-            if r.is_available(date):
+            if r.is_available(date_to_check):
                 __LOG__.debug(
                     "** GroupOfResources::is_available {0} : True {1}".format(
-                        {"name": self.name, "date": date}, r.name
+                        {"name": self.name, "date": date_to_check}, r.name
                     )
                 )
                 return True
 
         __LOG__.debug(
             "** GroupOfResources::is_available {0} : False".format(
-                {"name": self.name, "date": date}
+                {"name": self.name, "date": date_to_check}
             )
         )
         return False
@@ -377,14 +378,13 @@ class GroupOfResources:
         """
         if task not in self.tasks:
             self.tasks.append(task)
-        return
 
     def search_for_task_conflicts(self, all_tasks=False):
         """
         Returns a dictionary of all days (datetime.date) containing for each
         overcharged day the list of task for this day.
 
-        It examines all resources member and group tasks.
+        It examines all resources' member and group tasks.
 
         Keyword arguments:
         all_tasks -- if True return all tasks for all days, not just overcharged days
@@ -399,17 +399,17 @@ class GroupOfResources:
                 except KeyError:
                     affected_days[d] = [ad[d]]
 
-        # inspect project
+        # inspect the project
         for t in self.tasks:
-            cday = t.start_date()
-            while cday <= t.end_date():
-                if cday.weekday() not in _not_worked_days():
+            current_day = t.start_date()
+            while current_day <= t.end_date():
+                if current_day.weekday() not in _not_worked_days():
                     try:
-                        affected_days[cday].append(t.fullname)
+                        affected_days[current_day].append(t.fullname)
                     except KeyError:
-                        affected_days[cday] = [t.fullname]
+                        affected_days[current_day] = [t.fullname]
 
-                cday += datetime.timedelta(days=1)
+                current_day += datetime.timedelta(days=1)
 
         # compile everything
         overcharged_days = {}
@@ -433,7 +433,7 @@ class GroupOfResources:
     def is_vacant(self, from_date: date, to_date: date):
         """
         Check if any resource from the group is unallocated between for a given timeframe.
-        Returns a list of available ressource name.
+        Returns a list of available ressource names.
 
         Args:
             from_date(date): First day
@@ -447,9 +447,6 @@ class GroupOfResources:
         return available
 
 
-############################################################################
-
-
 class Resource:
     """
     Class for handling resources assigned to tasks
@@ -457,7 +454,7 @@ class Resource:
     Args:
         name (str): Name given to the resource (id)
         fullname (str): Long name given to the resource
-        color (str): Color used to represent the resource in the resources overview
+        color (str): Color used to represent the resource in the resources' overview
     """
 
     def __init__(self, name, fullname=None, color=None):
@@ -701,7 +698,7 @@ class Task:
         start: date = None,
         stop: date = None,
         duration: int = None,
-        depends_of: list = None,
+        depends_of: list | None = None,
         resources: list = None,
         percent_done: int = 0,
         color: str = None,
@@ -750,7 +747,7 @@ class Task:
             if e is None:
                 none_count += 1
 
-        # check limits (2 must be set on 4) or scheduling is defined by duration and dependencies
+        # check limits (2 must-be set on 4) or scheduling is defined by duration and dependencies
         if none_count != 1 and (self.duration is None or depends_of is None):
             __LOG__.error(
                 '** Task "{1}" must be defined by two of three limits ({0})'.format(
@@ -759,14 +756,22 @@ class Task:
                 )
             )
 
-        if type(depends_of) is type([]):
-            self.depends_of = depends_of
-        elif depends_of is not None:
-            self.depends_of = [depends_of]
-        else:
-            self.depends_of = None
+        self.depends_of = None
+        if depends_of is not None:
+            if isinstance(depends_of, list):
+                self.depends_of = depends_of
+            elif isinstance(depends_of, str):
+                self.depends_of = [depends_of]
 
-        self.resources = resources
+        if resources is not None:
+            if not isinstance(resources, list):
+                __LOG__.debug(
+                    "** Task::__init__ {0} - resources is not a list".format(name)
+                )
+            self.resources = resources
+        else:
+            self.resources = []
+
         self.percent_done = percent_done
         self.drawn_x_begin_coord = None
         self.drawn_x_end_coord = None
@@ -787,7 +792,10 @@ class Task:
         Args:
             depends_of (list): Task which are parents of this one
         """
-        if type(depends_of) is type([]):
+        if self.depends_of is None:
+            self.depends_of = []
+
+        if isinstance(depends_of, list):
             if self.depends_of is None:
                 self.depends_of = depends_of
             else:
@@ -798,8 +806,6 @@ class Task:
                 self.depends_of = depends_of
             else:
                 self.depends_of.append(depends_of)
-
-        return
 
     def start_date(self):
         """
@@ -814,12 +820,15 @@ class Task:
             # start date set, calculate beginning
             if self.depends_of is None:
                 # depends on nothing... start date is start
-                # __LOG__.debug('*** Do not depend of other task')
+                # __LOG__.debug('*** Do not depend of another task')
+                start = self.start
+                # avoid weekends and vacations
                 start = self.start
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
                     start = start + datetime.timedelta(days=1)
 
                 if start > self.start:
+                    # if the start date is changed, warn
                     __LOG__.warning(
                         '** Due to vacations, Task "{0}", will not start on date {1} but {2}'.format(
                             self.fullname, self.start, start
@@ -829,12 +838,15 @@ class Task:
                 self._cache_start_date = start
                 return self._cache_start_date
             else:
-                # depends on other task, start date could vary
+                # depends on another task, start date could vary
                 # __LOG__.debug('*** Do depend of other tasks')
                 start = self.start
+                # avoid weekends and vacations
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
                     start = start + datetime.timedelta(days=1)
 
+                # get the latest end date of the dependencies
+                prev_task_end = self.start
                 prev_task_end = start
                 for t in self.depends_of:
                     if isinstance(t, Milestone):
@@ -844,6 +856,7 @@ class Task:
                         if t.end_date() >= prev_task_end:
                             prev_task_end = t.end_date() + datetime.timedelta(days=1)
 
+                # avoid weekends and vacations
                 while (
                     prev_task_end.weekday() in _not_worked_days()
                     or prev_task_end in VACATIONS
@@ -851,6 +864,7 @@ class Task:
                     prev_task_end = prev_task_end + datetime.timedelta(days=1)
 
                 if prev_task_end > self.start:
+                    # if the start date is changed, warn
                     __LOG__.warning(
                         '** Due to dependencies, Task "{0}", will not start on date {1} but {2}'.format(
                             self.fullname, self.start, prev_task_end
@@ -1245,9 +1259,9 @@ class Task:
 
         self.drawn_y_coord = y
 
-        svg = svgwrite.container.Group(id=re.sub(r"[ ,'/()]", "_", self.name))
+        svg = Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         svg.add(
-            svgwrite.shapes.Rect(
+            Rect(
                 insert=((x + 1 + offset) * mm, (y + 1) * mm),
                 size=((d - 2) * mm, 8 * mm),
                 fill=color,
@@ -1257,7 +1271,7 @@ class Task:
             )
         )
         svg.add(
-            svgwrite.shapes.Rect(
+            Rect(
                 insert=((x + 1 + offset) * mm, (y + 6) * mm),
                 size=((d - 2) * mm, 3 * mm),
                 fill="#909090",
@@ -1269,7 +1283,7 @@ class Task:
 
         if add_modified_begin_mark:
             svg.add(
-                svgwrite.shapes.Rect(
+                Rect(
                     insert=((x + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 4 * mm),
                     fill="#0000FF",
@@ -1281,7 +1295,7 @@ class Task:
 
         if add_modified_end_mark:
             svg.add(
-                svgwrite.shapes.Rect(
+                Rect(
                     insert=((x + d - 7 + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 4 * mm),
                     fill="#0000FF",
@@ -1293,7 +1307,7 @@ class Task:
 
         if add_begin_mark:
             svg.add(
-                svgwrite.shapes.Rect(
+                Rect(
                     insert=((x + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 8 * mm),
                     fill="#000000",
@@ -1304,7 +1318,7 @@ class Task:
             )
         if add_end_mark:
             svg.add(
-                svgwrite.shapes.Rect(
+                Rect(
                     insert=((x + d - 7 + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 8 * mm),
                     fill="#000000",
@@ -1317,7 +1331,7 @@ class Task:
         if self.percent_done is not None and self.percent_done > 0:
             # Bar shade
             svg.add(
-                svgwrite.shapes.Rect(
+                Rect(
                     insert=((x + 1 + offset) * mm, (y + 6) * mm),
                     size=(((d - 2) * self.percent_done / 100) * mm, 3 * mm),
                     fill="#F08000",
@@ -1333,7 +1347,7 @@ class Task:
             tx = 5
 
         svg.add(
-            svgwrite.text.Text(
+            Text(
                 self.fullname,
                 insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
@@ -1347,7 +1361,7 @@ class Task:
         if self.resources is not None:
             t = " / ".join(["{0}".format(r.name) for r in self.resources])
             svg.add(
-                svgwrite.text.Text(
+                Text(
                     "{0}".format(t),
                     insert=(tx * mm, (y + 8.5) * mm),
                     fill="purple",
@@ -1873,7 +1887,7 @@ class Milestone(Task):
             tx = 5
 
         svg.add(
-            svgwrite.text.Text(
+            Text(
                 self.fullname,
                 insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
@@ -2134,7 +2148,7 @@ class Project:
 
             if today is not None and today == jour:
                 vlines.add(
-                    svgwrite.shapes.Rect(
+                    Rect(
                         insert=((x + 0.4 + offset) * cm, 2 * cm),
                         size=(0.2 * cm, maxy * cm),
                         fill="#76e9ff",
@@ -2152,7 +2166,7 @@ class Project:
                     start_date + datetime.timedelta(days=x)
                 ) in VACATIONS:
                     vlines.add(
-                        svgwrite.shapes.Rect(
+                        Rect(
                             insert=((x + offset / 10) * cm, 2 * cm),
                             size=(1 * cm, maxy * cm),
                             fill="gray",
@@ -2164,7 +2178,7 @@ class Project:
 
                 # Current day
                 vlines.add(
-                    svgwrite.text.Text(
+                    Text(
                         "{1} {0:02}".format(jour.day, cal[jour.weekday()][0]),
                         insert=((x * 10 + 1 + offset) * mm, 19 * mm),
                         fill="black",
@@ -2177,7 +2191,7 @@ class Project:
                 # Year
                 if jour.day == 1 and jour.month == 1:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2191,7 +2205,7 @@ class Project:
                 # Month name
                 if jour.day == 1:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0}".format(jour.strftime("%B")),
                             insert=((x * 10 + 1 + offset) * mm, 10 * mm),
                             fill="#800000",
@@ -2205,7 +2219,7 @@ class Project:
                 # Week number
                 if jour.weekday() == 0:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0:02}".format(jour.isocalendar()[1]),
                             insert=((x * 10 + 1 + offset) * mm, 15 * mm),
                             fill="black",
@@ -2221,7 +2235,7 @@ class Project:
                 # Year
                 if jour.isocalendar()[1] == 1 and jour.month == 1:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2235,7 +2249,7 @@ class Project:
                 # Month name
                 if jour.day <= 7:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0}".format(jour.strftime("%B")),
                             insert=((x * 10 + 1 + offset) * mm, 10 * mm),
                             fill="#800000",
@@ -2247,7 +2261,7 @@ class Project:
                         )
                     )
                 vlines.add(
-                    svgwrite.text.Text(
+                    Text(
                         "{0:02}".format(jour.isocalendar()[1]),
                         insert=((x * 10 + 1 + offset) * mm, 15 * mm),
                         fill="black",
@@ -2262,7 +2276,7 @@ class Project:
             elif scale == DRAW_WITH_MONTHLY_SCALE:
                 # Month number
                 vlines.add(
-                    svgwrite.text.Text(
+                    Text(
                         "{0}".format(jour.strftime("%m")),
                         insert=((x * 10 + 1 + offset) * mm, 19 * mm),
                         fill="black",
@@ -2275,7 +2289,7 @@ class Project:
                 # Year
                 if jour.month == 1:
                     vlines.add(
-                        svgwrite.text.Text(
+                        Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2442,7 +2456,7 @@ class Project:
 
         dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
-            svgwrite.shapes.Rect(
+            Rect(
                 insert=(0 * cm, 0 * cm),
                 size=((max_x_grid_lines + 1 + offset / 10) * cm, (pheight + 3) * cm),
                 fill="white",
@@ -2566,7 +2580,7 @@ class Project:
 
             ress = svgwrite.container.Group()
             try:
-                res_text = svgwrite.text.Text(
+                res_text = Text(
                     "{0}".format(r.fullname),
                     insert=(3 * mm, (line_number * 10 + 7) * mm),
                     fill=_font_attributes()["fill"],
@@ -2596,7 +2610,7 @@ class Project:
                     and not r.is_available(cday)
                 ):
                     vac.add(
-                        svgwrite.shapes.Rect(
+                        Rect(
                             insert=(
                                 ((cday - start_date).days * 10 + 1 + offset) * mm,
                                 (conflict_display_line * 10 + 1) * mm,
@@ -2616,7 +2630,7 @@ class Project:
                     and cday in overcharged_days
                 ):
                     conflicts.add(
-                        svgwrite.shapes.Rect(
+                        Rect(
                             insert=(
                                 ((cday - start_date).days * 10 + 1 + 4 + offset) * mm,
                                 (conflict_display_line * 10 + 1) * mm,
@@ -2690,7 +2704,7 @@ class Project:
 
         dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
-            svgwrite.shapes.Rect(
+            Rect(
                 insert=(0 * cm, 0 * cm),
                 size=(
                     (number_of_x_grid_lines + 1 + offset / 10) * cm,
@@ -2835,11 +2849,11 @@ class Project:
                     font_weight = "normal"
                     font_size = 13
                 fprj.add(
-                    svgwrite.text.Text(
+                    Text(
                         "{0}".format(self.name),
                         insert=(
                             (6 * level + 3 + offset) * mm,
-                            ((prev_y) * 10 + 7) * mm,
+                            (prev_y * 10 + 7) * mm,
                         ),
                         fill=_font_attributes()["fill"],
                         stroke=_font_attributes()["stroke"],
@@ -2851,7 +2865,7 @@ class Project:
                 )
 
                 fprj.add(
-                    svgwrite.shapes.Rect(
+                    Rect(
                         insert=((6 * level + 0.8 + offset) * mm, (prev_y + 0.5) * cm),
                         size=(0.2 * cm, ((cy - prev_y - 1) + 0.4) * cm),
                         fill=self.color,
@@ -3038,6 +3052,5 @@ if __name__ == "__main__":
 
 else:
     init_log_to_sysout(level=logging.CRITICAL)
-
 
 # <EOF>######################################################################
