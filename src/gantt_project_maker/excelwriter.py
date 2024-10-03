@@ -274,7 +274,7 @@ def update_width(label: str, max_width):
 
 def spacing(n_char=5):
     """
-    Create a spacing of n_char characters
+    Create spacing of n_char characters
 
     Args:
         n_char (int): Number of white spaces
@@ -363,7 +363,7 @@ def write_project_to_excel(
     header: bool = True,
 ):
     """
-    Write a multi index data frame to Excel file with format
+    Write a multi index data frame to an Excel file with format
 
     Args:
         project (dict): Main project
@@ -779,6 +779,7 @@ def write_resource(
                 wb=wb,
                 row_index=row_index,
                 level=level,
+                resource=None,
             )
 
     level -= 1
