@@ -79,7 +79,7 @@ def get_nearest_saturday(date):
 
 
 def parse_date(
-        date_in: Union[str, datetime], date_default: str = None, dayfirst=False
+    date_in: Union[str, datetime], date_default: str = None, dayfirst=False
 ) -> datetime.date:
     """
     Lees de date_string en parse de datum
@@ -145,7 +145,7 @@ class StartEndBase:
     """
 
     def __init__(
-            self, start: str, end: str = None, dayfirst=False, variables_info=None
+        self, start: str, end: str = None, dayfirst=False, variables_info=None
     ):
         """
         Store the dates as date/time objects
@@ -230,11 +230,11 @@ class Employee:
     """
 
     def __init__(
-            self,
-            label: str,
-            full_name: str = None,
-            vacations: dict = None,
-            color: str = None,
+        self,
+        label: str,
+        full_name: str = None,
+        vacations: dict = None,
+        color: str = None,
     ):
         """
         Class constructor
@@ -254,18 +254,18 @@ class Employee:
 
 class BasicElement(StartEndBase):
     def __init__(
-            self,
-            label,
-            project_leader_key=None,
-            start=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=False,
-            variables_info=None,
-            parent=None,
+        self,
+        label,
+        project_leader_key=None,
+        start=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=False,
+        variables_info=None,
+        parent=None,
     ):
         super().__init__(start, start, dayfirst, variables_info)
         if label is None:
@@ -282,21 +282,21 @@ class BasicElement(StartEndBase):
 
 class ProjectTask(BasicElement):
     def __init__(
-            self,
-            label,
-            project_leader_key=None,
-            start=None,
-            end=None,
-            duration=None,
-            employees=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=True,
-            variables_info=None,
-            parent=None,
+        self,
+        label,
+        project_leader_key=None,
+        start=None,
+        end=None,
+        duration=None,
+        employees=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=True,
+        variables_info=None,
+        parent=None,
     ):
         super().__init__(
             label=label,
@@ -356,18 +356,18 @@ class ProjectTask(BasicElement):
 
 class ProjectMileStone(BasicElement):
     def __init__(
-            self,
-            label,
-            project_leader_key=None,
-            start=None,
-            dependent_of=None,
-            color=None,
-            project_color=None,
-            detail=False,
-            display=True,
-            dayfirst=True,
-            variables_info=None,
-            parent=None,
+        self,
+        label,
+        project_leader_key=None,
+        start=None,
+        dependent_of=None,
+        color=None,
+        project_color=None,
+        detail=False,
+        display=True,
+        dayfirst=True,
+        variables_info=None,
+        parent=None,
     ):
         super().__init__(
             label=label,
@@ -432,30 +432,31 @@ class ProjectPlanner:
     """
 
     def __init__(
-            self,
-            programma_title: str = None,
-            vacations_title: str = None,
-            programma_color: str = None,
-            vacation_color: str = None,
-            output_file_name: Path = None,
-            planning_start: datetime = None,
-            planning_end: datetime = None,
-            weeks_margin_left: int = None,
-            weeks_margin_right: int = None,
-            today: datetime = None,
-            dayfirst: bool = False,
-            scale: str = None,
-            period_info: dict = None,
-            excel_info: dict = None,
-            details: bool = None,
-            filter_employees: list = None,
-            save_svg_as_pdf: bool = False,
-            collaps_tasks: bool = False,
-            periods: list = None,
-            tasks_id: str = "task",
-            employee_id: str = "employee",
-            owner_id: str = "owner",
-            contributor_id: str = "contributor",
+        self,
+        programma_title: str = None,
+        vacations_title: str = None,
+        programma_color: str = None,
+        vacation_color: str = None,
+        output_file_name: Path = None,
+        planning_start: datetime = None,
+        planning_end: datetime = None,
+        weeks_margin_left: int = None,
+        weeks_margin_right: int = None,
+        today: datetime = None,
+        dayfirst: bool = False,
+        scale: str = None,
+        period_info: dict = None,
+        excel_info: dict = None,
+        details: bool = None,
+        filter_employees: list = None,
+        save_svg_as_pdf: bool = False,
+        collaps_tasks: bool = False,
+        periods: list = None,
+        tasks_id: str = "task",
+        employee_id: str = "employee",
+        owner_id: str = "owner",
+        contributor_id: str = "contributor",
+        progress_file_info: dict = None,
     ):
         """
         Constructor of the class
@@ -485,6 +486,8 @@ class ProjectPlanner:
 
         self.start_date = planning_start
         self.end_date = planning_end
+
+        self.progress_file_info = progress_file_info
 
         if periods is not None:
             for period_key, period_value in period_info.items():
@@ -527,7 +530,7 @@ class ProjectPlanner:
 
     @staticmethod
     def add_global_information(
-            fill="black", stroke="black", stroke_width=0, font_family="Verdana"
+        fill="black", stroke="black", stroke_width=0, font_family="Verdana"
     ):
         """
         Set global pen properties
@@ -543,9 +546,9 @@ class ProjectPlanner:
         )
 
     def export_to_excel(
-            self,
-            excel_output_directory: Path,
-            excel_output_formats: Union[list, None] = None,
+        self,
+        excel_output_directory: Path,
+        excel_output_formats: Union[list, None] = None,
     ) -> None:
         """
         Write planning to an Excel file
@@ -634,7 +637,7 @@ class ProjectPlanner:
                     )
 
     def write_excel_for_contributors(
-            self, excel_file, header_info, summation_info=None, column_widths=None
+        self, excel_file, header_info, summation_info=None, column_widths=None
     ):
         """
         A writer for the project plan of all contributors, one sheet per employee
@@ -689,8 +692,8 @@ class ProjectPlanner:
                         header=header,
                     )
                     if (
-                            "total_hours_project" in summation_info.keys()
-                            and total_hours_project is not None
+                        "total_hours_project" in summation_info.keys()
+                        and total_hours_project is not None
                     ):
                         summation_project_info = deep_copy_dict(
                             summation_info["total_hours_project"]
@@ -698,8 +701,8 @@ class ProjectPlanner:
                         row_index += 1
                         added_value = False
                         for (
-                                sum_project_key,
-                                sum_project_properties,
+                            sum_project_key,
+                            sum_project_properties,
                         ) in summation_project_info.items():
                             value = sum_project_properties["value"]
                             variables = sum_project_properties.get("variables")
@@ -710,8 +713,8 @@ class ProjectPlanner:
                                     except NameError as name_err:
                                         _logger.warning(name_err)
                                     except (
-                                            SyntaxError,
-                                            TypeError,
+                                        SyntaxError,
+                                        TypeError,
                                     ) as syntax_or_type_error:
                                         _logger.debug(syntax_or_type_error)
                             sum_project_properties["value"] = insert_variables(
@@ -748,16 +751,16 @@ class ProjectPlanner:
                         total_hours_global += total_hours_project
 
                 if (
-                        "total_hours_global" in summation_info.keys()
-                        and total_hours_global is not None
+                    "total_hours_global" in summation_info.keys()
+                    and total_hours_global is not None
                 ):
                     summation_project_info = deep_copy_dict(
                         summation_info["total_hours_global"]
                     )
                     row_index += 1
                     for (
-                            sum_project_key,
-                            sum_project_properties,
+                        sum_project_key,
+                        sum_project_properties,
                     ) in summation_project_info.items():
                         value = sum_project_properties["value"]
                         variables = sum_project_properties.get("variables")
@@ -828,7 +831,7 @@ class ProjectPlanner:
         return depends_of
 
     def get_employees(
-            self, employees: Union[str, list, dict]
+        self, employees: Union[str, list, dict]
     ) -> EmployeesContributingToTask:
         """
         Turn a list of employees-strings into a list of employees gantt.Resource objects
@@ -959,12 +962,12 @@ class ProjectPlanner:
             self.vacations_gantt.add_task(employee_vacations)
 
     def make_task_or_milestone(
-            self,
-            project_leader_key: str = None,
-            task_properties: dict = None,
-            project_color=None,
-            variables_info=None,
-            parent=None,
+        self,
+        project_leader_key: str = None,
+        task_properties: dict = None,
+        project_color=None,
+        variables_info=None,
+        parent=None,
     ) -> Union[ProjectTask, ProjectMileStone]:
         """
         Add all the general tasks and milestones
@@ -1043,10 +1046,10 @@ class ProjectPlanner:
         return task_or_milestone
 
     def add_tasks_and_milestones(
-            self,
-            tasks_and_milestones=None,
-            tasks_and_milestones_info=None,
-            variables_info=None,
+        self,
+        tasks_and_milestones=None,
+        tasks_and_milestones_info=None,
+        variables_info=None,
     ):
         """
         Make all tasks en milestones
@@ -1088,13 +1091,13 @@ class ProjectPlanner:
             )
 
     def make_projects(
-            self,
-            project_leader_key,
-            subprojects_info,
-            subprojects_title,
-            subprojects_selection,
-            subprojects_color=None,
-            variables_info=None,
+        self,
+        project_leader_key,
+        subprojects_info,
+        subprojects_title,
+        subprojects_selection,
+        subprojects_color=None,
+        variables_info=None,
     ):
         """
         Create all the projects given in subprojects_info
@@ -1125,7 +1128,7 @@ class ProjectPlanner:
             project_name_collapsed = project_values.get("title_collapsed", project_name)
             projects_employee_collapsed = project_values.get("employees_collapsed")
             if projects_employee_collapsed is not None and isinstance(
-                    projects_employee_collapsed, str
+                projects_employee_collapsed, str
             ):
                 projects_employee_collapsed = [projects_employee_collapsed]
 
@@ -1252,8 +1255,8 @@ class ProjectPlanner:
 
                         # each project with task is stored as a main project with the project begin and end
                         if (
-                                main_start_date is None
-                                and self.start_date <= task.start_date() < self.end_date
+                            main_start_date is None
+                            and self.start_date <= task.start_date() < self.end_date
                         ):
                             main_start_date = task.start_date()
                         try:
@@ -1263,22 +1266,22 @@ class ProjectPlanner:
                         else:
                             main_end_date = min(self.end_date, task_end_date)
                         if (
-                                main_start_date is not None
-                                and self.start_date < task.start_date() < main_start_date
+                            main_start_date is not None
+                            and self.start_date < task.start_date() < main_start_date
                         ):
                             main_start_date = task.start_date()
 
                         if (
-                                main_end_date is not None
-                                and main_end_date < task.end_date() <= self.end_date
+                            main_end_date is not None
+                            and main_end_date < task.end_date() <= self.end_date
                         ):
                             main_end_date = task.end_date()
 
             # every project with tasks will be a course project plan as well
             if (
-                    self.collaps_tasks
-                    and main_start_date is not None
-                    and project_key not in added_projects
+                self.collaps_tasks
+                and main_start_date is not None
+                and project_key not in added_projects
             ):
                 if main_contributors is not None:
                     main_contributors = list(set(main_contributors))
@@ -1308,14 +1311,14 @@ class ProjectPlanner:
         self.program.add_task(projects_employee)
 
     def write_planning(
-            self,
-            planning_output_directory,
-            resource_output_directory,
-            vacations_output_directory,
-            write_resources=False,
-            write_vacations=False,
-            periods=None,
-            suffix=None,
+        self,
+        planning_output_directory,
+        resource_output_directory,
+        vacations_output_directory,
+        write_resources=False,
+        write_vacations=False,
+        periods=None,
+        suffix=None,
     ):
         """
         Write the planning to the output definitions
@@ -1363,7 +1366,7 @@ class ProjectPlanner:
                     self.output_file_name, extensions=leading_suffix + [file_suffix]
                 )
                 file_names[file_suffix] = (
-                        directories[file_suffix] / file_names[file_suffix]
+                    directories[file_suffix] / file_names[file_suffix]
                 )
 
             weeks_margin_left = period_prop.get(
@@ -1488,7 +1491,7 @@ class ProjectPlanner:
 
 
 def check_if_employee_in_contributing(
-        filter_employees: list, contributing_employees: list
+    filter_employees: list, contributing_employees: list
 ) -> bool:
     """
     Check if any of the employees given in filter_employees is in contributing to this taks
@@ -1567,7 +1570,7 @@ def get_contributors_task(task, contributors):
 
 
 def get_contributors_from_resources(
-        projects_employee_global, contributors, all_resources
+    projects_employee_global, contributors, all_resources
 ):
     """
     Get the contributors of this Task based on the global resources

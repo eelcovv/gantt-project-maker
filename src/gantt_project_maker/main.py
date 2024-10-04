@@ -383,7 +383,9 @@ def main(args):
     excel_info = settings.get("excel")
     employees_info = get_info_from_file_or_settings(settings=settings, key="employees")
     vacations_info = get_info_from_file_or_settings(settings=settings, key="vacations")
-
+    progress_file_info = get_info_from_file_or_settings(
+        settings=settings, key="progress_file_definitions"
+    )
     if args.employee:
         all_employees = get_pasted_employees(
             args.employee, employees_info=employees_info
@@ -501,7 +503,7 @@ def main(args):
         else:
             _logger.debug("today key found be no date defined")
 
-    # Begin de planning
+    # Start the planning
     planning = ProjectPlanner(
         programma_title=programma_title,
         vacations_title=vacations_title,
@@ -522,6 +524,7 @@ def main(args):
         save_svg_as_pdf=args.pdf,
         collaps_tasks=args.collaps_tasks,
         periods=args.period,
+        progress_file_info=progress_file_info,
     )
 
     # add global information, vacations and employees
@@ -559,6 +562,7 @@ def main(args):
         project_employee_info = project_leader_settings["general"]
         subprojects_info = project_leader_settings["projects"]
         variables_info = project_leader_settings.get("variables")
+        progress_info = project_leader_settings.get("progress_files")
 
         subprojects_selection = project_employee_info["projects"]
         subprojects_title = project_employee_info["title"]
