@@ -1256,9 +1256,9 @@ class ProjectPlanner:
                         # each project with task is stored as a main project with the project begin and end
                         if (
                             main_start_date is None
-                            and self.start_date <= task.start_date() < self.end_date
+                            and self.start_date <= task.start_date < self.end_date
                         ):
-                            main_start_date = task.start_date()
+                            main_start_date = task.start_date
                         try:
                             task_end_date = task.end_date()
                         except AssertionError:
@@ -1267,9 +1267,9 @@ class ProjectPlanner:
                             main_end_date = min(self.end_date, task_end_date)
                         if (
                             main_start_date is not None
-                            and self.start_date < task.start_date() < main_start_date
+                            and self.start_date < task.start_date < main_start_date
                         ):
-                            main_start_date = task.start_date()
+                            main_start_date = task.start_date
 
                         if (
                             main_end_date is not None

@@ -682,8 +682,8 @@ class Task:
         start (date): First day of the task, default None
         stop (date): Last day of the task, default None
         duration (int): Duration of the task, default None
-        depends_of (list): Tasks which are parents of this one, default None
-        resources (list): Resources assigned to the task, default None
+        depends_of (list|None): Tasks which are parents of this one, default None
+        resources (list|None): Resources assigned to the task, default None
         percent_done (int): Percent of achievement, default 0
         color (str, html color): default None
         display (bool): Display this task, default True
@@ -691,6 +691,8 @@ class Task:
         owner (str): Owner of the task
         parent (str): Parent of the task
     """
+
+    depends_of: list
 
     def __init__(
         self,
@@ -740,6 +742,7 @@ class Task:
         self.state = state
         self.owner = owner
         self.parent = parent
+        self.end = None
 
         ends = (self.start, self.stop, self.duration)
         none_count = 0
@@ -756,7 +759,7 @@ class Task:
                 )
             )
 
-        self.depends_of = None
+        self.depends_of: list | None = None
         if depends_of is not None:
             if isinstance(depends_of, list):
                 self.depends_of = depends_of
@@ -807,6 +810,7 @@ class Task:
             else:
                 self.depends_of.append(depends_of)
 
+    @property
     def start_date(self):
         """
         Returns the first day of the task, either the one which was given at
@@ -1054,11 +1058,11 @@ class Task:
                     else:
                         real_duration = real_duration + 1
 
-                    current_day = self.start_date() + datetime.timedelta(
+                    current_day = self.start_date + datetime.timedelta(
                         days=real_duration
                     )
 
-                self._cache_end_date = self.start_date() + datetime.timedelta(
+                self._cache_end_date = self.start_date + datetime.timedelta(
                     days=real_duration
                 )
                 __LOG__.warning(
@@ -1674,8 +1678,9 @@ class Milestone(Task):
         parent=None,
     ):
         """
-        Initialize milestone object. Two of start, stop or duration may be given.
-        This milestone can rely on other milestone and will be completed with resources.
+        Initialize a milestone object.
+        Two of start, stop or duration may be given.
+        This milestone can rely on another milestone and will be completed with resources.
         If percent done is given, a progress bar will be included on the milestone.
         If color is specified, it will be used for the milestone.
 
