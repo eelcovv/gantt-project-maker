@@ -26,9 +26,9 @@ def get_task_contribution(name, task, owner_id) -> dict:
     task_contribution = dict()
     for resource_for_task in task.resources:
         if resource_for_task.name == name:
-            task_contribution["start"] = task.start
+            task_contribution["start"] = task._start
             try:
-                task_contribution["stop"] = task.stop
+                task_contribution["stop"] = task._stop
             except AttributeError:
                 task_contribution["stop"] = None
             task_contribution[owner_id] = task.owner

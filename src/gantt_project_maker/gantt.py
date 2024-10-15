@@ -1691,18 +1691,20 @@ class Milestone(Task):
         color -- string, html color, default None
         display -- boolean, display this milestone, default True
         """
+        super().__init__(
+            name=name,
+            start=start,
+            depends_of=depends_of,
+            color=color,
+            fullname=fullname,
+            display=display,
+            parent=parent,
+        )
         __LOG__.debug(
             "** Milestone::__init__ {0}".format(
                 {"name": name, "start": start, "depends_of": depends_of}
             )
         )
-        self.name = name
-        if fullname is not None:
-            self.fullname = fullname
-        else:
-            self.fullname = name
-
-        self.start = start
         self.stop = start
         self.duration = 0
         if color is not None:
@@ -1710,8 +1712,6 @@ class Milestone(Task):
         else:
             self.color = "#FF3030"
 
-        self.display = display
-        self.parent = parent
         self.state = "Milestone"
 
         if type(depends_of) is type([]):

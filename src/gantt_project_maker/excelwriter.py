@@ -800,7 +800,7 @@ def project_to_period_label(project: type(gantt.Project)) -> str:
     """
     label = ""
     try:
-        year_start = pd.Timestamp(project.start).year
+        year_start = pd.Timestamp(project._start).year
     except AttributeError:
         year_start = ""
     else:
