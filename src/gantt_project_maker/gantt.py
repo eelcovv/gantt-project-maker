@@ -401,8 +401,8 @@ class GroupOfResources:
 
         # inspect the project
         for t in self.tasks:
-            current_day = t.start_date()
-            while current_day <= t.end_date():
+            current_day = t.start_date
+            while current_day <= t.end_date:
                 if current_day.weekday() not in _not_worked_days():
                     try:
                         affected_days[current_day].append(t.fullname)
@@ -581,7 +581,7 @@ class Resource:
         affected_days = {}
         for t in self.tasks:
             try:
-                task_start_date = t.start_date()
+                task_start_date = t.start_date
             except TypeError as err:
                 __LOG__.warning(err)
                 __LOG__.warning(
@@ -589,7 +589,7 @@ class Resource:
                 )
                 raise
             try:
-                task_end_date = t.end_date()
+                task_end_date = t.end_date
             except TypeError as err:
                 __LOG__.warning(err)
                 __LOG__.warning(
@@ -608,7 +608,7 @@ class Resource:
             except TypeError as err:
                 __LOG__.warning(err)
                 __LOG__.warning(
-                    f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date()} and {t.end_date()}"
+                    f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date} and {t.end_date}"
                 )
                 raise
 
@@ -734,17 +734,17 @@ class Task:
         else:
             self.fullname = name
 
-        self.start = start
-        self.stop = stop
+        self._start = start
+        self._stop = stop
         self.duration: int = duration
         self.color = color
         self.display = display
         self.state = state
         self.owner = owner
         self.parent = parent
-        self.end = None
+        self._end = None
 
-        ends = (self.start, self.stop, self.duration)
+        ends = (self._start, self._stop, self.duration)
         none_count = 0
         for e in ends:
             if e is None:
@@ -754,7 +754,11 @@ class Task:
         if none_count != 1 and (self.duration is None or depends_of is None):
             __LOG__.error(
                 '** Task "{1}" must be defined by two of three limits ({0})'.format(
-                    {"start": self.start, "stop": self.stop, "duration": self.duration},
+                    {
+                        "start": self._start,
+                        "stop": self._stop,
+                        "duration": self.duration,
+                    },
                     fullname,
                 )
             )
@@ -810,6 +814,23 @@ class Task:
             else:
                 self.depends_of.append(depends_of)
 
+    @property
+    def start(self):
+        return self._start
+
+    @start.setter
+    def start(self, value):
+        self._start = value
+
+    @property
+    def stop(self):
+        return self._stop
+
+    @stop.setter
+    def start(self, value):
+        self._stop = value
+
+    @property
     def start_date(self):
         """
         Returns the first day of the task, either the one which was given at
@@ -819,22 +840,22 @@ class Task:
             return self._cache_start_date
 
         __LOG__.debug("** Task::start_date ({0})".format(self.name))
-        if self.start is not None:
+        if self._start is not None:
             # start date set, calculate beginning
             if self.depends_of is None:
                 # depends on nothing... start date is start
                 # __LOG__.debug('*** Do not depend of another task')
-                start = self.start
+                start = self._start
                 # avoid weekends and vacations
-                start = self.start
+                start = self._start
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
                     start = start + datetime.timedelta(days=1)
 
-                if start > self.start:
+                if start > self._start:
                     # if the start date is changed, warn
                     __LOG__.warning(
                         '** Due to vacations, Task "{0}", will not start on date {1} but {2}'.format(
-                            self.fullname, self.start, start
+                            self.fullname, self._start, start
                         )
                     )
 
@@ -843,21 +864,21 @@ class Task:
             else:
                 # depends on another task, start date could vary
                 # __LOG__.debug('*** Do depend of other tasks')
-                start = self.start
+                start = self._start
                 # avoid weekends and vacations
                 while start.weekday() in _not_worked_days() or start in VACATIONS:
                     start = start + datetime.timedelta(days=1)
 
                 # get the latest end date of the dependencies
-                prev_task_end = self.start
+                prev_task_end = self._start
                 prev_task_end = start
                 for t in self.depends_of:
                     if isinstance(t, Milestone):
-                        if t.end_date() >= prev_task_end:
-                            prev_task_end = t.end_date()
+                        if t.end_date >= prev_task_end:
+                            prev_task_end = t.end_date
                     elif isinstance(t, Task):
-                        if t.end_date() >= prev_task_end:
-                            prev_task_end = t.end_date() + datetime.timedelta(days=1)
+                        if t.end_date >= prev_task_end:
+                            prev_task_end = t.end_date + datetime.timedelta(days=1)
 
                 # avoid weekends and vacations
                 while (
@@ -866,11 +887,11 @@ class Task:
                 ):
                     prev_task_end = prev_task_end + datetime.timedelta(days=1)
 
-                if prev_task_end > self.start:
+                if prev_task_end > self._start:
                     # if the start date is changed, warn
                     __LOG__.warning(
                         '** Due to dependencies, Task "{0}", will not start on date {1} but {2}'.format(
-                            self.fullname, self.start, prev_task_end
+                            self.fullname, self._start, prev_task_end
                         )
                     )
 
@@ -878,24 +899,24 @@ class Task:
                 return self._cache_start_date
 
         elif self.duration is None:  # start and stop fixed
-            current_day = self.start
+            current_day = self._start
             # check depends
             if self.depends_of is not None:
-                prev_task_end = self.depends_of[0].end_date()
+                prev_task_end = self.depends_of[0].end_date
                 for t in self.depends_of:
                     if isinstance(t, Milestone):
-                        if t.end_date() > prev_task_end:
-                            prev_task_end = t.end_date() - datetime.timedelta(days=1)
+                        if t.end_date > prev_task_end:
+                            prev_task_end = t.end_date - datetime.timedelta(days=1)
                     elif isinstance(t, Task):
-                        if t.end_date() > prev_task_end:
-                            prev_task_end = t.end_date()
-                    # if t.end_date() > prev_task_end:
-                    #     #__LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date()))
-                    #     prev_task_end = t.end_date()
+                        if t.end_date > prev_task_end:
+                            prev_task_end = t.end_date
+                    # if t.end_date > prev_task_end:
+                    #     #__LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date))
+                    #     prev_task_end = t.end_date
                 if prev_task_end > current_day:
                     depend_start_date = prev_task_end
                 else:
-                    start = self.start
+                    start = self._start
                     while start.weekday() in _not_worked_days() or start in VACATIONS:
                         start = start + datetime.timedelta(days=1)
                     depend_start_date = start
@@ -917,19 +938,19 @@ class Task:
         elif (
             self.duration is not None
             and self.depends_of is not None
-            and self.stop is None
+            and self._stop is None
         ):  # duration and dependencies fixed
-            prev_task_end = self.depends_of[0].end_date()
+            prev_task_end = self.depends_of[0].end_date
             for t in self.depends_of:
                 if isinstance(t, Milestone):
-                    if t.end_date() > prev_task_end:
-                        prev_task_end = t.end_date() - datetime.timedelta(days=1)
+                    if t.end_date > prev_task_end:
+                        prev_task_end = t.end_date - datetime.timedelta(days=1)
                 elif isinstance(t, Task):
-                    if t.end_date() > prev_task_end:
-                        prev_task_end = t.end_date()
-                # if t.end_date() > prev_task_end:
-                #     __LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date()))
-                #     prev_task_end = t.end_date()
+                    if t.end_date > prev_task_end:
+                        prev_task_end = t.end_date
+                # if t.end_date > prev_task_end:
+                #     __LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date))
+                #     prev_task_end = t.end_date
 
             start = prev_task_end + datetime.timedelta(days=1)
 
@@ -939,9 +960,9 @@ class Task:
             # should be first day of start...
             self._cache_start_date = start
 
-        elif self.start is None and self.stop is not None:  # stop and duration fixed
+        elif self._start is None and self._stop is not None:  # stop and duration fixed
             # start date not setted, calculate from end_date + depends
-            current_day = self.stop
+            current_day = self._stop
             real_duration = 0
             duration = self.duration
             while duration > 0:
@@ -954,22 +975,22 @@ class Task:
                 else:
                     real_duration = real_duration + 1
 
-                current_day = self.stop - datetime.timedelta(days=real_duration)
-            current_day = self.stop - datetime.timedelta(days=real_duration - 1)
+                current_day = self._stop - datetime.timedelta(days=real_duration)
+            current_day = self._stop - datetime.timedelta(days=real_duration - 1)
 
             # check depends
             if self.depends_of is not None:
-                prev_task_end = self.depends_of[0].end_date()
+                prev_task_end = self.depends_of[0].end_date
                 for t in self.depends_of:
                     if isinstance(t, Milestone):
-                        if t.end_date() > prev_task_end:
-                            prev_task_end = t.end_date()
+                        if t.end_date > prev_task_end:
+                            prev_task_end = t.end_date
                     elif isinstance(t, Task):
-                        if t.end_date() > prev_task_end:
-                            prev_task_end = t.end_date()
-                    # if t.end_date() > prev_task_end:
-                    #     __LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date()))
-                    #     prev_task_end = t.end_date()
+                        if t.end_date > prev_task_end:
+                            prev_task_end = t.end_date
+                    # if t.end_date > prev_task_end:
+                    #     __LOG__.debug('*** latest one {0} which end on {1}'.format(t.name, t.end_date))
+                    #     prev_task_end = t.end_date
 
                 if prev_task_end > current_day:
                     start = prev_task_end + datetime.timedelta(days=1)
@@ -984,9 +1005,8 @@ class Task:
 
                 if depend_start_date > current_day:
                     __LOG__.error(
-                        '** Due to dependencies, Task "{0}", could not be finished on time (should start as last on {1} but will start on {2})'.format(
-                            self.fullname, current_day, depend_start_date
-                        )
+                        f"** Due to dependencies, Task '{self.full_name}', could not be finished on time (should start "
+                        f"as last on {current_day} but will start on {depend_start_date})"
                     )
                     self._cache_start_date = depend_start_date
                 else:
@@ -996,10 +1016,10 @@ class Task:
                 # should be first day of start...
                 self._cache_start_date = current_day
 
-        if self._cache_start_date != self.start:
+        if self._cache_start_date != self._start:
             __LOG__.warning(
                 '** starting date for task "{0}" is changed from {1} to {2}'.format(
-                    self.fullname, self.start, self._cache_start_date
+                    self.fullname, self._start, self._cache_start_date
                 )
             )
         return self._cache_start_date
@@ -1015,8 +1035,9 @@ class Task:
         """
 
         self._cache_end_date = end_date
-        self.end = end_date
+        self._end = end_date
 
+    @property
     def end_date(self):
         """
         Returns the last day of the task, either the one which was given at task
@@ -1028,18 +1049,18 @@ class Task:
 
         __LOG__.debug("** Task::end_date ({0})".format(self.name))
 
-        if self.duration is None or self.start is None and self.stop is not None:
-            real_end = self.stop
+        if self.duration is None or self._start is None and self._stop is not None:
+            real_end = self._stop
             # Take care of vacations
             while real_end.weekday() in _not_worked_days() or real_end in VACATIONS:
                 real_end -= datetime.timedelta(days=1)
 
-            if real_end <= self.start_date():
-                current_day = self.start_date()
+            if real_end <= self.start_date:
+                current_day = self.start_date
                 real_duration = 0
                 if self.duration is None:
                     msg = (
-                        f"End time {real_end} is before start time {self.start_date()} and no duration is given for\n"
+                        f"End time {real_end} is before start time {self.start_date} and no duration is given for\n"
                         f"project '{self.name}'. Please fix"
                     )
                     raise AssertionError(msg)
@@ -1066,23 +1087,23 @@ class Task:
                 )
                 __LOG__.warning(
                     '** task "{0}" will not be finished on time : end_date is changed from {1} to {2}'.format(
-                        self.fullname, self.stop, self._cache_end_date
+                        self.fullname, self._stop, self._cache_end_date
                     )
                 )
                 return self._cache_end_date
 
             self._cache_end_date = real_end
-            if real_end != self.stop:
+            if real_end != self._stop:
                 __LOG__.warning(
                     '** task "{0}" will not be finished on time : end_date is changed from {1} to {2}'.format(
-                        self.fullname, self.stop, self._cache_end_date
+                        self.fullname, self._stop, self._cache_end_date
                     )
                 )
 
             return self._cache_end_date
 
-        if self.stop is None:
-            current_day = self.start_date()
+        if self._stop is None:
+            current_day = self.start_date
             real_duration = 0
             duration = self.duration
             while duration > 1 or (
@@ -1097,9 +1118,9 @@ class Task:
                 else:
                     real_duration = real_duration + 1
 
-                current_day = self.start_date() + datetime.timedelta(days=real_duration)
+                current_day = self.start_date + datetime.timedelta(days=real_duration)
 
-            self._cache_end_date = self.start_date() + datetime.timedelta(
+            self._cache_end_date = self.start_date + datetime.timedelta(
                 days=real_duration
             )
             return self._cache_end_date
@@ -1158,15 +1179,15 @@ class Task:
         add_modified_end_mark = False
 
         if start is None:
-            start = self.start_date()
+            start = self.start_date
 
-        if self.start is not None and self.start_date() != self.start:
+        if self._start is not None and self.start_date != self._start:
             add_modified_begin_mark = True
 
         if end is None:
-            end = self.end_date()
+            end = self.end_date
 
-        if self.stop is not None and self.end_date() != self.stop:
+        if self._stop is not None and self.end_date != self._stop:
             add_modified_end_mark = True
 
         # override project color if defined
@@ -1224,33 +1245,33 @@ class Task:
             raise AssertionError(f"scale {scale} not recognised")
 
         # cas 1 -s--S==E--e-
-        if self.start_date() >= start and self.end_date() <= end:
-            x = _time_diff(self.start_date(), start) * 10
-            d = _time_diff_d(self.end_date(), self.start_date()) * 10
+        if self.start_date >= start and self.end_date <= end:
+            x = _time_diff(self.start_date, start) * 10
+            d = _time_diff_d(self.end_date, self.start_date) * 10
             self.drawn_x_begin_coord = x
             self.drawn_x_end_coord = x + d
         # cas 5 -s--e--S==E-
-        elif self.start_date() > end:
+        elif self.start_date > end:
             return None, 0
         # cas 6 -S==E-s--e-
-        elif self.end_date() < start:
+        elif self.end_date < start:
             return None, 0
         # cas 2 -S==s==E--e-
-        elif self.start_date() < start and self.end_date() <= end:
+        elif self.start_date < start and self.end_date <= end:
             x = 0
-            d = _time_diff_d(self.end_date(), start) * 10
+            d = _time_diff_d(self.end_date, start) * 10
             self.drawn_x_begin_coord = x
             self.drawn_x_end_coord = x + d
             add_begin_mark = True
         # cas 3 -s--S==e==E-
-        elif self.start_date() >= start and self.end_date() > end:
-            x = _time_diff(self.start_date(), start) * 10
-            d = _time_diff_d(end, self.start_date()) * 10
+        elif self.start_date >= start and self.end_date > end:
+            x = _time_diff(self.start_date, start) * 10
+            d = _time_diff_d(end, self.start_date) * 10
             self.drawn_x_begin_coord = x
             self.drawn_x_end_coord = x + d
             add_end_mark = True
         # cas 4 -S==s==e==E-
-        elif self.start_date() < start and self.end_date() > end:
+        elif self.start_date < start and self.end_date > end:
             x = 0
             d = _time_diff_d(end, start) * 10
             self.drawn_x_begin_coord = x
@@ -1619,8 +1640,8 @@ class Task:
         if self.get_resources() is None:
             return conflicts
         for r in self.get_resources():
-            cday = self.start_date()
-            while cday <= self.end_date():
+            cday = self.start_date
+            while cday <= self.end_date:
                 if cday.weekday() not in _not_worked_days() and not r.is_available(
                     cday
                 ):
@@ -1650,8 +1671,8 @@ class Task:
         csv_text = '"{0}";"{1}";{2};{3};{4};"{5}";\r\n'.format(
             self.state.replace('"', '\\"'),
             self.fullname.replace('"', '\\"'),
-            self.start_date(),
-            self.end_date(),
+            self.start_date,
+            self.end_date,
             self.duration,
             resources.replace('"', '\\"'),
         )
@@ -1705,7 +1726,7 @@ class Milestone(Task):
                 {"name": name, "start": start, "depends_of": depends_of}
             )
         )
-        self.stop = start
+        self._stop = start
         self.duration = 0
         if color is not None:
             self.color = color
@@ -1729,14 +1750,15 @@ class Milestone(Task):
 
         return
 
+    @property
     def end_date(self):
         """
         Returns the last day of the milestone, either the one which was given at milestone
         creation or the one calculated after checking dependencies
         """
         __LOG__.debug("** Milestone::end_date ({0})".format(self.name))
-        # return self.start_date() - datetime.timedelta(days=1)
-        return self.start_date()
+        # return self.start_date - datetime.timedelta(days=1)
+        return self.start_date
 
     def svg(
         self,
@@ -1783,21 +1805,21 @@ class Milestone(Task):
             __LOG__.debug(
                 "** Milestone::svg ({0}) display off".format({"name": self.name})
             )
-            return (None, 0)
+            return None, 0
 
         # add_modified_begin_mark = False
         # add_modified_end_mark = False
 
         if start is None:
-            start = self.start_date()
+            start = self.start_date
 
-        # if self.start_date() != self.start and self.start is not None:
+        # if self.start_date != self.start and self.start is not None:
         #    add_modified_begin_mark = True
 
         if end is None:
-            end = self.end_date()
+            end = self.end_date
 
-        # if self.end_date() != self.stop and self.stop is not None:
+        # if self.end_date != self.stop and self.stop is not None:
         #    add_modified_end_mark = True
 
         # override project color if defined
@@ -1856,8 +1878,8 @@ class Milestone(Task):
             raise AssertionError(f"scale {scale} not recognised")
 
         # cas 1 -s--X--e-
-        if self.start_date() >= start and self.end_date() <= end:
-            x = _time_diff(self.start_date(), start) * 10
+        if self.start_date >= start and self.end_date <= end:
+            x = _time_diff(self.start_date, start) * 10
             self.drawn_x_begin_coord = x
             self.drawn_x_end_coord = x
         else:
@@ -2044,8 +2066,8 @@ class Milestone(Task):
         csv_text = '"{0}";"{1}";{2};{3};{4};"{5}";\r\n'.format(
             self.state.replace('"', '\\"'),
             self.fullname.replace('"', '\\"'),
-            self.start_date(),
-            self.end_date(),
+            self.start_date,
+            self.end_date,
             self.duration,
             resources.replace('"', '\\"'),
         )
@@ -2381,12 +2403,12 @@ class Project:
         self._reset_coord()
 
         if start is None:
-            start_date = self.start_date()
+            start_date = self.start_date
         else:
             start_date = start
 
         if end is None:
-            end_date = self.end_date()
+            end_date = self.end_date
         else:
             end_date = end
 
@@ -2529,12 +2551,12 @@ class Project:
         self._reset_coord()
 
         if start is None:
-            start_date = self.start_date()
+            start_date = self.start_date
         else:
             start_date = start
 
         if end is None:
-            end_date = self.end_date()
+            end_date = self.end_date
         else:
             end_date = end
 
@@ -2739,6 +2761,7 @@ class Project:
             "conflicts_tasks": conflicts_tasks,
         }
 
+    @property
     def start_date(self):
         """
         Returns first day of the project
@@ -2747,12 +2770,13 @@ class Project:
             __LOG__.warning("** Empty project : {0}".format(self.name))
             return datetime.date(9999, 1, 1)
 
-        first = self.tasks[0].start_date()
+        first = self.tasks[0].start_date
         for t in self.tasks:
-            if t.start_date() < first:
-                first = t.start_date()
+            if t.start_date < first:
+                first = t.start_date
         return first
 
+    @property
     def end_date(self):
         """
         Returns last day of the project
@@ -2761,10 +2785,10 @@ class Project:
             __LOG__.warning("** Empty project : {0}".format(self.name))
             return datetime.date(1970, 1, 1)
 
-        last = self.tasks[0].end_date()
+        last = self.tasks[0].end_date
         for t in self.tasks:
-            if t.end_date() > last:
-                last = t.end_date()
+            if t.end_date > last:
+                last = t.end_date
         return last
 
     def svg(
@@ -2799,9 +2823,9 @@ class Project:
             svg, int: SVG code and number of lines drawn for the project.
         """
         if start is None:
-            start = self.start_date()
+            start = self.start_date
         if end is None:
-            end = self.end_date()
+            end = self.end_date
         if color is None or self.color is not None:
             color = self.color
 
@@ -2838,8 +2862,8 @@ class Project:
         #     end -= datetime.timedelta(days=margin_right)
         if self.name != "":
             if (
-                (self.start_date() >= start and self.end_date() <= end)
-                or (self.end_date() >= start and self.start_date() <= end)
+                (self.start_date >= start and self.end_date <= end)
+                or (self.end_date >= start and self.start_date <= end)
             ) or level == 1:
                 # Adjust font level for level 0 (main project) and 1 (projects per project leader)
                 # todo: allow modification in settings file
@@ -3009,9 +3033,9 @@ class Project:
         return csv_text
 
 
-def task_within_range(task, planning_start, planning_end):
+def task_within_range(task: Task, planning_start: datetime, planning_end: datetime):
     """
-    Check if task is in de range of the planning
+    Check if the task is in the range of the planning
 
     Parameters
     ----------
@@ -3025,12 +3049,12 @@ def task_within_range(task, planning_start, planning_end):
     Returns
     -------
     bool:
-        True if task is in range
+        True if the task is in range
     """
     is_in_range = True
     if planning_start:
         try:
-            task_start = task.start
+            task_start = task._start
         except AttributeError:
             pass
         else:
@@ -3038,7 +3062,7 @@ def task_within_range(task, planning_start, planning_end):
                 is_in_range = False
     if planning_end:
         try:
-            task_end = task.end_date()
+            task_end = task.end_date
         except AttributeError:
             pass
         else:

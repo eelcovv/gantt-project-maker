@@ -1256,26 +1256,30 @@ class ProjectPlanner:
                         # each project with task is stored as a main project with the project begin and end
                         if (
                             main_start_date is None
-                            and self.start_date <= task.start_date() < self.end_date
+                            and self.start_date <= task.start_date < self.end_date
                         ):
-                            main_start_date = task.start_date()
+                            main_start_date = task.start_date
                         try:
-                            task_end_date = task.end_date()
+                            task_end_date = task.end_date
                         except AssertionError:
                             main_end_date = None
                         else:
-                            main_end_date = min(self.end_date, task_end_date)
+                            try:
+                                main_end_date = min(self.end_date, task_end_date)
+                            except TypeError as err:
+                                raise TypeError(err)
+
                         if (
                             main_start_date is not None
-                            and self.start_date < task.start_date() < main_start_date
+                            and self.start_date < task.start_date < main_start_date
                         ):
-                            main_start_date = task.start_date()
+                            main_start_date = task.start_date
 
                         if (
                             main_end_date is not None
-                            and main_end_date < task.end_date() <= self.end_date
+                            and main_end_date < task.end_date <= self.end_date
                         ):
-                            main_end_date = task.end_date()
+                            main_end_date = task.end_date
 
             # every project with tasks will be a course project plan as well
             if (
