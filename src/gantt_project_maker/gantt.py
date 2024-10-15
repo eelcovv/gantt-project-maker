@@ -810,7 +810,6 @@ class Task:
             else:
                 self.depends_of.append(depends_of)
 
-    @property
     def start_date(self):
         """
         Returns the first day of the task, either the one which was given at
@@ -1392,7 +1391,7 @@ class Task:
         if self.depends_of is None:
             return None
         else:
-            svg = svgwrite.container.Group()
+            svg = Group()
             for t in self.depends_of:
                 if isinstance(t, Milestone):
                     if not (
@@ -1869,7 +1868,7 @@ class Milestone(Task):
         # insert=((x+1)*mm, (y+1)*mm),
         # size=((d-2)*mm, 8*mm),
 
-        svg = svgwrite.container.Group(id=re.sub(r"[ ,'/()]", "_", self.name))
+        svg = Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         # 3.543307 is for conversion from mm to pt units !
         svg.add(
             svgwrite.shapes.Polygon(
@@ -1921,7 +1920,7 @@ class Milestone(Task):
         if self.depends_of is None:
             return None
         else:
-            svg = svgwrite.container.Group()
+            svg = Group()
             for t in self.depends_of:
                 if isinstance(t, Milestone):
                     if not (
@@ -2126,13 +2125,13 @@ class Project:
             scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
             offset (float): X offset from image border to start of drawing zone
         """
-        dwg = svgwrite.container.Group()
+        dwg = Group()
 
         cal = {0: "Mo", 1: "Tu", 2: "We", 3: "Th", 4: "Fr", 5: "Sa", 6: "Su"}
 
         maxx += 1
 
-        vlines = dwg.add(svgwrite.container.Group(id="vlines", stroke="lightgray"))
+        vlines = dwg.add(Group(id="vlines", stroke="lightgray"))
         for x in range(maxx):
             vlines.add(
                 svgwrite.shapes.Line(
@@ -2318,7 +2317,7 @@ class Project:
             )
         )
 
-        hlines = dwg.add(svgwrite.container.Group(id="hlines", stroke="lightgray"))
+        hlines = dwg.add(Group(id="hlines", stroke="lightgray"))
 
         dwg.add(
             svgwrite.shapes.Line(
@@ -2403,7 +2402,7 @@ class Project:
             )
             sys.exit(1)
 
-        svg_container_group = svgwrite.container.Group()
+        svg_container_group = Group()
         psvg, pheight = self.svg(
             prev_y=2,
             start=start_date,
@@ -2808,7 +2807,7 @@ class Project:
 
         cy = prev_y + 1 * (self.name != "")
 
-        container_project = svgwrite.container.Group()
+        container_project = Group()
 
         for task in self.tasks:
             if isinstance(task, Task):
@@ -2831,7 +2830,7 @@ class Project:
                 container_project.add(trepr)
                 cy += theight
 
-        fprj = svgwrite.container.Group()
+        fprj = Group()
         prj_bar = False
         # if margin_left is not None:
         #     start += datetime.timedelta(days=margin_left)
@@ -2899,7 +2898,7 @@ class Project:
         Keyword arguments:
         prj -- Project object to check against
         """
-        svg = svgwrite.container.Group()
+        svg = Group()
         for t in self.tasks:
             trepr = t.svg_dependencies(prj)
             if trepr is not None:
@@ -3039,7 +3038,7 @@ def task_within_range(task, planning_start, planning_end):
                 is_in_range = False
     if planning_end:
         try:
-            task_end = task.end
+            task_end = task.end_date()
         except AttributeError:
             pass
         else:
