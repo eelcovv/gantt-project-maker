@@ -1273,7 +1273,7 @@ class ProjectPlanner:
 
                         if (
                             main_end_date is not None
-                            and main_end_date < task.end_date() <= self.end_date()
+                            and main_end_date < task.end_date() <= self.end_date
                         ):
                             main_end_date = task.end_date()
 

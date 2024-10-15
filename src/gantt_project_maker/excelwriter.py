@@ -807,7 +807,7 @@ def project_to_period_label(project: type(gantt.Project)) -> str:
         year_start = str(year_start)[-2:]
     label += f"{year_start}"
     try:
-        quarter_start = pd.Timestamp(project.start_date).quarter
+        quarter_start = pd.Timestamp(project.start_date()).quarter
     except AttributeError:
         quarter_start = ""
     else:
