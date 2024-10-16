@@ -1,11 +1,6 @@
-import pytest
 import dateutil.parser as dparse
 
 from gantt_project_maker.project_classes import get_nearest_saturday, parse_date
-
-__author__ = "Eelco van Vliet"
-__copyright__ = "Eelco van Vliet"
-__license__ = "MIT"
 
 
 def test_parse_date():
