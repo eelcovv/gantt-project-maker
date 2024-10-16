@@ -21,12 +21,13 @@ import logging
 import re
 import sys
 from datetime import date
+from logging import Logger
 
 import dateutil.relativedelta
 import svgwrite
-from svgwrite.container import Group
-from svgwrite.shapes import Rect
-from svgwrite.text import Text
+from svgwrite.container import Group as svg_Group
+from svgwrite.shapes import Rect as svg_Rect
+from svgwrite.text import Text as svg_Text
 
 # original author: Alexandre Norman (norman at xael.org)
 # modified by Eelco van Vliet
@@ -38,7 +39,7 @@ mm = 3.543307
 cm = 35.43307
 
 # noinspection PyTypeChecker
-__LOG__: logging.Logger = None
+_logger: Logger = logging.getLogger(__name__)
 
 COLOR_OVERCHARGE_DEFAULT = "#AA0000"
 COLOR_VACATION_DEFAULT = "#008000"
@@ -196,7 +197,7 @@ def add_vacations(start_date: date, end_date: date = None):
         start_date (date): Beginning of a vacation
         end_date: (date): End of a vacation
     """
-    __LOG__.debug(
+    _logger.debug(
         "** add_vacations {0}".format({"start_date": start_date, "end_date": end_date})
     )
 
@@ -212,7 +213,7 @@ def add_vacations(start_date: date, end_date: date = None):
 
             start_date += datetime.timedelta(days=1)
 
-    __LOG__.debug(
+    _logger.debug(
         "** add_vacations {0}".format(
             {"start_date": start_date, "end_date": end_date, "vac": VACATIONS}
         )
@@ -226,14 +227,14 @@ def init_log_to_sysout(level=logging.INFO):
     Keyword arguments:
     level -- logging level (from logging.debug to logging.critical)
     """
-    global __LOG__
+    global _logger
     logger = logging.getLogger("Gantt")
     logger.setLevel(level)
     fh = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-    __LOG__ = logging.getLogger("Gantt")
+    _logger = logging.getLogger("Gantt")
     return
 
 
@@ -270,7 +271,7 @@ class GroupOfResources:
         name -- name given to the resource (id)
         fullname -- long name given to the resource
         """
-        __LOG__.debug("** GroupOfResources::__init__ {0}".format({"name": name}))
+        _logger.debug("** GroupOfResources::__init__ {0}".format({"name": name}))
         self.name = name
         self.vacations = []
         if fullname is not None:
@@ -304,7 +305,7 @@ class GroupOfResources:
         dfrom -- datetime.date beginning of vacation
         dto -- datetime.date end of vacation
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Resource::add_vacations {0}".format(
                 {"name": self.name, "dfrom": dfrom, "dto": dto}
             )
@@ -319,7 +320,7 @@ class GroupOfResources:
         """
         Returns the number of resources
         """
-        __LOG__.debug(
+        _logger.debug(
             "** GroupOfResources::nb_elements ({0})".format({"name": self.name})
         )
         return len(self.resources)
@@ -334,7 +335,7 @@ class GroupOfResources:
         """
         # Global VACATIONS
         if date_to_check in VACATIONS:
-            __LOG__.debug(
+            _logger.debug(
                 "** GroupOfResources::is_available {0} : False (global vacation)".format(
                     {"name": self.name, "date": date_to_check}
                 )
@@ -345,7 +346,7 @@ class GroupOfResources:
         for h in self.vacations:
             data_from, data_to = h
             if data_from <= date_to_check <= data_to:
-                __LOG__.debug(
+                _logger.debug(
                     "** GroupOfResources::is_available {0} : False (group vacation)".format(
                         {"name": self.name, "date": date_to_check}
                     )
@@ -355,14 +356,14 @@ class GroupOfResources:
         # Test if at least one resource is available
         for r in self.resources:
             if r.is_available(date_to_check):
-                __LOG__.debug(
+                _logger.debug(
                     "** GroupOfResources::is_available {0} : True {1}".format(
                         {"name": self.name, "date": date_to_check}, r.name
                     )
                 )
                 return True
 
-        __LOG__.debug(
+        _logger.debug(
             "** GroupOfResources::is_available {0} : False".format(
                 {"name": self.name, "date": date_to_check}
             )
@@ -422,7 +423,7 @@ class GroupOfResources:
 
             elif len(affected_days[d]) > self.nb_elements():
                 overcharged_days[d] = affected_days[d]
-                __LOG__.warning(
+                _logger.warning(
                     '** GroupOfResources "{2}" has more than {3} tasks on day {0} / {1}'.format(
                         d, affected_days[d], self.name, self.nb_elements()
                     )
@@ -461,7 +462,7 @@ class Resource:
         """
         Init a resource
         """
-        __LOG__.debug("** Resource::__init__ {0}".format({"name": name}))
+        _logger.debug("** Resource::__init__ {0}".format({"name": name}))
         self.name = name
         self.color = color
         if fullname is not None:
@@ -484,7 +485,7 @@ class Resource:
             from_date (date): Beginning of vacation
             to_date (date): End of vacation
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Resource::add_vacations {0}".format(
                 {"name": self.name, "from_date": from_date, "to_date": to_date}
             )
@@ -498,7 +499,7 @@ class Resource:
         """
         Returns the number of resources, 1 here
         """
-        __LOG__.debug("** Resource::nb_elements ({0})".format({"name": self.name}))
+        _logger.debug("** Resource::nb_elements ({0})".format({"name": self.name}))
         return 1
 
     def is_available(self, date_of_this_day):
@@ -511,7 +512,7 @@ class Resource:
         """
         # global VACATIONS
         if date_of_this_day in VACATIONS:
-            __LOG__.debug(
+            _logger.debug(
                 "** Resource::is_available {0} : False (global vacation)".format(
                     {"name": self.name, "date": date_of_this_day}
                 )
@@ -522,8 +523,8 @@ class Resource:
         for g in self.member_of_groups:
             for h in g.vacations:
                 date_from, date_to = h
-                if date_from <= date <= date_to:
-                    __LOG__.debug(
+                if date_from <= date_of_this_day <= date_to:
+                    _logger.debug(
                         "** Resource::is_available {0} : False (Group {1})".format(
                             {"name": self.name, "date": date}, g.name
                         )
@@ -533,14 +534,14 @@ class Resource:
         # Resource vacation
         for h in self.vacations:
             date_from, date_to = h
-            if date_from <= date <= date_to:
-                __LOG__.debug(
+            if date_from <= date_of_this_day <= date_to:
+                _logger.debug(
                     "** Resource::is_available {0} : False".format(
                         {"name": self.name, "date": date}
                     )
                 )
                 return False
-        __LOG__.debug(
+        _logger.debug(
             "** Resource::is_available {0} : True".format(
                 {"name": self.name, "date": date}
             )
@@ -583,16 +584,16 @@ class Resource:
             try:
                 task_start_date = t.start_date
             except TypeError as err:
-                __LOG__.warning(err)
-                __LOG__.warning(
+                _logger.warning(err)
+                _logger.warning(
                     f"Could not get initial start date for task {t.fullname}. Is is properly defined?"
                 )
                 raise
             try:
                 task_end_date = t.end_date
             except TypeError as err:
-                __LOG__.warning(err)
-                __LOG__.warning(
+                _logger.warning(err)
+                _logger.warning(
                     f"Could not get end date for task {t.fullname}. Is is properly defined?"
                 )
                 raise
@@ -606,8 +607,8 @@ class Resource:
 
                     task_start_date += datetime.timedelta(days=1)
             except TypeError as err:
-                __LOG__.warning(err)
-                __LOG__.warning(
+                _logger.warning(err)
+                _logger.warning(
                     f"Failing for task {t.fullname} with {task_start_date} (init {t.start_date} and {t.end_date}"
                 )
                 raise
@@ -623,7 +624,7 @@ class Resource:
         for d in ke:
             if len(affected_days[d]) > 1:
                 overcharged_days[d] = affected_days[d]
-                __LOG__.warning(
+                _logger.warning(
                     '** Resource "{2}" has more than one task on day {0} / {1}'.format(
                         d, affected_days[d], self.name
                     )
@@ -645,14 +646,14 @@ class Resource:
         while current_day <= to_date:
             if current_day.weekday() not in _not_worked_days():
                 if not self.is_available(current_day):
-                    __LOG__.debug(
+                    _logger.debug(
                         '** Ressource "{0}" is not available on day {1} (vacation)'.format(
                             self.name, current_day
                         )
                     )
                     return []
                 if current_day in non_vacant_days:
-                    __LOG__.debug(
+                    _logger.debug(
                         '** Ressource "{0}" is not available on day {1} (other task : {2})'.format(
                             self.name, current_day, non_vacant_days[current_day]
                         )
@@ -713,7 +714,7 @@ class Task:
         """
         Constructor for the class Task
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Task::__init__ {0}".format(
                 {
                     "name": name,
@@ -752,7 +753,7 @@ class Task:
 
         # check limits (2 must-be set on 4) or scheduling is defined by duration and dependencies
         if none_count != 1 and (self.duration is None or depends_of is None):
-            __LOG__.error(
+            _logger.error(
                 '** Task "{1}" must be defined by two of three limits ({0})'.format(
                     {
                         "start": self._start,
@@ -772,7 +773,7 @@ class Task:
 
         if resources is not None:
             if not isinstance(resources, list):
-                __LOG__.debug(
+                _logger.debug(
                     "** Task::__init__ {0} - resources is not a list".format(name)
                 )
             self.resources = resources
@@ -827,7 +828,7 @@ class Task:
         return self._stop
 
     @stop.setter
-    def start(self, value):
+    def stop(self, value):
         self._stop = value
 
     @property
@@ -839,7 +840,7 @@ class Task:
         if self._cache_start_date is not None:
             return self._cache_start_date
 
-        __LOG__.debug("** Task::start_date ({0})".format(self.name))
+        _logger.debug("** Task::start_date ({0})".format(self.name))
         if self._start is not None:
             # start date set, calculate beginning
             if self.depends_of is None:
@@ -853,7 +854,7 @@ class Task:
 
                 if start > self._start:
                     # if the start date is changed, warn
-                    __LOG__.warning(
+                    _logger.warning(
                         '** Due to vacations, Task "{0}", will not start on date {1} but {2}'.format(
                             self.fullname, self._start, start
                         )
@@ -889,7 +890,7 @@ class Task:
 
                 if prev_task_end > self._start:
                     # if the start date is changed, warn
-                    __LOG__.warning(
+                    _logger.warning(
                         '** Due to dependencies, Task "{0}", will not start on date {1} but {2}'.format(
                             self.fullname, self._start, prev_task_end
                         )
@@ -922,7 +923,7 @@ class Task:
                     depend_start_date = start
 
                     if depend_start_date > current_day:
-                        __LOG__.error(
+                        _logger.error(
                             '** Due to dependencies, Task "{0}", could not be finished on time (should start as last '
                             "on {1} but will start on {2})".format(
                                 self.fullname, current_day, depend_start_date
@@ -1004,7 +1005,7 @@ class Task:
                 depend_start_date = start
 
                 if depend_start_date > current_day:
-                    __LOG__.error(
+                    _logger.error(
                         f"** Due to dependencies, Task '{self.full_name}', could not be finished on time (should start "
                         f"as last on {current_day} but will start on {depend_start_date})"
                     )
@@ -1017,7 +1018,7 @@ class Task:
                 self._cache_start_date = current_day
 
         if self._cache_start_date != self._start:
-            __LOG__.warning(
+            _logger.warning(
                 '** starting date for task "{0}" is changed from {1} to {2}'.format(
                     self.fullname, self._start, self._cache_start_date
                 )
@@ -1047,7 +1048,7 @@ class Task:
         if self._cache_end_date is not None:
             return self._cache_end_date
 
-        __LOG__.debug("** Task::end_date ({0})".format(self.name))
+        _logger.debug("** Task::end_date ({0})".format(self.name))
 
         if self.duration is None or self._start is None and self._stop is not None:
             real_end = self._stop
@@ -1085,7 +1086,7 @@ class Task:
                 self._cache_end_date = self.start_date + datetime.timedelta(
                     days=real_duration
                 )
-                __LOG__.warning(
+                _logger.warning(
                     '** task "{0}" will not be finished on time : end_date is changed from {1} to {2}'.format(
                         self.fullname, self._stop, self._cache_end_date
                     )
@@ -1094,7 +1095,7 @@ class Task:
 
             self._cache_end_date = real_end
             if real_end != self._stop:
-                __LOG__.warning(
+                _logger.warning(
                     '** task "{0}" will not be finished on time : end_date is changed from {1} to {2}'.format(
                         self.fullname, self._stop, self._cache_end_date
                     )
@@ -1158,7 +1159,7 @@ class Task:
         Returns:
             Container,  number of lines: the svg containter with the start line
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Task::svg ({0})".format(
                 {
                     "name": self.name,
@@ -1172,7 +1173,7 @@ class Task:
         )
 
         if not self.display:
-            __LOG__.debug("** Task::svg ({0}) display off".format({"name": self.name}))
+            _logger.debug("** Task::svg ({0}) display off".format({"name": self.name}))
             return None, 0
 
         add_modified_begin_mark = False
@@ -1283,9 +1284,9 @@ class Task:
 
         self.drawn_y_coord = y
 
-        svg = Group(id=re.sub(r"[ ,'/()]", "_", self.name))
+        svg = svg_Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         svg.add(
-            Rect(
+            svg_Rect(
                 insert=((x + 1 + offset) * mm, (y + 1) * mm),
                 size=((d - 2) * mm, 8 * mm),
                 fill=color,
@@ -1295,7 +1296,7 @@ class Task:
             )
         )
         svg.add(
-            Rect(
+            svg_Rect(
                 insert=((x + 1 + offset) * mm, (y + 6) * mm),
                 size=((d - 2) * mm, 3 * mm),
                 fill="#909090",
@@ -1307,7 +1308,7 @@ class Task:
 
         if add_modified_begin_mark:
             svg.add(
-                Rect(
+                svg_Rect(
                     insert=((x + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 4 * mm),
                     fill="#0000FF",
@@ -1319,7 +1320,7 @@ class Task:
 
         if add_modified_end_mark:
             svg.add(
-                Rect(
+                svg_Rect(
                     insert=((x + d - 7 + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 4 * mm),
                     fill="#0000FF",
@@ -1331,7 +1332,7 @@ class Task:
 
         if add_begin_mark:
             svg.add(
-                Rect(
+                svg_Rect(
                     insert=((x + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 8 * mm),
                     fill="#000000",
@@ -1342,7 +1343,7 @@ class Task:
             )
         if add_end_mark:
             svg.add(
-                Rect(
+                svg_Rect(
                     insert=((x + d - 7 + 1) * mm, (y + 1) * mm),
                     size=(5 * mm, 8 * mm),
                     fill="#000000",
@@ -1355,7 +1356,7 @@ class Task:
         if self.percent_done is not None and self.percent_done > 0:
             # Bar shade
             svg.add(
-                Rect(
+                svg_Rect(
                     insert=((x + 1 + offset) * mm, (y + 6) * mm),
                     size=(((d - 2) * self.percent_done / 100) * mm, 3 * mm),
                     fill="#F08000",
@@ -1371,7 +1372,7 @@ class Task:
             tx = 5
 
         svg.add(
-            Text(
+            svg_Text(
                 self.fullname,
                 insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
@@ -1385,7 +1386,7 @@ class Task:
         if self.resources is not None:
             t = " / ".join(["{0}".format(r.name) for r in self.resources])
             svg.add(
-                Text(
+                svg_Text(
                     "{0}".format(t),
                     insert=(tx * mm, (y + 8.5) * mm),
                     fill="purple",
@@ -1406,13 +1407,13 @@ class Task:
         Keyword arguments:
         prj -- Project object to check against
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Task::svg_dependencies ({0})".format({"name": self.name, "prj": prj})
         )
         if self.depends_of is None:
             return None
         else:
-            svg = Group()
+            svg = svg_Group()
             for t in self.depends_of:
                 if isinstance(t, Milestone):
                     if not (
@@ -1593,14 +1594,14 @@ class Task:
         """
         Returns the number of task, 1 here
         """
-        __LOG__.debug("** Task::nb_elements ({0})".format({"name": self.name}))
+        _logger.debug("** Task::nb_elements ({0})".format({"name": self.name}))
         return 1
 
     def _reset_coord(self):
         """
         Reset cached elements of task
         """
-        __LOG__.debug("** Task::reset_coord ({0})".format({"name": self.name}))
+        _logger.debug("** Task::reset_coord ({0})".format({"name": self.name}))
         self.drawn_x_begin_coord = None
         self.drawn_x_end_coord = None
         self.drawn_y_coord = None
@@ -1615,7 +1616,7 @@ class Task:
         Keyword arguments:
         task -- Task object
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Task::is_in_project ({0})".format({"name": self.name, "task": task})
         )
         if task is self:
@@ -1640,20 +1641,21 @@ class Task:
         if self.get_resources() is None:
             return conflicts
         for r in self.get_resources():
-            cday = self.start_date
-            while cday <= self.end_date:
-                if cday.weekday() not in _not_worked_days() and not r.is_available(
-                    cday
+            current_day = self.start_date
+            while current_day <= self.end_date:
+                if (
+                    current_day.weekday() not in _not_worked_days()
+                    and not r.is_available(current_day)
                 ):
                     conflicts.append(
-                        {"resource": r.name, "date": cday, "task": self.name}
+                        {"resource": r.name, "date": current_day, "task": self.name}
                     )
-                    __LOG__.warning(
+                    _logger.warning(
                         '** Caution resource "{0}" is affected on task "{2}" during vacations on day {1}'.format(
-                            r.name, cday, self.fullname
+                            r.name, current_day, self.fullname
                         )
                     )
-                cday += datetime.timedelta(days=1)
+                current_day += datetime.timedelta(days=1)
         return conflicts
 
     def csv(self, csv=None):
@@ -1721,7 +1723,7 @@ class Milestone(Task):
             display=display,
             parent=parent,
         )
-        __LOG__.debug(
+        _logger.debug(
             "** Milestone::__init__ {0}".format(
                 {"name": name, "start": start, "depends_of": depends_of}
             )
@@ -1756,7 +1758,7 @@ class Milestone(Task):
         Returns the last day of the milestone, either the one which was given at milestone
         creation or the one calculated after checking dependencies
         """
-        __LOG__.debug("** Milestone::end_date ({0})".format(self.name))
+        _logger.debug("** Milestone::end_date ({0})".format(self.name))
         # return self.start_date - datetime.timedelta(days=1)
         return self.start_date
 
@@ -1788,7 +1790,7 @@ class Milestone(Task):
         title_align_on_left -- boolean, align milestone title on left
         offset -- X offset from image border to start of drawing zone
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Milestone::svg ({0})".format(
                 {
                     "name": self.name,
@@ -1802,7 +1804,7 @@ class Milestone(Task):
         )
 
         if not self.display:
-            __LOG__.debug(
+            _logger.debug(
                 "** Milestone::svg ({0}) display off".format({"name": self.name})
             )
             return None, 0
@@ -1890,7 +1892,7 @@ class Milestone(Task):
         # insert=((x+1)*mm, (y+1)*mm),
         # size=((d-2)*mm, 8*mm),
 
-        svg = Group(id=re.sub(r"[ ,'/()]", "_", self.name))
+        svg = svg_Group(id=re.sub(r"[ ,'/()]", "_", self.name))
         # 3.543307 is for conversion from mm to pt units !
         svg.add(
             svgwrite.shapes.Polygon(
@@ -1913,7 +1915,7 @@ class Milestone(Task):
             tx = 5
 
         svg.add(
-            Text(
+            svg_Text(
                 self.fullname,
                 insert=(tx * mm, (y + 5) * mm),
                 fill=_font_attributes()["fill"],
@@ -1934,7 +1936,7 @@ class Milestone(Task):
         Keyword arguments:
         prj -- Project object to check against
         """
-        __LOG__.debug(
+        _logger.debug(
             "** Milestone::svg_dependencies ({0})".format(
                 {"name": self.name, "prj": prj}
             )
@@ -1942,7 +1944,7 @@ class Milestone(Task):
         if self.depends_of is None:
             return None
         else:
-            svg = Group()
+            svg = svg_Group()
             for t in self.depends_of:
                 if isinstance(t, Milestone):
                     if not (
@@ -2147,13 +2149,13 @@ class Project:
             scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
             offset (float): X offset from image border to start of drawing zone
         """
-        dwg = Group()
+        dwg = svg_Group()
 
         cal = {0: "Mo", 1: "Tu", 2: "We", 3: "Th", 4: "Fr", 5: "Sa", 6: "Su"}
 
         maxx += 1
 
-        vlines = dwg.add(Group(id="vlines", stroke="lightgray"))
+        vlines = dwg.add(svg_Group(id="vlines", stroke="lightgray"))
         for x in range(maxx):
             vlines.add(
                 svgwrite.shapes.Line(
@@ -2174,7 +2176,7 @@ class Project:
 
             if today is not None and today == jour:
                 vlines.add(
-                    Rect(
+                    svg_Rect(
                         insert=((x + 0.4 + offset) * cm, 2 * cm),
                         size=(0.2 * cm, maxy * cm),
                         fill="#76e9ff",
@@ -2192,7 +2194,7 @@ class Project:
                     start_date + datetime.timedelta(days=x)
                 ) in VACATIONS:
                     vlines.add(
-                        Rect(
+                        svg_Rect(
                             insert=((x + offset / 10) * cm, 2 * cm),
                             size=(1 * cm, maxy * cm),
                             fill="gray",
@@ -2204,7 +2206,7 @@ class Project:
 
                 # Current day
                 vlines.add(
-                    Text(
+                    svg_Text(
                         "{1} {0:02}".format(jour.day, cal[jour.weekday()][0]),
                         insert=((x * 10 + 1 + offset) * mm, 19 * mm),
                         fill="black",
@@ -2217,7 +2219,7 @@ class Project:
                 # Year
                 if jour.day == 1 and jour.month == 1:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2231,7 +2233,7 @@ class Project:
                 # Month name
                 if jour.day == 1:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0}".format(jour.strftime("%B")),
                             insert=((x * 10 + 1 + offset) * mm, 10 * mm),
                             fill="#800000",
@@ -2245,7 +2247,7 @@ class Project:
                 # Week number
                 if jour.weekday() == 0:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0:02}".format(jour.isocalendar()[1]),
                             insert=((x * 10 + 1 + offset) * mm, 15 * mm),
                             fill="black",
@@ -2261,7 +2263,7 @@ class Project:
                 # Year
                 if jour.isocalendar()[1] == 1 and jour.month == 1:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2275,7 +2277,7 @@ class Project:
                 # Month name
                 if jour.day <= 7:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0}".format(jour.strftime("%B")),
                             insert=((x * 10 + 1 + offset) * mm, 10 * mm),
                             fill="#800000",
@@ -2287,7 +2289,7 @@ class Project:
                         )
                     )
                 vlines.add(
-                    Text(
+                    svg_Text(
                         "{0:02}".format(jour.isocalendar()[1]),
                         insert=((x * 10 + 1 + offset) * mm, 15 * mm),
                         fill="black",
@@ -2302,7 +2304,7 @@ class Project:
             elif scale == DRAW_WITH_MONTHLY_SCALE:
                 # Month number
                 vlines.add(
-                    Text(
+                    svg_Text(
                         "{0}".format(jour.strftime("%m")),
                         insert=((x * 10 + 1 + offset) * mm, 19 * mm),
                         fill="black",
@@ -2315,7 +2317,7 @@ class Project:
                 # Year
                 if jour.month == 1:
                     vlines.add(
-                        Text(
+                        svg_Text(
                             "{0}".format(jour.year),
                             insert=((x * 10 + 1 + offset) * mm, 5 * mm),
                             fill="#400000",
@@ -2339,7 +2341,7 @@ class Project:
             )
         )
 
-        hlines = dwg.add(Group(id="hlines", stroke="lightgray"))
+        hlines = dwg.add(svg_Group(id="hlines", stroke="lightgray"))
 
         dwg.add(
             svgwrite.shapes.Line(
@@ -2397,7 +2399,7 @@ class Project:
             * If start or end are given, use them as reference, otherwise use project first and last day
         """
         if len(self.tasks) == 0:
-            __LOG__.warning("** Empty project : {0}".format(self.name))
+            _logger.warning("** Empty project : {0}".format(self.name))
             return
 
         self._reset_coord()
@@ -2419,12 +2421,12 @@ class Project:
             end_date += datetime.timedelta(weeks=margin_right)
 
         if start_date > end_date:
-            __LOG__.critical(
+            _logger.critical(
                 "start date {0} > end_date {1}".format(start_date, end_date)
             )
             sys.exit(1)
 
-        svg_container_group = Group()
+        svg_container_group = svg_Group()
         psvg, pheight = self.svg(
             prev_y=2,
             start=start_date,
@@ -2482,7 +2484,7 @@ class Project:
 
         dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
-            Rect(
+            svg_Rect(
                 insert=(0 * cm, 0 * cm),
                 size=((max_x_grid_lines + 1 + offset / 10) * cm, (pheight + 3) * cm),
                 fill="white",
@@ -2523,6 +2525,7 @@ class Project:
         conflicts for resources
 
         Args:
+            color_per_taks (bool):  Use color per task
             filename (str): filename to save to OR file object
             today (date): Day marked as a reference
             start (date): First day to draw
@@ -2533,11 +2536,10 @@ class Project:
             scale (str): Drawing scale (d: days, w: weeks, m: months, q: quarterly)
             title_align_on_left (bool): Align task title on left
             offset (float): X offset from image border to start of drawing zone
-            color_per_task (bool): Give a color per task
         """
 
         if scale != DRAW_WITH_DAILY_SCALE:
-            __LOG__.warning(
+            _logger.warning(
                 "** Will draw ressource graph at day scale, not {0} as requested".format(
                     scale
                 )
@@ -2545,7 +2547,7 @@ class Project:
             scale = DRAW_WITH_DAILY_SCALE
 
         if len(self.tasks) == 0:
-            __LOG__.warning("** Empty project : {0}".format(self.name))
+            _logger.warning("** Empty project : {0}".format(self.name))
             return
 
         self._reset_coord()
@@ -2561,7 +2563,7 @@ class Project:
             end_date = end
 
         if start_date > end_date:
-            __LOG__.critical(
+            _logger.critical(
                 "start date {0} > end_date {1}".format(start_date, end_date)
             )
             sys.exit(1)
@@ -2585,13 +2587,13 @@ class Project:
 
         conflicts_vacations = _flatten(conflicts_vacations)
 
-        ldwg = svgwrite.container.Group()
+        ldwg = svg_Group()
 
         if not one_line_for_tasks:
             ldwg.add(
                 svgwrite.shapes.Line(
-                    start=((0) * cm, (2) * cm),
-                    end=((number_of_x_grid_lines + 1 + offset / 10) * cm, (2) * cm),
+                    start=(0 * cm, 2 * cm),
+                    end=((number_of_x_grid_lines + 1 + offset / 10) * cm, 2 * cm),
                     stroke="black",
                 )
             )
@@ -2604,9 +2606,9 @@ class Project:
             if tag_filter != "" and r.name not in tag_filter:
                 continue
 
-            ress = svgwrite.container.Group()
+            ress = svg_Group()
             try:
-                res_text = Text(
+                res_text = svg_Text(
                     "{0}".format(r.fullname),
                     insert=(3 * mm, (line_number * 10 + 7) * mm),
                     fill=_font_attributes()["fill"],
@@ -2616,7 +2618,7 @@ class Project:
                     font_size=15 + 3,
                 )
             except ValueError as err:
-                __LOG__.warning(f"Failed making text object for {r.fullname}")
+                _logger.warning(f"Failed making text object for {r.fullname}")
             else:
                 ress.add(res_text)
 
@@ -2625,20 +2627,21 @@ class Project:
             conflict_display_line = line_number
             line_number += 1
 
-            vac = svgwrite.container.Group()
-            conflicts = svgwrite.container.Group()
-            cday = start_date
-            while cday <= end_date:
+            vac = svg_Group()
+            conflicts = svg_Group()
+            current_day = start_date
+            while current_day <= end_date:
                 # Vacations
                 if (
-                    cday.weekday() not in _not_worked_days()
-                    and cday not in VACATIONS
-                    and not r.is_available(cday)
+                    current_day.weekday() not in _not_worked_days()
+                    and current_day not in VACATIONS
+                    and not r.is_available(current_day)
                 ):
                     vac.add(
-                        Rect(
+                        svg_Rect(
                             insert=(
-                                ((cday - start_date).days * 10 + 1 + offset) * mm,
+                                ((current_day - start_date).days * 10 + 1 + offset)
+                                * mm,
                                 (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
@@ -2651,14 +2654,15 @@ class Project:
 
                 # Overcharge
                 if (
-                    cday.weekday() not in _not_worked_days()
-                    and cday not in VACATIONS
-                    and cday in overcharged_days
+                    current_day.weekday() not in _not_worked_days()
+                    and current_day not in VACATIONS
+                    and current_day in overcharged_days
                 ):
                     conflicts.add(
-                        Rect(
+                        svg_Rect(
                             insert=(
-                                ((cday - start_date).days * 10 + 1 + 4 + offset) * mm,
+                                ((current_day - start_date).days * 10 + 1 + 4 + offset)
+                                * mm,
                                 (conflict_display_line * 10 + 1) * mm,
                             ),
                             size=(4 * mm, 8 * mm),
@@ -2669,7 +2673,7 @@ class Project:
                         )
                     )
 
-                cday += datetime.timedelta(days=1)
+                current_day += datetime.timedelta(days=1)
 
             nb_tasks = 0
             for task in self.get_tasks():
@@ -2700,7 +2704,7 @@ class Project:
             if nb_tasks == 0:
                 line_number -= 1
             elif nb_tasks > 0:
-                __LOG__.info(r.fullname, nb_tasks)
+                _logger.info(r.fullname, nb_tasks)
                 ldwg.add(ress)
                 ldwg.add(vac)
                 ldwg.add(conflicts)
@@ -2730,7 +2734,7 @@ class Project:
 
         dwg = MySVGWriteDrawingWrapper(filename, debug=True)
         dwg.add(
-            Rect(
+            svg_Rect(
                 insert=(0 * cm, 0 * cm),
                 size=(
                     (number_of_x_grid_lines + 1 + offset / 10) * cm,
@@ -2767,7 +2771,7 @@ class Project:
         Returns first day of the project
         """
         if len(self.tasks) == 0:
-            __LOG__.warning("** Empty project : {0}".format(self.name))
+            _logger.warning("** Empty project : {0}".format(self.name))
             return datetime.date(9999, 1, 1)
 
         first = self.tasks[0].start_date
@@ -2782,7 +2786,7 @@ class Project:
         Returns last day of the project
         """
         if len(self.tasks) == 0:
-            __LOG__.warning("** Empty project : {0}".format(self.name))
+            _logger.warning("** Empty project : {0}".format(self.name))
             return datetime.date(1970, 1, 1)
 
         last = self.tasks[0].end_date
@@ -2831,7 +2835,7 @@ class Project:
 
         cy = prev_y + 1 * (self.name != "")
 
-        container_project = Group()
+        container_project = svg_Group()
 
         for task in self.tasks:
             if isinstance(task, Task):
@@ -2854,7 +2858,7 @@ class Project:
                 container_project.add(trepr)
                 cy += theight
 
-        fprj = Group()
+        fprj = svg_Group()
         prj_bar = False
         # if margin_left is not None:
         #     start += datetime.timedelta(days=margin_left)
@@ -2877,7 +2881,7 @@ class Project:
                     font_weight = "normal"
                     font_size = 13
                 fprj.add(
-                    Text(
+                    svg_Text(
                         "{0}".format(self.name),
                         insert=(
                             (6 * level + 3 + offset) * mm,
@@ -2893,7 +2897,7 @@ class Project:
                 )
 
                 fprj.add(
-                    Rect(
+                    svg_Rect(
                         insert=((6 * level + 0.8 + offset) * mm, (prev_y + 0.5) * cm),
                         size=(0.2 * cm, ((cy - prev_y - 1) + 0.4) * cm),
                         fill=self.color,
@@ -2922,7 +2926,7 @@ class Project:
         Keyword arguments:
         prj -- Project object to check against
         """
-        svg = Group()
+        svg = svg_Group()
         for t in self.tasks:
             trepr = t.svg_dependencies(prj)
             if trepr is not None:
@@ -3007,7 +3011,7 @@ class Project:
         csv -- string, filename to save to OR file object OR None
         """
         if len(self.tasks) == 0:
-            __LOG__.warning("** Empty project : {0}".format(self.name))
+            _logger.warning("** Empty project : {0}".format(self.name))
             return
 
         if csv is not None:
