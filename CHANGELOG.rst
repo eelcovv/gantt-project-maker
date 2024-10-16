@@ -2,6 +2,10 @@
 Changelog
 =========
 
+Version 0.4.4
+=============
+- Improved code and added some more tests
+
 Version 0.4.3
 =============
 - Added new Excel format output to collect all the projects per contributor
